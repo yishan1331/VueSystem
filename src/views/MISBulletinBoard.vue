@@ -41,6 +41,8 @@
       :busy="tableBusy"
       :items="items"
       :fields="fields"
+      :current-page="currentPage"
+      :per-page="perPage"
       @row-clicked="onRowClicked"
       head-variant="light"
       v-if="items.length != 0"
@@ -52,6 +54,17 @@
         </div>
       </template>
     </b-table>
+    <b-row class="justify-content-md-center" v-if="items.length != 0">
+      <b-col cols="12" md="4">
+        <b-pagination
+          v-model="currentPage"
+          :total-rows="totalRows"
+          :per-page="perPage"
+          align="fill"
+          size="sm"
+        ></b-pagination>
+      </b-col>
+    </b-row>
     <alertModal />
   </div>
 </template>
@@ -87,12 +100,18 @@ export default {
       boardcontent: "",
       boardannex: {},
       boardtime: "",
-      textleft: false
+      textleft: false,
+      totalRows: 1,
+      currentPage: 1,
+      perPage: 5
     };
   },
   created: function() {
     this.SetCommonQueryData();
     this.LatestBulletinDataQuery();
+  },
+  mounted: function() {
+    this.totalRows = this.items.length;
   },
   components: {
     alertModal,
@@ -162,6 +181,7 @@ export default {
           }
         }
         vm.items = itemsarray;
+        vm.totalRows = itemsarray.length;
       }
     }
   },
