@@ -7,25 +7,27 @@
         <div class="card-header" style="font-size:20px">公告內容</div>
         <div class="card-body">
           <h5 class="card-title">{{ boardtitle }}</h5>
-          <p
-            class="card-text"
-            v-html="boardcontent"
-            :class="{ textleft: textleft }"
-          ></p>
+          <p class="card-text" v-html="boardcontent" :class="{ textleft: textleft }"></p>
           <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
         </div>
         <div class="card-footer text-muted">
           <div v-show="Object.keys(boardannex).length > 0">
             <span>附件:</span>
-            <b-button
-              pill
-              variant="outline-secondary"
+            <div
               v-for="(item, key,index) in boardannex"
-              target="_blank"
               :key="index"
-              @click="onDownload(item,key)"
-              style="margin-right:15px"
-            >{{key}}</b-button>
+              style="display:inline-block;position: relative;margin-right:15px;margin-bottom:10px"
+            >
+              <b-button
+                pill
+                variant="outline-info"
+                target="_blank"
+                @click.prevent="previewfile(item)"
+              >{{key}}</b-button>
+              <div class="downloadfilebtn" @click="onDownload(item,key)" target="_blank">
+                <font-awesome-icon :icon="['fas', 'download']" size="lg" />
+              </div>
+            </div>
           </div>
           <small class="mt-2">發佈日期: {{boardtime}}</small>
         </div>
@@ -51,7 +53,6 @@
       </template>
     </b-table>
     <alertModal />
-    <font-awesome-icon :icon="['fas', 'fa-download']" size="lg" />
   </div>
 </template>
 
@@ -144,9 +145,9 @@ export default {
             if (!setNewBulletin) {
               //push到最新公告區
               vm.boardtitle = vm.queryResponse[i]["title"];
-              if(vm.queryResponse[i]["content"].length > 110){
+              if (vm.queryResponse[i]["content"].length > 110) {
                 vm.textleft = true;
-              }else{
+              } else {
                 vm.textleft = false;
               }
               vm.boardcontent = vm.queryResponse[i]["content"];
@@ -207,7 +208,7 @@ export default {
             vm.boardtitle = result["QueryTableData"][0]["title"];
             if (result["QueryTableData"][0]["content"].length > 110) {
               vm.textleft = true;
-            }else{
+            } else {
               vm.textleft = false;
             }
             vm.boardcontent = result["QueryTableData"][0]["content"];
@@ -234,9 +235,9 @@ export default {
       var vm = this;
       vm.boardannex = {};
       vm.boardtitle = items.title;
-      if(items.content.length > 110){
+      if (items.content.length > 110) {
         vm.textleft = true;
-      }else{
+      } else {
         vm.textleft = false;
       }
       vm.boardcontent = items.content;
@@ -264,6 +265,15 @@ export default {
         fileLink.click();
       });
     },
+    //檔案預覽開啟頁面
+    previewfile(filepath) {
+      window.open(
+        filepath,
+        "sapidoSystem",
+        "sapidoSystem",
+        "statusbar=no,scrollbars=yes,status=yes,resizable=yes"
+      );
+    },
     //data reset
     reset(keep) {
       var def = this.$options.data();
@@ -284,6 +294,17 @@ export default {
 }
 .textleft {
   text-align: left;
-  text-indent:35px
+  text-indent: 35px;
+}
+.downloadfilebtn {
+  position: absolute;
+  top: 20px;
+  cursor: pointer;
+  right: -10px;
+  width: 21.328px;
+  height: 21.328px;
+}
+.downloadfilebtn:hover {
+  background: #d0d0d0;
 }
 </style>

@@ -8,26 +8,14 @@ import App from "./App";
 import router from "./router";
 import store from "./store";
 
-// import { library } from "@fortawesome/fontawesome-svg-core";
+import { library } from "@fortawesome/fontawesome-svg-core";
 // import { faSave } from "@fortawesome/free-regular-svg-icons";
-// import {
-//   faPhone,
-//   faHammer,
-//   faExclamationCircle,
-//   faEnvelopeOpen,
-//   faCalendarTimes
-// } from "@fortawesome/free-solid-svg-icons";
-// import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { faDownload } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
-// library.add(
-//   faPhone,
-//   faSave,
-//   faHammer,
-//   faExclamationCircle,
-//   faEnvelopeOpen,
-//   faCalendarTimes
-// );
-// Vue.component("font-awesome-icon", FontAwesomeIcon);
+library.add(faDownload);
+Vue.component("font-awesome-icon", FontAwesomeIcon);
+
 Vue.config.productionTip = false;
 Vue.use(VueAxios, axios);
 Vue.use(BootstrapVue);

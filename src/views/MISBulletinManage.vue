@@ -226,7 +226,7 @@
                 v-else
                 v-for="(item, key,index) in modmodalcontent.boardannex"
                 :key="index"
-                style="display:inline-block;position: relative;margin-right:15px"
+                style="display:inline-block;position: relative;margin-right:15px;margin-bottom:10px"
               >
                 <b-button
                   pill
@@ -789,7 +789,7 @@ export default {
 h5 {
   margin: 0 auto;
 }
-/*關閉圖示*/
+/*刪除圖示*/
 .deletefilebtn {
   position: absolute;
   left: -10px;
