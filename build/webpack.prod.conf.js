@@ -35,7 +35,12 @@ const webpackConfig = merge(baseWebpackConfig, {
     new UglifyJsPlugin({
       uglifyOptions: {
         compress: {
-          warnings: false
+          warnings: false,
+          //Yishan 01212019 Add
+          //過濾console.log-start
+          drop_console: true,
+          pure_funcs: ['console.log']
+          //過濾console.log-end
         }
       },
       sourceMap: config.build.productionSourceMap,
