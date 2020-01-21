@@ -31,7 +31,7 @@ function LatestBulletinDataQuery($params, $returnData)
         'fields' => "",
         'where' => $whereAttr,
         'orderby' => ["desc", "lastUpdateTime"],
-        'limit' => ["0", "1"],
+        'limit' => ["0", "5"],
         'symbols' => $symbols
     );
 

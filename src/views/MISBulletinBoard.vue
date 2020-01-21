@@ -103,7 +103,12 @@ export default {
       textleft: false,
       totalRows: 1,
       currentPage: 1,
-      perPage: 5
+      perPage: 5,
+      categorytoCH: {
+        network: "網路",
+        PC: "個人電腦",
+        system: "系統"
+      }
     };
   },
   created: function() {
@@ -139,19 +144,13 @@ export default {
           vm.settimeoutalertModal();
           return;
         }
-        var setNewBulletin = false;
-        var categorytoCH = {};
-        categorytoCH = {
-          network: "網路",
-          PC: "個人電腦",
-          system: "系統"
-        };
         var itemsarray = [];
         for (var i = 0; i < vm.queryResponse.length; i++) {
+          vm.setLatestBulletin(vm.queryResponse[0]);
           var itemsobj = {};
           if (vm.queryResponse[i]["showhide"] == 1) {
             itemsobj["category"] =
-              categorytoCH[vm.queryResponse[i]["category"]];
+              vm.categorytoCH[vm.queryResponse[i]["category"]];
             itemsobj["title"] = vm.queryResponse[i]["title"];
             itemsobj["releasedate"] = vm.queryResponse[i]["lastUpdateTime"];
             itemsobj["content"] = vm.queryResponse[i]["content"];
@@ -160,24 +159,6 @@ export default {
               itemsobj["annex"] = thisfilename;
             }
             itemsarray.push(itemsobj);
-
-            if (!setNewBulletin) {
-              //push到最新公告區
-              vm.boardtitle = vm.queryResponse[i]["title"];
-              if (vm.queryResponse[i]["content"].length > 110) {
-                vm.textleft = true;
-              } else {
-                vm.textleft = false;
-              }
-              vm.boardcontent = vm.queryResponse[i]["content"];
-              vm.boardtime = vm.queryResponse[i]["lastUpdateTime"];
-              if (thisfilename)
-                for (var j = 0; j < thisfilename.length; j++) {
-                  vm.boardannex[thisfilename[j]] =
-                    "./misbulletinfiles/" + thisfilename[j];
-                }
-              setNewBulletin = true;
-            }
           }
         }
         vm.items = itemsarray;
@@ -211,7 +192,7 @@ export default {
       vm.setinputData(obj);
       vm.setphpfunction("BulletinDataQuery");
     },
-    //查詢最新一筆
+    //查詢最新五筆
     LatestBulletinDataQuery() {
       var vm = this;
       vm.changetableBusy();
@@ -225,23 +206,26 @@ export default {
             vm.setalertMsg("查無資料");
             vm.settimeoutalertModal();
           } else {
-            vm.boardtitle = result["QueryTableData"][0]["title"];
-            if (result["QueryTableData"][0]["content"].length > 110) {
-              vm.textleft = true;
-            } else {
-              vm.textleft = false;
-            }
-            vm.boardcontent = result["QueryTableData"][0]["content"];
-            vm.boardtime = result["QueryTableData"][0]["lastUpdateTime"];
-            if (result["QueryTableData"][0]["filename"] != "") {
-              var thisfilename = result["QueryTableData"][0]["filename"].split(
-                ","
-              );
-              for (var j = 0; j < thisfilename.length; j++) {
-                vm.boardannex[thisfilename[j]] =
-                  "./misbulletinfiles/" + thisfilename[j];
+            var itemsarray = [];
+            for (var i = 0; i < result["QueryTableData"].length; i++) {
+              vm.setLatestBulletin(result["QueryTableData"][0]);
+              var itemsobj = {};
+              itemsobj["category"] =
+                vm.categorytoCH[result["QueryTableData"][i]["category"]];
+              itemsobj["title"] = result["QueryTableData"][i]["title"];
+              itemsobj["releasedate"] =
+                result["QueryTableData"][i]["lastUpdateTime"];
+              itemsobj["content"] = result["QueryTableData"][i]["content"];
+              if (result["QueryTableData"][i]["filename"] != "") {
+                var thisfilename = result["QueryTableData"][i][
+                  "filename"
+                ].split(",");
+                itemsobj["annex"] = thisfilename;
               }
+              itemsarray.push(itemsobj);
             }
+            vm.items = itemsarray;
+            vm.totalRows = itemsarray.length;
           }
         } else {
           vm.setalertMsg(result["Response"]);
@@ -293,6 +277,25 @@ export default {
         "sapidoSystem",
         "statusbar=no,scrollbars=yes,status=yes,resizable=yes"
       );
+    },
+    //push到最新公告區
+    setLatestBulletin(data) {
+      var vm = this;
+      vm.boardtitle = data["title"];
+      if (data["content"].length > 110) {
+        vm.textleft = true;
+      } else {
+        vm.textleft = false;
+      }
+      vm.boardcontent = data["content"];
+      vm.boardtime = data["lastUpdateTime"];
+      if (data["filename"] != "") {
+        var thisfilename = data["filename"].split(",");
+        for (var j = 0; j < thisfilename.length; j++) {
+          vm.boardannex[thisfilename[j]] =
+            "./misbulletinfiles/" + thisfilename[j];
+        }
+      }
     },
     //data reset
     reset(keep) {
