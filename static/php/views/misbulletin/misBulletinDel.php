@@ -12,14 +12,14 @@ if ($this_filename == "") {
 }
 $msg = [];
 
-$url = "https://192.168.39.75:3687/api/sapidoSystem/1.0/my/commonuse/delete/misBulletin?uid=@sapido@PaaS";
+$url = "https://192.168.39.75:3687/api/sapidoSystem/1.0/my/CommonUse/misBulletin?uid=@sapido@PaaS";
 //The JSON data.
 $data = array(
     "seq" => ["$this_seq"],
 );
 $options = array(
     'http' => array(
-        'method' => 'POST',
+        'method' => 'DELETE',
         'content' => json_encode($data),
         'header' => "Content-Type: application/json\r\n" .
             "Accept: application/json\r\n"

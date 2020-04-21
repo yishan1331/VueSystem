@@ -2,10 +2,10 @@
     <div class="MISBulletinBoard container">
         <commonQuery />
         <br />
-        <div style="width:100%" v-if="boardtitle || items.length != 0">
+        <div style="width:100%;min-height:260px" v-if="boardtitle || items.length != 0">
             <div class="card text-center">
                 <div class="card-header" style="font-size:20px">公告內容</div>
-                <div class="card-body">
+                <div class="card-body" style="min-height:260px">
                     <h5 class="card-title">{{ boardtitle }}</h5>
                     <p class="card-text" v-html="boardcontent" :class="{ textleft: textleft }"></p>
                     <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
@@ -181,7 +181,6 @@ export default {
             changetableBusy: "commonquery/change_tableBusy",
             setqueryResponse: "commonquery/set_queryResponse",
             setinputData: "commonquery/set_inputData",
-            setphpfunction: "commonquery/set_phpfunction"
         }),
         SetCommonQueryData() {
             var vm = this;
@@ -195,9 +194,9 @@ export default {
             ];
             obj.options = misbulletinqueryoptions;
             obj.selected = misbulletinqueryselected;
+            obj.table = "misBulletin";
             obj.inputtext = "";
             vm.setinputData(obj);
-            vm.setphpfunction("BulletinDataQuery");
         },
         //查詢最新五筆
         LatestBulletinDataQuery() {
@@ -205,7 +204,15 @@ export default {
             vm.changetableBusy();
             var params = {};
             params["methods"] = "POST";
-            params["whichFunction"] = "LatestBulletinDataQuery";
+            params["whichFunction"] = "CommonSqlSyntaxQuery";
+            params["table"] = "misBulletin";
+            params["purpose"] = "query";
+            params["where"] = {};
+            params["where"]["showhide"] = 1;
+            params["orderby"] = ["desc", "lastUpdateTime"];
+            params["limit"] = ["0", "5"];
+            params["symbols"] = {};
+            params["symbols"]["showhide"] = "equal";
             vm.axiosAction(params).then(() => {
                 var result = vm.axiosResult;
                 if (result["Response"] == "ok") {

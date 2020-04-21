@@ -437,7 +437,6 @@ export default {
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             queryAgain: "commonquery/do_queryAgain",
             setinputData: "commonquery/set_inputData",
-            setphpfunction: "commonquery/set_phpfunction"
         }),
         SetCommonQueryData() {
             var vm = this;
@@ -451,9 +450,9 @@ export default {
             ];
             obj.options = misbulletinqueryoptions;
             obj.selected = misbulletinqueryselected;
+            obj.table = "misBulletin";
             obj.inputtext = "";
             vm.setinputData(obj);
-            vm.setphpfunction("BulletinDataQuery");
         },
         //公告上傳
         onSubmit() {

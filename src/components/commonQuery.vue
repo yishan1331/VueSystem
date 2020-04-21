@@ -8,17 +8,24 @@
                 @change="onChange($event)"
             ></b-form-select>
         </div>
-        <div v-if="selected != ''">
+        <div v-if="selected == '部門名稱'" class="mt10px">
+            <label>{{selected}}:</label>
+            <b-form-select v-model="inputtext" :options="depDetail[0]"></b-form-select>
+        </div>
+        <div v-else-if="selected != ''" class="mt10px">
             <label>{{selected}}:</label>
             <b-form-input class="input-title" v-model="inputtext" type="text"></b-form-input>
         </div>
-        <div style="margin-top:10px">
+        <div class="mt10px">
             <label>時間:</label>
             <datepicker :date="startTime" :option="startoption"></datepicker>~
             <datepicker :date="endTime" :option="endoption" :limit="endoption.limit"></datepicker>
-            <b-button variant="primary" @click="QueryData">查詢</b-button>
+            <b-button variant="primary" @click="QueryData()">查詢</b-button>
         </div>
-        <b-form-checkbox v-model="settingtime" style="display:inline-block;margin-right:10px">不指定時間</b-form-checkbox>
+        <b-form-checkbox
+            v-model="notsettingtime"
+            style="display:inline-block;margin-right:10px"
+        >不指定時間</b-form-checkbox>
         <br />
     </div>
 </template>
@@ -122,11 +129,12 @@ export default {
             selected: "",
             selectedCH: {
                 depID: "部門編號",
+                noumenonID: "部門編號",
                 depName: "部門名稱",
                 uID: "帳號",
                 uName: "姓名"
             },
-            settingtime: true
+            notsettingtime: true
         };
     },
     created: function() {
@@ -141,7 +149,7 @@ export default {
             queryResponse: "commonquery/get_queryResponse",
             receivequeryAgain: "commonquery/receive_queryAgain",
             inputData: "commonquery/get_inputData",
-            phpfunction: "commonquery/get_phpfunction"
+            depDetail: "commonquery/get_depDetail"
         })
     },
     watch: {
@@ -175,38 +183,67 @@ export default {
             changetableBusy: "commonquery/change_tableBusy"
         }),
         onChange(event) {
+            console.log(event);
+            var vm = this;
             if (typeof this.selectedCH[event] != "undefined") {
-                this.selected = this.selectedCH[event];
+                vm.selected = vm.selectedCH[event];
             } else {
-                this.selected = "";
+                vm.selected = "";
             }
-            this.inputtext = "";
+            vm.inputtext = "";
         },
         //查詢API
         QueryDataFunction() {
             var vm = this;
             var params = {};
-            var start_time = vm.startTime.time;
-            var end_time = vm.endTime.time;
-            var category = vm.inputData.selected;
-            console.log(vm.inputData.selected);
-            console.log(category);
-            params["category"] = category;
             if (vm.selected != "") {
                 if (vm.inputtext == "") {
                     vm.setalertMsg("尚未輸入條件");
                     vm.settimeoutalertModal();
+                    vm.changetableBusy();
                     return;
                 }
-                params["categoryparameter"] = vm.inputtext.trim();
             }
-            params["methods"] = "GET";
-            params["whichFunction"] = vm.phpfunction;
             //預設今天
-            params["start_time"] = start_time;
-            params["end_time"] = end_time + " 23:59:59";
-            params["settingtime"] = vm.settingtime;
+            params["start_time"] = vm.startTime.time + " 00:00:00";
+            params["end_time"] = vm.endTime.time + " 23:59:59";
+            params["settingtime"] = vm.notsettingtime;
             params["table"] = vm.inputData.table;
+
+            if (vm.inputData.selected == "ALL") {
+                params["whichFunction"] = "CommonSimpleQuery";
+                params["category"] = vm.inputData.selected;
+                params["methods"] = "GET";
+            } else {
+                if (vm.inputData.table == "misBulletin") {
+                    params["methods"] = "GET";
+                    params["whichFunction"] = "CommonSimpleQuery";
+                    params["category"] = "category";
+                    params["categoryparameter"] = vm.inputData.selected;
+                } else {
+                    params["whichFunction"] = "CommonSqlSyntaxQuery";
+                    params["methods"] = "POST";
+                    params["purpose"] = vm.inputData.querypurpose;
+                    if (vm.selected != "") {
+                        params["where"] = {};
+                        if (vm.inputData.table == "user" && vm.inputData.selected == "depName") {
+                            params["where"]["noumenonID"] = vm.inputtext.trim();
+                        } else {
+                            params["where"][
+                                vm.inputData.selected
+                            ] = vm.inputtext.trim();
+                        }
+                    }
+                    if (!vm.notsettingtime) {
+                        params["intervaltime"] = {
+                            createTime: [
+                                vm.startTime.time + " 00:00:00",
+                                vm.endTime.time + " 23:59:59"
+                            ]
+                        };
+                    }
+                }
+            }
             console.log(params);
             vm.axiosAction(params).then(() => {
                 var result = vm.axiosResult;
@@ -260,7 +297,7 @@ export default {
                     "endTime",
                     "selected",
                     "inputtext",
-                    "settingtime"
+                    "notsettingtime"
                 ]);
                 vm.changetableBusy();
                 vm.QueryDataFunction();
@@ -269,7 +306,7 @@ export default {
         //查詢按鈕
         QueryData() {
             var vm = this;
-            if (!vm.settingtime) {
+            if (!vm.notsettingtime) {
                 if (vm.startTime.time == "" || vm.endTime.time == "") {
                     if (vm.queryResponse == "時間尚未選擇") {
                         vm.setalertMsg("時間尚未選擇");
@@ -306,5 +343,8 @@ export default {
     width: 200px !important;
     display: inline-block;
     margin-top: 5px;
+}
+.mt10px {
+    margin-top: 10px;
 }
 </style>

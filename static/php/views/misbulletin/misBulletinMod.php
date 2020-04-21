@@ -1,7 +1,7 @@
 <?php
 header('Access-Control-Allow-Origin: *');
 $this_seq = $_POST['seq'];
-$url = "https://192.168.39.75:3687/api/sapidoSystem/1.0/my/commonuse/update/misBulletin?uid=@sapido@PaaS";
+$url = "https://192.168.39.75:3687/api/sapidoSystem/1.0/my/CommonUse/misBulletin?uid=@sapido@PaaS";
 $nofileupload = false;
 $targetDir = "../../../../misbulletinfiles/";
 if (!file_exists($targetDir)) {
@@ -74,7 +74,7 @@ if ($_POST['deletefile'] == "") {
 
 $options = array(
     'http' => array(
-        'method' => 'POST',
+        'method' => 'PATCH',
         'content' => json_encode($data),
         'header' => "Content-Type: application/json\r\n" .
             "Accept: application/json\r\n"
