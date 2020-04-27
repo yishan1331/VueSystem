@@ -473,10 +473,14 @@ export default {
                 return;
             }
             vm.form.formcontentwrong = false;
+            console.log(vm.form.content);
             vm.form.content = vm.form.content
-                .replace(/\r\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
-                .replace(/\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
+                // .replace(/\r\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
+                .replace(/\r\n/g, "<br/>")
+                // .replace(/\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
+                .replace(/\n/g, "<br/>")
                 .replace(/\s/g, "&nbsp;");
+            console.log(vm.form.content);
             let formData = new FormData();
             for (var i = 0; i < this.form.files.length; i++) {
                 let file = this.form.files[i];
@@ -642,8 +646,10 @@ export default {
             }
             vm.modmodalcontent.formcontentwrong = false;
             vm.modmodalcontent.content = vm.modmodalcontent.content
-                .replace(/\r\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
-                .replace(/\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
+                // .replace(/\r\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
+                // .replace(/\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
+                .replace(/\r\n/g, "<br/>")
+                .replace(/\n/g, "<br/>")
                 .replace(/\s/g, "&nbsp;");
             let formData = new FormData();
             for (var i = 0; i < this.modmodalcontent.files.length; i++) {
