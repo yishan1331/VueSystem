@@ -7,8 +7,7 @@
                 <div class="card-header" style="font-size:20px">公告內容</div>
                 <div class="card-body" style="min-height:260px">
                     <h5 class="card-title">{{ boardtitle }}</h5>
-                    <p class="card-text" v-html="boardcontent" :class="{ textleft: textleft }"></p>
-                    <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                    <p v-for="(item,index) in boardcontent" v-html="item" :key="index" class="card-text" :class="{ textleft: item.length> 110 }"></p>
                 </div>
                 <div class="card-footer text-muted">
                     <div v-show="Object.keys(boardannex).length > 0">
@@ -104,7 +103,6 @@ export default {
             boardcontent: "",
             boardannex: {},
             boardtime: "",
-            textleft: false,
             totalRows: 1,
             currentPage: 1,
             perPage: 5,
@@ -221,12 +219,12 @@ export default {
                         vm.settimeoutalertModal();
                     } else {
                         var itemsarray = [];
+                        vm.setLatestBulletin(result["QueryTableData"][0]);
                         for (
                             var i = 0;
                             i < result["QueryTableData"].length;
                             i++
                         ) {
-                            vm.setLatestBulletin(result["QueryTableData"][0]);
                             var itemsobj = {};
                             itemsobj["category"] =
                                 vm.categorytoCH[
@@ -261,12 +259,7 @@ export default {
             var vm = this;
             vm.boardannex = {};
             vm.boardtitle = items.title;
-            if (items.content.length > 110) {
-                vm.textleft = true;
-            } else {
-                vm.textleft = false;
-            }
-            vm.boardcontent = items.content;
+            vm.boardcontent = items.content.split("<br/>");
             vm.boardtime = items.releasedate;
             if (typeof items.annex != "undefined") {
                 for (var i = 0; i < items.annex.length; i++) {
@@ -304,14 +297,10 @@ export default {
         },
         //push到最新公告區
         setLatestBulletin(data) {
+            console.log(data);
             var vm = this;
             vm.boardtitle = data["title"];
-            if (data["content"].length > 110) {
-                vm.textleft = true;
-            } else {
-                vm.textleft = false;
-            }
-            vm.boardcontent = data["content"];
+            vm.boardcontent = data["content"].split("<br/>");
             vm.boardtime = data["lastUpdateTime"];
             if (data["filename"] != "") {
                 var thisfilename = data["filename"].split(",");
