@@ -1,6 +1,6 @@
-# sapidosystem
+# VueSystem
 
-> sapidosystem Vue.js project
+> VueSystem Vue.js project
 
 ## Build Setup
 
