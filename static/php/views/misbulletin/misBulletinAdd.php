@@ -37,7 +37,7 @@ if (count($_FILES) != 0) {
 } else {
     $nofileupload = true;
 }
-$url = "https://192.168.39.75:3687/api/sapidoSystem/1.0/my/commonuse/register/misBulletin?uid=@sapido@PaaS";
+$url = "https://192.168.39.75:3687/api/sapidoSystem/1.0/my/CommonUse/misBulletin?uid=@sapido@PaaS";
 //The JSON data.
 $data = array(
     "seq" => [""],

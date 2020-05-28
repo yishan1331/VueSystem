@@ -1,7 +1,7 @@
 import index from "@/views/Index";
 import home from "@/views/Home";
 import misbulletinboard from "@/views/MISBulletinBoard";
-import misbulletinmanage from "@/views/MISBulletinManage";
+import misbulletinmanage from "@/views/MISBulletinManage";
 import department from "@/views/Department";
 import account from "@/views/Account";
 // import pagenotfound from "@/views/PageNotFound";

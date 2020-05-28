@@ -2,7 +2,7 @@
 //登入
 function Login($params, $returnData)
 {
-    $url = "https://192.168.39.75:3687/api/sapidoSystem/1.0/my/commonuse/queryRows/Interval/user?uid=@sapido@PaaS&attr=uID&valueStart=" . $params->uID . "&valueEnd=" . $params->uID;
+    $url = "https://192.168.39.75:3687/api/sapidoSystem/1.0/my/CommonUse/Interval/user?uid=@sapido@PaaS&attr=uID&valueStart=" . $params->uID . "&valueEnd=" . $params->uID;
     $returnData[0] = $url;
     return $returnData;
 }

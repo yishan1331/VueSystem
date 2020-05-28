@@ -8,7 +8,6 @@ $whichFunction = $postBody->whichFunction;
 include("./views/accountAction.php");
 include("./views/systemSet.php");
 include("./views/common.php");
-include("./views/misbulletin/misBulletinQuery.php");
 
 $returnData = [];
 $postdata = $whichFunction($postBody,$returnData);
@@ -26,7 +25,7 @@ if ($methods == "GET"){
     // $postdata = $postfunction->$whichFunction($postBody,$returnData);
     $options = array(
         'http' => array(
-            'method' => 'POST',
+            'method' => $methods,
             'content' => json_encode($postdata[1]),
             'header' => "Content-Type: application/json\r\n" .
             "Accept: application/json\r\n"
