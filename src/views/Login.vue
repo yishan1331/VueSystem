@@ -53,21 +53,21 @@ export default {
         return {
             user: {
                 uID: "",
-                pwd: ""
+                pwd: "",
                 // uID: "admin",
                 // pwd: "sapidotest@2019"
-            }
+            },
         };
     },
     components: {
         modal,
-        alertModal
+        alertModal,
     },
     computed: {
         ...mapGetters({
             axiosResult: "commonaxios/get_axiosResult",
-            pageAccess: "getlogin/get_pageAccess"
-        })
+            pageAccess: "getlogin/get_pageAccess",
+        }),
     },
     methods: {
         ...mapActions({
@@ -77,20 +77,32 @@ export default {
             change_loginData: "getlogin/change_loginData",
             change_pageAccess: "getlogin/change_pageAccess",
             changeloginCusID: "getlogin/change_loginCusID",
-            togglecommonModalShow: "usemodal/toggle_commonModalShow"
         }),
         checkUser(e) {
             var vm = this;
+
+            if (vm.user.uID === ""){
+                vm.setalertMsg("帳號尚未輸入");
+                vm.settimeoutalertModal();
+                return
+            }
+
             var params = {};
             params["methods"] = "GET";
             params["whichFunction"] = "Login";
             params["uID"] = vm.user.uID;
             vm.axiosAction(params).then(() => {
                 var result = vm.axiosResult;
+                console.log(result);
                 if (result["Response"] != "ok") {
                     vm.setalertMsg(result["Response"]);
                     vm.settimeoutalertModal();
                 } else {
+                    if (result["QueryTableData"].length ===0){
+                        vm.setalertMsg("查無此帳號");
+                        vm.settimeoutalertModal();
+                        return
+                    }
                     if (vm.user.pwd === result["QueryTableData"][0].pwd) {
                         vm.setalertMsg("登入成功");
                         vm.settimeoutalertModal();
@@ -111,16 +123,16 @@ export default {
                             ) != "ALL"
                         ) {
                             const trueList = Object.keys(access).filter(
-                                acc => access[acc]
+                                (acc) => access[acc]
                             );
                             trueList.push("home");
                             childRouter[0].children = childRouter[0].children.filter(
-                                item => trueList.includes(item.path)
+                                (item) => trueList.includes(item.path)
                             );
                             vm.change_pageAccess(access);
                         } else {
                             var obj2 = {};
-                            Object.keys(pageAccessobj).forEach(function(key) {
+                            Object.keys(pageAccessobj).forEach(function (key) {
                                 obj2[key] = true;
                             });
                             vm.change_pageAccess(obj2);
@@ -129,7 +141,7 @@ export default {
                         vm.$router.addRoutes(childRouter);
                         vm.change_loginData(obj);
                         console.log(vm.$router);
-                        setTimeout(function() {
+                        setTimeout(function () {
                             vm.$router.push("/index");
                         }, 900);
                     } else {
@@ -147,21 +159,21 @@ export default {
             // vm.change_loginData(obj);
             // var obj2 = {};
             // var pageAccessobj = Object.assign({}, vm.pageAccess);
-            // Object.keys(pageAccessobj).forEach(function(key) {
-            //   obj2[key] = true;
+            // Object.keys(pageAccessobj).forEach(function (key) {
+            //     obj2[key] = true;
             // });
             // vm.change_pageAccess(obj2);
             // console.log(childRouter);
-            //       vm.$router.addRoutes(childRouter);
-            //       vm.change_loginData(obj);
-            //       console.log(vm.$router);
-            //       setTimeout(function() {
-            //         vm.$router.push("/index");
-            //       }, 900);
+            // vm.$router.addRoutes(childRouter);
+            // vm.change_loginData(obj);
+            // console.log(vm.$router);
+            // setTimeout(function () {
+            //     vm.$router.push("/index");
+            // }, 900);
             // vm.$router.push("/index");
             //===========================測試用===========================//
-        }
-    }
+        },
+    },
 };
 </script>
 

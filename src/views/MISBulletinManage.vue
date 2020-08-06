@@ -4,7 +4,7 @@
         <b-card no-body>
             <b-tabs card v-model="tabIndex">
                 <b-tab title="上傳" active>
-                    <b-form>
+                    <b-form @submit="uploadFormSubmit"  v-if="tabIndex == 0">
                         <b-row class="my-4">
                             <b-col sm="2">
                                 <label for="input-default">類別:</label>
@@ -22,30 +22,54 @@
                             <b-col sm="2">
                                 <label for="input-default">公告標題:</label>
                             </b-col>
-                            <b-col sm="5">
+                            <b-col
+                                sm="5"
+                                :class="{ 'form-group--error': $v.form.title.value.$error }"
+                            >
                                 <b-form-input
+                                    v-model.trim="$v.form.title.$model.value"
                                     class="input-title"
-                                    v-model="form.title"
                                     type="text"
-                                    v-bind:class="{ formtitlewrong: form.formtitlewrong }"
                                 ></b-form-input>
+                                <template
+                                    v-if="check_required($v.form.title.value.required,$v.form.title.$model)"
+                                >
+                                    <div class="error">Is required</div>
+                                </template>
                             </b-col>
                         </b-row>
                         <b-row class="my-4">
                             <b-col sm="2">
                                 <label for="textarea-large">公告內容:</label>
+                                <b-form-checkbox
+                                    v-model="formcontentusetable"
+                                    v-b-tooltip="{ trigger:'hover',title: usetableTooltipExample, html:true, placement: 'bottom', variant: 'info'}"
+                                >使用表格</b-form-checkbox>
                             </b-col>
-                            <b-col sm="10">
+                            <b-col
+                                sm="10"
+                                :class="{ 'form-group--error': seterrorclass($v.form.content.value,tabIndex)}"
+                            >
                                 <b-form-textarea
                                     id="textarea-default"
                                     size="lg"
                                     no-resize
                                     rows="8"
-                                    v-model="form.content"
-                                    :class="{ formcontentwrong: form.formcontentwrong }"
+                                    v-model.trim="$v.form.content.$model.value"
                                 >
                                     <br />
                                 </b-form-textarea>
+                                <template
+                                    v-if="check_required($v.form.content.value.required,$v.form.content.$model)"
+                                >
+                                    <div class="error">Is required</div>
+                                </template>
+                                <template v-else-if="formcontentusetable">
+                                    <div
+                                        class="jsonerror"
+                                        v-if="check_jsonvalid($v.form.content.value.jsonvalidator,$v.form.content.$model)"
+                                    >不是正確的JSON格式，字串須加雙引號，陣列要以[ ]包起來，物件要以{ }包起來</div>
+                                </template>
                             </b-col>
                         </b-row>
 
@@ -77,8 +101,9 @@
                                     <b-button
                                         type="submit"
                                         variant="primary"
-                                        @click.prevent="onSubmit()"
+                                        @click="$v.form.$touch"
                                     >上傳</b-button>
+                                    <!-- @click.prevent="onSubmit()" -->
                                 </div>
                             </b-col>
                         </b-row>
@@ -137,6 +162,7 @@
             hide-header-close
             no-close-on-backdrop
             no-close-on-esc
+            v-if="tabIndex == 2"
         >
             <template v-slot:default>
                 <div class="d-block text-center">
@@ -168,12 +194,14 @@
             size="xl"
             no-close-on-backdrop
             no-close-on-esc
+            hide-footer
+            v-if="tabIndex == 1"
         >
             <template v-slot:modal-header>
                 <h5>公告修改</h5>
             </template>
             <template v-slot:default>
-                <b-form>
+                <b-form @submit="modifyFormSubmit">
                     <b-row class="my-4">
                         <b-col sm="2">
                             <label for="input-default">類別:</label>
@@ -191,28 +219,52 @@
                         <b-col sm="2">
                             <label for="input-default">公告標題:</label>
                         </b-col>
-                        <b-col sm="5">
+                        <b-col
+                            sm="5"
+                            :class="{ 'form-group--error': $v.modmodalcontent.title.value.$error }"
+                        >
                             <b-form-input
                                 class="input-title"
-                                v-model="modmodalcontent.title"
+                                v-model.trim="$v.modmodalcontent.title.$model.value"
                                 type="text"
-                                v-bind:class="{ formtitlewrong: modmodalcontent.formtitlewrong }"
                             ></b-form-input>
+                            <template
+                                v-if="check_required($v.modmodalcontent.title.value.required,$v.modmodalcontent.title.$model)"
+                            >
+                                <div class="error">Is required</div>
+                            </template>
                         </b-col>
                     </b-row>
                     <b-row class="my-4">
                         <b-col sm="2">
                             <label for="textarea-large">公告內容:</label>
+                            <b-form-checkbox
+                                v-model="modmodalcontentusetable"
+                                v-b-tooltip="{ trigger:'hover',title: usetableTooltipExample, html:true, placement: 'bottom', variant: 'info'}"
+                            >使用表格</b-form-checkbox>
                         </b-col>
-                        <b-col sm="10">
+                        <b-col
+                            sm="10"
+                            :class="{ 'form-group--error': seterrorclass($v.modmodalcontent.content.value,tabIndex)}"
+                        >
                             <b-form-textarea
                                 id="textarea-default"
                                 size="lg"
                                 no-resize
                                 rows="8"
-                                v-model="modmodalcontent.content"
-                                v-bind:class="{ formcontentwrong: modmodalcontent.formcontentwrong }"
+                                v-model="$v.modmodalcontent.content.$model.value"
                             ></b-form-textarea>
+                            <template
+                                v-if="check_required($v.modmodalcontent.content.value.required,$v.modmodalcontent.content.$model)"
+                            >
+                                <div class="error">Is required</div>
+                            </template>
+                            <template v-else-if="modmodalcontentusetable">
+                                <div
+                                    class="jsonerror"
+                                    v-if="check_jsonvalid($v.modmodalcontent.content.value.jsonvalidator,$v.modmodalcontent.content.$model)"
+                                >不是正確的JSON格式，字串須加雙引號，陣列要以[ ]包起來，物件要以{ }包起來</div>
+                            </template>
                         </b-col>
                     </b-row>
                     <b-row class="my-4">
@@ -269,24 +321,30 @@
                             ></b-form-file>
                         </b-col>
                     </b-row>
+                    <b-row>
+                        <b-col lg="12" class="pb-2">
+                            <div class="w-100">
+                                <b-button
+                                    variant="light"
+                                    size="sm"
+                                    class="float-right"
+                                    @click.prevent="onModifyClose()"
+                                >Close</b-button>
+                            </div>
+                            <div class="text-right">
+                                <b-button
+                                    type="submit"
+                                    variant="success"
+                                    size="sm"
+                                    class="float-right"
+                                    @click="$v.modmodalcontent.$touch"
+                                    style="margin-right:5px"
+                                >修改</b-button>
+                                <!-- @click.prevent="onModify()" -->
+                            </div>
+                        </b-col>
+                    </b-row>
                 </b-form>
-            </template>
-            <template v-slot:modal-footer>
-                <div class="w-100">
-                    <b-button
-                        variant="light"
-                        size="sm"
-                        class="float-right"
-                        @click.prevent="onModifyClose()"
-                    >Close</b-button>
-                    <b-button
-                        variant="success"
-                        size="sm"
-                        class="float-right"
-                        style="margin-right:10px"
-                        @click.prevent="onModify()"
-                    >修改</b-button>
-                </div>
             </template>
         </b-modal>
     </div>
@@ -296,90 +354,173 @@
 import axios from "axios";
 import alertModal from "@/components/alertModal.vue";
 import commonQuery from "@/components/commonQuery.vue";
+import { validationMixin } from "vuelidate"; // 表單驗證
+import { required, minLength, between } from "vuelidate/lib/validators";
 import { mapGetters, mapActions } from "vuex";
+//設置json validator
+const jsonvalidator = (jsonData) => {
+    let status = true;
+    try {
+        JSON.parse(jsonData);
+    } catch (e) {
+        //console.log('Error data', e);
+        status = false;
+    }
+    console.log(status);
+    return status;
+};
 export default {
     name: "MISBulletinManage",
     data() {
         return {
             tabIndex: 0,
             form: {
-                title: "",
-                content: "",
+                title: {
+                    key: "title",
+                    value: "",
+                    invalid: false,
+                },
+                content: {
+                    key: "content",
+                    value: "",
+                    invalid: false,
+                },
                 category: "system",
                 filename: [],
-                files: "",
-                formtitlewrong: false,
-                formcontentwrong: false
+                files: [],
             },
+            formcontentusetable: false,
             fields: [
                 {
                     key: "category",
                     label: "類別",
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "title",
                     label: "標題",
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "releasedate",
                     label: "發布日期",
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "showhide",
                     label: "顯示/隱藏",
-                    sortable: true
-                }
+                    sortable: true,
+                },
             ],
             items: [],
             categoryoptions: [
                 { value: "system", text: "系統" },
                 { value: "PC", text: "個人電腦" },
-                { value: "network", text: "網路" }
+                { value: "network", text: "網路" },
             ],
             RowClickedIndex: "",
             modmodalcontent: {
                 seq: "",
                 category: "",
-                title: "",
-                content: "",
+                title: {
+                    key: "title",
+                    value: "",
+                    invalid: false,
+                },
+                content: {
+                    key: "content",
+                    value: "",
+                    invalid: false,
+                },
                 showhide: "",
                 boardannex: {},
                 files: "",
                 filename: [],
-                formtitlewrong: false,
-                formcontentwrong: false
             },
+            modmodalcontentusetable: false,
             modBulletinModalShow: false,
             delmodalcontent: {
                 seq: "",
-                filename: []
+                filename: [],
             },
-            delBulletinModalShow: false
+            delBulletinModalShow: false,
         };
     },
-    created: function() {
+    // 表單驗證引入
+    mixins: [validationMixin],
+    //驗證欄位參數
+    validations() {
+        let setvalid = {
+            form: {
+                title: {
+                    value: {
+                        required,
+                    },
+                },
+                content: {
+                    value: {
+                        required,
+                        jsonvalidator,
+                    },
+                },
+            },
+            modmodalcontent: {
+                title: {
+                    value: {
+                        required,
+                    },
+                },
+                content: {
+                    value: {
+                        required,
+                        jsonvalidator,
+                    },
+                },
+            },
+        };
+        console.log(setvalid);
+        console.log(this.tabIndex);
+        if (this.tabIndex == 0) {
+            // delete setvalid.modmodalcontent;
+            console.log(setvalid);
+            if (!this.formcontentusetable) {
+                delete setvalid.form.content.value.jsonvalidator;
+                return setvalid;
+            }
+            return setvalid;
+        } else if (this.tabIndex == 1) {
+            console.log(setvalid);
+            // delete setvalid.form;
+            if (!this.modmodalcontentusetable) {
+                delete setvalid.modmodalcontent.content.value.jsonvalidator;
+                return setvalid;
+            }
+            return setvalid;
+        }else{
+            return {};
+        }
+    },
+    created: function () {
         this.SetCommonQueryData();
     },
     components: {
         alertModal,
-        commonQuery
+        commonQuery,
     },
     computed: {
         ...mapGetters({
             axiosResult: "commonaxios/get_axiosResult",
             loginData: "getlogin/get_loginData",
             queryResponse: "commonquery/get_queryResponse",
-            tableBusy: "commonquery/get_tableBusy"
-        })
+            tableBusy: "commonquery/get_tableBusy",
+        }),
     },
     watch: {
         queryResponse: {
             handler() {
                 var vm = this;
                 vm.reset(["tabIndex"]);
+                vm.formReset();
                 if (
                     vm.queryResponse == "查無資料" ||
                     vm.queryResponse == "時間尚未選擇"
@@ -393,7 +534,7 @@ export default {
                 categorytoCH = {
                     network: "網路",
                     PC: "個人電腦",
-                    system: "系統"
+                    system: "系統",
                 };
                 for (var i = 0; i < vm.queryResponse.length; i++) {
                     var itemsobj = {};
@@ -421,19 +562,45 @@ export default {
                 if (itemsarray.length != 0) {
                     vm.items = itemsarray;
                 }
-            }
+            },
         },
         tabIndex: {
             handler() {
                 this.reset(["tabIndex"]);
+                this.formReset();
                 // this.setalertMsg("選擇查詢條件");
                 // this.settimeoutalertModal();
-            }
-        }
+            },
+        },
+        formcontentusetable: {
+            handler() {
+                console.log(this.formcontentusetable);
+                console.log(this.form.content);
+                if (this.formcontentusetable) {
+                    this.form.content["jsonvalid"] = false;
+                } else {
+                    delete this.form.content.jsonvalid;
+                }
+                console.log(this.form.content);
+            },
+        },
+        modmodalcontentusetable: {
+            handler() {
+                console.log(this.modmodalcontentusetable);
+                console.log(this.modmodalcontent.content);
+                if (this.modmodalcontentusetable) {
+                    this.modmodalcontent.content["jsonvalid"] = false;
+                } else {
+                    delete this.modmodalcontent.content.jsonvalid;
+                }
+                console.log(this.modmodalcontent.content);
+            },
+        },
     },
     methods: {
         ...mapActions({
             setalertMsg: "alertmodal/set_alertMsg",
+            toggle_alertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             queryAgain: "commonquery/do_queryAgain",
             setinputData: "commonquery/set_inputData",
@@ -446,7 +613,7 @@ export default {
                 { value: "system", text: "系統" },
                 { value: "PC", text: "個人電腦" },
                 { value: "network", text: "網路" },
-                { value: "ALL", text: "全選" }
+                { value: "ALL", text: "全選" },
             ];
             obj.options = misbulletinqueryoptions;
             obj.selected = misbulletinqueryselected;
@@ -455,75 +622,144 @@ export default {
             vm.setinputData(obj);
         },
         //公告上傳
-        onSubmit() {
-            var vm = this;
-            vm.form.formtitlewrong = false;
-            vm.form.formcontentwrong = false;
-            if (vm.form.title.length == 0) {
-                vm.form.formtitlewrong = true;
-                vm.setalertMsg("公告標題尚未輸入");
-                vm.settimeoutalertModal();
-                return;
-            }
-            vm.form.formtitlewrong = false;
-            if (vm.form.content.length == 0) {
-                vm.form.formcontentwrong = true;
-                vm.setalertMsg("公告內容尚未輸入");
-                vm.settimeoutalertModal();
-                return;
-            }
-            vm.form.formcontentwrong = false;
-            console.log(vm.form.content);
-            vm.form.content = vm.form.content
-                // .replace(/\r\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
-                .replace(/\r\n/g, "<br/>")
-                // .replace(/\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
-                .replace(/\n/g, "<br/>")
-                .replace(/\s/g, "&nbsp;");
-            console.log(vm.form.content);
-            let formData = new FormData();
-            for (var i = 0; i < this.form.files.length; i++) {
-                let file = this.form.files[i];
-                formData.append("fileToUpload[" + i + "]", file);
-            }
-            formData.append("title", vm.form.title);
-            formData.append("content", vm.form.content);
-            formData.append("category", vm.form.category);
-            formData.append("filename", vm.form.filename);
-            formData.append("account", vm.loginData.account);
-            let config = {
-                headers: {
-                    "Content-Type": "multipart/form-data"
+        uploadFormSubmit(evt) {
+            evt.preventDefault();
+            let checkvalid = ["title", "content"];
+            let vm = this;
+            let status = true;
+            console.log(checkvalid);
+            checkvalid.forEach((element) => {
+                console.log(element);
+                console.log(vm.form[element]);
+                if (!vm.form[element].invalid) {
+                    status = false;
+                } else {
+                    if (
+                        element === "content" &&
+                        vm.form["content"].hasOwnProperty("jsonvalid")
+                    ) {
+                        if (!vm.form["content"].jsonvalid) status = false;
+                    }
                 }
-            };
-            const instance = axios.create({
-                withCredentials: true
             });
-            instance
-                .post(
-                    "/static/php/views/misbulletin/misBulletinAdd.php",
-                    formData,
-                    config
-                )
-                .then(
-                    function(response) {
-                        const result = response.data;
-                        vm.setalertMsg(result);
-                        var altertime = 0;
-                        if (result.length == 1) {
-                            altertime = 1200;
-                        } else if (result.length < 4) {
-                            altertime = 1500;
+            console.log(status);
+            if (status) {
+                console.log("call api");
+                let formData = new FormData();
+                let thiscontent;
+                let wordtype = ["wordUp", "wordDown"];
+                if (vm.form.content.hasOwnProperty("jsonvalid")) {
+                    let parsecontentvalue = JSON.parse(vm.form.content.value);
+                    console.log(parsecontentvalue);
+                    //檢查key是否為table,word且一定要有table
+                    if (!parsecontentvalue.hasOwnProperty("table")) {
+                        vm.setalertMsg(
+                            "公告內容若要使用表格顯示，傳入的物件key必要有table"
+                        );
+                        vm.settimeoutalertModal(1200);
+                        return;
+                    }
+                    console.log(Array.isArray(parsecontentvalue.table));
+                    if (!Array.isArray(parsecontentvalue.table)) {
+                        vm.setalertMsg("key->table的value必須為陣列");
+                        vm.settimeoutalertModal(1200);
+                        return;
+                    }
+                    wordtype.forEach((element) => {
+                        if (
+                            parsecontentvalue.hasOwnProperty(element) &&
+                            !typeof parsecontentvalue.element === "string"
+                        ) {
+                            console.log(parsecontentvalue[element]);
+                            console.log(typeof parsecontentvalue[element]);
+                            vm.setalertMsg(
+                                "key->" + element + "的value必須為字串"
+                            );
+                            vm.settimeoutalertModal(1200);
                         } else {
-                            altertime = 2500;
+                            if (parsecontentvalue.hasOwnProperty(element)) {
+                                parsecontentvalue[
+                                    element
+                                ] = vm.replaceContentData(
+                                    parsecontentvalue[element]
+                                );
+                            }
                         }
-                        vm.settimeoutalertModal(altertime);
-                        vm.reset([]);
-                    }.bind(this)
-                )
-                .catch(function(err) {
-                    console.log(err);
+                    });
+                    console.log(parsecontentvalue);
+                    console.log(JSON.stringify(parsecontentvalue));
+                    thiscontent = JSON.stringify(parsecontentvalue);
+                } else {
+                    thiscontent = vm.replaceContentData(vm.form.content.value);
+                    console.log(thiscontent);
+                }
+                console.log(thiscontent);
+                formData.append("content", thiscontent);
+                vm.setalertMsg("請稍候...");
+                vm.toggle_alertModal();
+                for (var i = 0; i < this.form.files.length; i++) {
+                    let file = this.form.files[i];
+                    formData.append("fileToUpload[" + i + "]", file);
+                }
+                formData.append("title", vm.form.title.value);
+                formData.append("category", vm.form.category);
+                formData.append("filename", vm.form.filename);
+                formData.append("account", vm.loginData.account);
+                let config = {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                };
+                const instance = axios.create({
+                    withCredentials: true,
                 });
+                instance
+                    .post(
+                        "/php/views/misbulletin/misBulletinAdd.php",
+                        formData,
+                        config
+                    )
+                    .then(
+                        function (response) {
+                            vm.toggle_alertModal();
+                            const result = response.data;
+                            vm.setalertMsg(result);
+                            var altertime = 0;
+                            if (result.length == 1) {
+                                altertime = 1200;
+                            } else if (result.length < 4) {
+                                altertime = 1500;
+                            } else {
+                                altertime = 2500;
+                            }
+                            vm.settimeoutalertModal(altertime);
+                            vm.formReset();
+                        }.bind(this)
+                    )
+                    .catch(function (err) {
+                        console.log(err);
+                    });
+            }
+        },
+        //set表單驗證error class
+        seterrorclass(val, tabindex) {
+            if (!val.$error) return val.$error;
+            if (!val.required) return val.$error;
+            if (tabindex == 0 && this.formcontentusetable) return val.$error;
+            if (tabindex == 1 && this.modmodalcontentusetable)
+                return val.$error;
+            return false;
+        },
+        //檢查資料欄位->是否有值＆JSON格式合法
+        check_required(required, model) {
+            model.invalid = required;
+            return !required;
+        },
+        check_jsonvalid(jsonvalid, model) {
+            console.log(jsonvalid);
+            console.log(model);
+            model.jsonvalid = jsonvalid;
+            return !jsonvalid;
         },
         //檔名格式化
         formatNames(files) {
@@ -559,17 +795,39 @@ export default {
             categorytoEN = {
                 網路: "network",
                 個人電腦: "PC",
-                系統: "system"
+                系統: "system",
             };
             if (vm.tabIndex == 1) {
+                console.log(items);
+                console.log(JSON.stringify(items));
+                console.log(index);
+                console.log(event);
                 vm.RowClickedIndex = index;
                 vm.modmodalcontent.seq = items.seq;
-                vm.modmodalcontent.title = items.title;
+                vm.modmodalcontent.title.value = items.title;
                 vm.modmodalcontent.category = categorytoEN[items.category];
-                items.content = items.content
-                    .replace(/<br\s*[\/]?>/g, "\n")
-                    .replace(/&nbsp;/g, "");
-                vm.modmodalcontent.content = items.content;
+                if (vm.checkIsJsonData(items.content)) {
+                    vm.modmodalcontentusetable = true;
+                    let parsecontent = JSON.parse(items.content);
+                    console.log(parsecontent);
+                    if (parsecontent.hasOwnProperty("wordUp"))
+                        parsecontent.wordUp = parsecontent.wordUp
+                            .replace(/<br\s*[\/]?>/g, "\n")
+                            .replace(/&nbsp;/g, "");
+                    if (parsecontent.hasOwnProperty("wordDown"))
+                        parsecontent.wordDown = parsecontent.wordDown
+                            .replace(/<br\s*[\/]?>/g, "\n")
+                            .replace(/&nbsp;/g, "");
+
+                    vm.modmodalcontent.content.value = JSON.stringify(
+                        parsecontent
+                    );
+                } else {
+                    items.content = items.content
+                        .replace(/<br\s*[\/]?>/g, "\n")
+                        .replace(/&nbsp;/g, "");
+                    vm.modmodalcontent.content.value = items.content;
+                }
                 vm.modmodalcontent.showhide = items.showhide;
                 if (typeof items.annex != "undefined") {
                     for (var i = 0; i < items.annex.length; i++) {
@@ -598,7 +856,8 @@ export default {
             );
         },
         //公告修改
-        onModify() {
+        modifyFormSubmit(evt) {
+            evt.preventDefault();
             var vm = this;
             if (Object.keys(vm.modmodalcontent.boardannex).length != 0) {
                 if (
@@ -629,84 +888,137 @@ export default {
                     }
                 }
             }
-            vm.modmodalcontent.formtitlewrong = false;
-            vm.modmodalcontent.formcontentwrong = false;
-            if (vm.modmodalcontent.title.length == 0) {
-                vm.modmodalcontent.formtitlewrong = true;
-                vm.setalertMsg("公告標題尚未輸入");
-                vm.settimeoutalertModal();
-                return;
-            }
-            vm.modmodalcontent.formtitlewrong = false;
-            if (vm.modmodalcontent.content.length == 0) {
-                vm.modmodalcontent.formcontentwrong = true;
-                vm.setalertMsg("公告內容尚未輸入");
-                vm.settimeoutalertModal();
-                return;
-            }
-            vm.modmodalcontent.formcontentwrong = false;
-            vm.modmodalcontent.content = vm.modmodalcontent.content
-                // .replace(/\r\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
-                // .replace(/\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
-                .replace(/\r\n/g, "<br/>")
-                .replace(/\n/g, "<br/>")
-                .replace(/\s/g, "&nbsp;");
-            let formData = new FormData();
-            for (var i = 0; i < this.modmodalcontent.files.length; i++) {
-                let file = this.modmodalcontent.files[i];
-                formData.append("fileToUpload[" + i + "]", file);
-            }
-            console.log(Object.keys(vm.modmodalcontent.boardannex));
-            formData.append("deletefile", "");
-            formData.append("seq", vm.modmodalcontent.seq);
-            formData.append("title", vm.modmodalcontent.title);
-            formData.append("content", vm.modmodalcontent.content);
-            formData.append("category", vm.modmodalcontent.category);
-            if (Object.keys(vm.modmodalcontent.boardannex).length == 0) {
-                formData.append("filename", vm.modmodalcontent.filename);
-            } else {
-                formData.append(
-                    "filename",
-                    Object.keys(vm.modmodalcontent.boardannex)
-                );
-            }
-            formData.append("showhide", vm.modmodalcontent.showhide);
-            formData.append("account", vm.loginData.account);
-            let config = {
-                headers: {
-                    "Content-Type": "multipart/form-data"
+            let checkvalid = ["title", "content"];
+            let status = true;
+            console.log(checkvalid);
+            checkvalid.forEach((element) => {
+                console.log(element);
+                console.log(vm.modmodalcontent[element]);
+                if (!vm.modmodalcontent[element].invalid) {
+                    status = false;
+                } else {
+                    if (
+                        element === "content" &&
+                        vm.modmodalcontent["content"].hasOwnProperty(
+                            "jsonvalid"
+                        )
+                    ) {
+                        if (!vm.modmodalcontent["content"].jsonvalid)
+                            status = false;
+                    }
                 }
-            };
-            const instance = axios.create({
-                withCredentials: true
             });
-            instance
-                .post(
-                    "/static/php/views/misbulletin/misBulletinMod.php",
-                    formData,
-                    config
-                )
-                .then(
-                    function(response) {
-                        const result = response.data;
-                        vm.setalertMsg(result);
-                        var altertime = 0;
-                        if (result.length == 1) {
-                            altertime = 1000;
-                        } else if (result.length < 4) {
-                            altertime = 1500;
+            console.log(status);
+            if (status) {
+                let thiscontent;
+                let wordtype = ["wordUp", "wordDown"];
+                if (vm.modmodalcontent.content.hasOwnProperty("jsonvalid")) {
+                    let parsecontentvalue = JSON.parse(
+                        vm.modmodalcontent.content.value
+                    );
+                    console.log(parsecontentvalue);
+                    //檢查key是否為table,word且一定要有table
+                    if (!parsecontentvalue.hasOwnProperty("table")) {
+                        vm.setalertMsg(
+                            "公告內容若要使用表格顯示，傳入的物件key必要有table"
+                        );
+                        vm.settimeoutalertModal(1200);
+                        return;
+                    }
+                    console.log(Array.isArray(parsecontentvalue.table));
+                    if (!Array.isArray(parsecontentvalue.table)) {
+                        vm.setalertMsg("key->table的value必須為陣列");
+                        vm.settimeoutalertModal(1200);
+                        return;
+                    }
+                    wordtype.forEach((element) => {
+                        if (
+                            parsecontentvalue.hasOwnProperty(element) &&
+                            !typeof parsecontentvalue.element === "string"
+                        ) {
+                            console.log(parsecontentvalue[element]);
+                            console.log(typeof parsecontentvalue[element]);
+                            vm.setalertMsg(
+                                "key->" + element + "的value必須為字串"
+                            );
+                            vm.settimeoutalertModal(1200);
                         } else {
-                            altertime = 2500;
+                            if (parsecontentvalue.hasOwnProperty(element)) {
+                                parsecontentvalue[
+                                    element
+                                ] = vm.replaceContentData(
+                                    parsecontentvalue[element]
+                                );
+                            }
                         }
-                        vm.settimeoutalertModal(altertime);
-                        vm.modmodalcontent = this.$options.data().modmodalcontent;
-                        vm.modBulletinModalShow = false;
-                        vm.queryAgain();
-                    }.bind(this)
-                )
-                .catch(function(err) {
-                    console.log(err);
+                    });
+                    console.log(parsecontentvalue);
+                    console.log(JSON.stringify(parsecontentvalue));
+                    thiscontent = JSON.stringify(parsecontentvalue);
+                } else {
+                    thiscontent = vm.replaceContentData(
+                        vm.modmodalcontent.content.value
+                    );
+                    console.log(thiscontent);
+                }
+                console.log(thiscontent);
+                let formData = new FormData();
+                for (var i = 0; i < this.modmodalcontent.files.length; i++) {
+                    let file = this.modmodalcontent.files[i];
+                    formData.append("fileToUpload[" + i + "]", file);
+                }
+                console.log(Object.keys(vm.modmodalcontent.boardannex));
+                formData.append("deletefile", "");
+                formData.append("seq", vm.modmodalcontent.seq);
+                formData.append("title", vm.modmodalcontent.title.value);
+                formData.append("content", thiscontent);
+                formData.append("category", vm.modmodalcontent.category);
+                if (Object.keys(vm.modmodalcontent.boardannex).length == 0) {
+                    formData.append("filename", vm.modmodalcontent.filename);
+                } else {
+                    formData.append(
+                        "filename",
+                        Object.keys(vm.modmodalcontent.boardannex)
+                    );
+                }
+                formData.append("showhide", vm.modmodalcontent.showhide);
+                formData.append("account", vm.loginData.account);
+                let config = {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                };
+                const instance = axios.create({
+                    withCredentials: true,
                 });
+                instance
+                    .post(
+                        "/php/views/misbulletin/misBulletinMod.php",
+                        formData,
+                        config
+                    )
+                    .then(
+                        function (response) {
+                            const result = response.data;
+                            vm.setalertMsg(result);
+                            var altertime = 0;
+                            if (result.length == 1) {
+                                altertime = 1000;
+                            } else if (result.length < 4) {
+                                altertime = 1500;
+                            } else {
+                                altertime = 2500;
+                            }
+                            vm.settimeoutalertModal(altertime);
+                            vm.modmodalcontent = this.$options.data().modmodalcontent;
+                            vm.modBulletinModalShow = false;
+                            vm.queryAgain();
+                        }.bind(this)
+                    )
+                    .catch(function (err) {
+                        console.log(err);
+                    });
+            }
         },
         //公告修改close
         onModifyClose() {
@@ -726,20 +1038,20 @@ export default {
             formData.append("remainfile", newfilestr);
             let config = {
                 headers: {
-                    "Content-Type": "multipart/form-data"
-                }
+                    "Content-Type": "multipart/form-data",
+                },
             };
             const instance = axios.create({
-                withCredentials: true
+                withCredentials: true,
             });
             instance
                 .post(
-                    "/static/php/views/misbulletin/misBulletinMod.php",
+                    "/php/views/misbulletin/misBulletinMod.php",
                     formData,
                     config
                 )
                 .then(
-                    function(response) {
+                    function (response) {
                         const result = response.data;
                         var oldfileobj = vm.modmodalcontent.boardannex;
                         delete oldfileobj[filename];
@@ -758,7 +1070,7 @@ export default {
                         vm.settimeoutalertModal(1000);
                     }.bind(this)
                 )
-                .catch(function(err) {
+                .catch(function (err) {
                     console.log(err);
                 });
         },
@@ -769,12 +1081,9 @@ export default {
             params["filename"] = vm.delmodalcontent.filename;
             params["seq"] = vm.delmodalcontent.seq;
             axios
-                .post(
-                    "/static/php/views/misbulletin/misBulletinDel.php",
-                    params
-                )
+                .post("/php/views/misbulletin/misBulletinDel.php", params)
                 .then(
-                    function(response) {
+                    function (response) {
                         const result = response.data;
                         vm.setalertMsg(result);
                         vm.settimeoutalertModal(1000);
@@ -782,20 +1091,119 @@ export default {
                         vm.queryAgain();
                     }.bind(this)
                 )
-                .catch(function(err) {
+                .catch(function (err) {
                     console.log(err);
                 });
         },
+        //validation表單reset
+        formReset() {
+            let vm = this;
+            //reset valid_data
+            vm.form = {
+                title: {
+                    key: "title",
+                    value: "",
+                    invalid: false,
+                },
+
+                content: {
+                    key: "content",
+                    value: "",
+                    invalid: false,
+                },
+                category: "system",
+                filename: [],
+                files: []
+            };
+            vm.modmodalcontent = {
+                seq: "",
+                category: "",
+                title: {
+                    key: "title",
+                    value: "",
+                    invalid: false,
+                },
+                content: {
+                    key: "content",
+                    value: "",
+                    invalid: false,
+                },
+                showhide: "",
+                boardannex: {},
+                files: "",
+                filename: []
+            };
+            vm.formcontentusetable = false;
+            vm.modmodalcontentusetable = false;
+            vm.$nextTick(() => {
+                vm.$v.$reset();
+            });
+        },
         //資料reset
         reset(keep) {
+            console.log(this.$options);
+            console.log(this.$data);
             var def = this.$options.data();
             for (var i = 0; i < keep.length; i++) {
                 def[keep[i]] = this[keep[i]];
             }
             Object.assign(this.$data, def);
             //https://codepen.io/karimcossutti/pen/ObXyKq
-        }
-    }
+        },
+        //content value 資料處理
+        replaceContentData(content) {
+            console.log(content);
+            return (
+                content // .replace(/\r\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
+                    .replace(/\r\n/g, "<br/>")
+                    // .replace(/\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
+                    .replace(/\n/g, "<br/>")
+                    .replace(/\s/g, "&nbsp;")
+            );
+        },
+        //Tooltip的使用範例
+        usetableTooltipExample() {
+            return `<p>以物件傳入key為<span style="color:black;font-weight:bold;font-size:large">table</span>、<span style="color:black;font-weight:bold;font-size:large">wordUp</span>、<span style="color:black;font-weight:bold;font-size:large">wordDown</span>(選填)</p>
+            <p>key若為其他，系統則不做判斷顯示</p>
+            <div style="border:1px solid #ccc;padding:5px;border-radius:10px;margin-bottom:5px">
+            <p style="font-size:larger;font-weight:bold;text-decoration:underline">key : table的value以陣列包物件方式傳入</p>
+            <ol style="padding-left:20px;margin-bottom:0">
+            <li>每一筆物件就是一列資料</li>
+            <li>各物件內的key都要相同</li>
+            <li>若要指定列的顏色</li>
+            <ul style="padding-left:20px">
+            <li>使用參數key : "_rowVariant"</li>
+            <li>value : primary,secondary,success,warning,danger,info,light,dark</li>
+            </ul>
+            <li>若要指定資料格的顏色</li>
+            <ul style="padding-left:20px">
+            <li>使用參數key : "_cellVariants"</li>
+            <li>格式為{"表頭":"color"}，color -> primary,secondary,success,warning,danger,info,light,dark</li>
+            </ul>
+            <li>example:{ 表頭: 值, 表頭: 值, 表頭: 值 ,_rowVariant:info}</li>
+            </ol>
+            </div>
+            <div style="border:1px solid #ccc;padding:5px;border-radius:10px">
+            <p style="font-size:larger;font-weight:bold;text-decoration:underline">key : wordUp、wordDown的value以字串傳入</p>
+            <ol style="padding-left:20px;margin-bottom:0">
+            <li>分別代表在表格上方的文字及下方的文字</li>
+            <li>若要換行輸入\\n換行符號</li>
+            </ol>
+            </div>`;
+        },
+        //檢查是否為JSON Data
+        checkIsJsonData(jsonData) {
+            let status = true;
+            try {
+                JSON.parse(jsonData);
+            } catch (e) {
+                //console.log('Error data', e);
+                status = false;
+            }
+            console.log(status);
+            return status;
+        },
+    },
 };
 </script>
 
@@ -806,10 +1214,6 @@ export default {
 }
 .input-title {
     width: 200px !important;
-}
-.formtitlewrong,
-.formcontentwrong {
-    border: 1px solid red;
 }
 h5 {
     margin: 0 auto;
@@ -849,5 +1253,38 @@ h5 {
     top: 10px;
     left: 5px;
 }
+
+.form-group--error {
+    animation-name: shakeError !important;
+    animation-fill-mode: forwards !important;
+    animation-duration: 0.6s !important;
+    animation-timing-function: ease-in-out !important;
+}
+.form-group--error + .form-group__message,
+.form-group--error .error,
+.form-group--error .jsonerror {
+    display: block;
+    color: #f57f6c;
+}
+.form-group--error input,
+.form-group--error textarea,
+.form-group--error input:focus,
+.form-group--error input:hover {
+    border-color: #f79483;
+}
+.error,
+.jsonerror {
+    font-size: 0.95rem;
+    /* line-height: 1; */
+    display: none;
+    /* margin-left: 14px; */
+    /* margin-top: -1.6875rem; */
+    /* margin-bottom: 0.9375rem; */
+}
+
+/* .tooltip-inner {
+    max-width: 300px !important;
+    text-align: left !important;
+} */
 </style>
 

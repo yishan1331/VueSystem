@@ -7,7 +7,28 @@
                 <div class="card-header" style="font-size:20px">公告內容</div>
                 <div class="card-body" style="min-height:260px">
                     <h5 class="card-title">{{ boardtitle }}</h5>
-                    <p v-for="(item,index) in boardcontent" v-html="item" :key="index" class="card-text" :class="{ textleft: item.length> 110 }"></p>
+                    <p
+                        v-for="(item,index) in boardcontentUP"
+                        v-html="item"
+                        :key="index"
+                        class="card-text"
+                        :class="{ textleft: item.length> 110 }"
+                    >{{index}}</p>
+                    <b-table
+                        responsive
+                        outlined
+                        hover
+                        head-row-variant="primary"
+                        :items="contentitems"
+                        v-if="contentitems.length != 0"
+                    ></b-table>
+                    <p
+                        v-for="(item,index) in boardcontentDOWN"
+                        v-html="item"
+                        :key="index+'_'"
+                        class="card-text"
+                        :class="{ textleft: item.length> 110 }"
+                    >{{index}}</p>
                 </div>
                 <div class="card-footer text-muted">
                     <div v-show="Object.keys(boardannex).length > 0">
@@ -85,22 +106,24 @@ export default {
                 {
                     key: "category",
                     label: "類別",
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "title",
                     label: "標題",
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "releasedate",
                     label: "發布日期",
-                    sortable: true
-                }
+                    sortable: true,
+                },
             ],
             items: [],
+            contentitems: [],
             boardtitle: "",
-            boardcontent: "",
+            boardcontentUP: "",
+            boardcontentDOWN: "",
             boardannex: {},
             boardtime: "",
             totalRows: 1,
@@ -109,28 +132,41 @@ export default {
             categorytoCH: {
                 network: "網路",
                 PC: "個人電腦",
-                system: "系統"
-            }
+                system: "系統",
+            },
         };
     },
-    created: function() {
+    created: function () {
         this.SetCommonQueryData();
         this.LatestBulletinDataQuery();
+        // this.setLatestBulletin({
+        //     category: "system",
+        //     showhide: 1,
+        //     seq: 13,
+        //     lastUpdateTime: "2020-08-06 10:30:16",
+        //     title: "2020/07_金智洋重要系統IP對照表",
+        //     filename: "",
+        //     content:
+        //         '{"table": [{"System": "IoT/PDM","Internal IP": "172.16.2.55","External IP": "211.20.223.148","Port": "#NOTE","Location": "OFCO2","Note":"22、3687只開放金智洋網段連入維護使用，80、443、8443為網頁服務對所有人開放"},{"System": "KingMakerSQL","Internal IP": "172.16.2.57","External IP": "NA","Port": "","Location": "OFCO2","Note": ""},{"System": "IoT MES網頁","Internal IP": "192.168.39.75","External IP": "NA","Port": "","Location": "Sapido","Note": "","_rowVariant": "info"},{"System": "IoT 開發區","Internal IP": "192.168.39.71","External IP": "211.22.242.15","Port": "8080,8888","Location": "Sapido","Note": "","_rowVariant": "info"},{"System": "IoT 測試區","Internal IP": "192.168.88.248","External IP": "NA","Port": "","Location": "OFCO2","Note": "","_rowVariant": "info"},{"System": "PDM 開發區","Internal IP": "192.168.39.73","External IP": "211.22.242.18","Port": "","Location": "Sapido","Note": "","_rowVariant": "info"},{"System": "KingMaker正式區","Internal IP": "192.168.88.27","External IP": "211.22.242.16","Port": "80","Location": "Sapido","Note": "http://192.168.88.27/servlet/jform?file=KingMaker.dat&locale=TW 內部 http://211.22.242.16/servlet/jform?file=KingMaker.dat&locale=TW 外部"},{"System": "KingMaker開發區(QueenMaker)","Internal IP": "192.168.88.27","External IP": "211.22.242.16","Port": "80","Location": "Sapido","Note": "http://192.168.88.27/servlet/jform?file=QueenMaker.dat&locale=TW 內部 http://211.22.242.16/servlet/jform?file=QueenMaker.dat&locale=TW 外部"},{"System": "MIS公告區","Internal IP": "192.168.39.75","External IP": "NA","Port": "8888","Location": "Sapido","Note": ""},{"System": "RedMine","Internal IP": "192.168.88.66","External IP": "211.22.242.16","Port": "443","Location": "Sapido","Note": "https://211.22.242.16/"}],"wordUp": "123","wordDown": "附上相關附件"}',
+        //     creatorID: "2493",
+        //     createTime: "2020-08-06 10:30:16",
+        // });
     },
-    mounted: function() {
+    mounted: function () {
         this.totalRows = this.items.length;
     },
     components: {
         alertModal,
-        commonQuery
+        commonQuery,
     },
     computed: {
         ...mapGetters({
             axiosResult: "commonaxios/get_axiosResult",
             loginData: "getlogin/get_loginData",
             queryResponse: "commonquery/get_queryResponse",
-            tableBusy: "commonquery/get_tableBusy"
-        })
+            tableBusy: "commonquery/get_tableBusy",
+            commonModalDetail: "usemodal/get_commonModalDetail"
+        }),
     },
     watch: {
         queryResponse: {
@@ -168,8 +204,8 @@ export default {
                 }
                 vm.items = itemsarray;
                 vm.totalRows = itemsarray.length;
-            }
-        }
+            },
+        },
     },
     methods: {
         ...mapActions({
@@ -188,7 +224,7 @@ export default {
                 { value: "system", text: "系統" },
                 { value: "PC", text: "個人電腦" },
                 { value: "network", text: "網路" },
-                { value: "ALL", text: "全選" }
+                { value: "ALL", text: "全選" },
             ];
             obj.options = misbulletinqueryoptions;
             obj.selected = misbulletinqueryselected;
@@ -257,9 +293,24 @@ export default {
         //表格點擊
         onRowClicked(items) {
             var vm = this;
+            console.log(items);
             vm.boardannex = {};
             vm.boardtitle = items.title;
-            vm.boardcontent = items.content.split("<br/>");
+            vm.contentitems = [];
+            vm.boardcontentUP = "";
+            vm.boardcontentDOWN = "";
+            if (vm.checkIsJsonData(items.content)) {
+                let parsecontent = JSON.parse(items.content);
+                console.log(parsecontent);
+                if (parsecontent.hasOwnProperty("table"))
+                    vm.contentitems = parsecontent.table;
+                if (parsecontent.hasOwnProperty("wordUp"))
+                    vm.boardcontentUP = parsecontent.wordUp.split("<br/>");
+                if (parsecontent.hasOwnProperty("wordDown"))
+                    vm.boardcontentDOWN = parsecontent.wordDown.split("<br/>");
+            } else {
+                vm.boardcontentUP = items.content.split("<br/>");
+            }
             vm.boardtime = items.releasedate;
             if (typeof items.annex != "undefined") {
                 for (var i = 0; i < items.annex.length; i++) {
@@ -273,8 +324,8 @@ export default {
             axios({
                 url: path,
                 method: "GET",
-                responseType: "blob"
-            }).then(response => {
+                responseType: "blob",
+            }).then((response) => {
                 var fileURL = window.URL.createObjectURL(
                     new Blob([response.data])
                 );
@@ -300,7 +351,18 @@ export default {
             console.log(data);
             var vm = this;
             vm.boardtitle = data["title"];
-            vm.boardcontent = data["content"].split("<br/>");
+            if (vm.checkIsJsonData(data["content"])) {
+                let parsecontent = JSON.parse(data["content"]);
+                console.log(parsecontent);
+                if (parsecontent.hasOwnProperty("table"))
+                    vm.contentitems = parsecontent.table;
+                if (parsecontent.hasOwnProperty("wordUp"))
+                    vm.boardcontentUP = parsecontent.wordUp.split("<br/>");
+                if (parsecontent.hasOwnProperty("wordDown"))
+                    vm.boardcontentDOWN = parsecontent.wordDown.split("<br/>");
+            } else {
+                vm.boardcontentUP = data["content"].split("<br/>");
+            }
             vm.boardtime = data["lastUpdateTime"];
             if (data["filename"] != "") {
                 var thisfilename = data["filename"].split(",");
@@ -315,8 +377,19 @@ export default {
             var def = this.$options.data();
             Object.assign(this.$data, def);
             //https://codepen.io/karimcossutti/pen/ObXyKq
-        }
-    }
+        },
+        checkIsJsonData(jsonData) {
+            let status = true;
+            try {
+                JSON.parse(jsonData);
+            } catch (e) {
+                //console.log('Error data', e);
+                status = false;
+            }
+            console.log(status);
+            return status;
+        },
+    },
 };
 </script>
 

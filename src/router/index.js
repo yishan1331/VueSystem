@@ -1,26 +1,23 @@
-import Vue from "vue";
-import Router from "vue-router";
-import store from "../store";
-// import index from '@/views/Index'
+import Vue from 'vue'
+import VueRouter from 'vue-router'
 import login from "@/views/Login";
-// import home from '@/views/Home'
-// import misbulletinboard from '@/views/MISBulletinBoard'
-// import misbulletinmanage from '@/views/MISBulletinManage'
-// import department from '@/views/Department'
-// import account from '@/views/Account'
 
-Vue.use(Router);
+Vue.use(VueRouter)
 
-export default new Router({
-  // mode:'history',
-  routes: [
+const routes = [
     {
-      path: "/",
-      redirect: "/login"
+        path: "/",
+        redirect: "/login"
     },
     {
-      path: "/login",
-      component: login
+        path: "/login",
+        component: login
     },
-  ]
-});
+]
+
+const router = new VueRouter({
+    // mode:'history',
+    routes
+})
+
+export default router
