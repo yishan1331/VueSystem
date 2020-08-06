@@ -1,0 +1,25 @@
+diff --git a/node_modules/vuelidate/lib/index.js b/node_modules/vuelidate/lib/index.js
+index 109fd2c..b13bb21 100644
+--- a/node_modules/vuelidate/lib/index.js
++++ b/node_modules/vuelidate/lib/index.js
+@@ -645,12 +645,15 @@ var validateModel = function validateModel(model, validations) {
+ 
+ var validationMixin = {
+   data: function data() {
+-    var vals = this.$options.validations;
+-
+-    if (vals) {
+-      this._vuelidate = validateModel(this, vals);
++    try {
++        var vals = this.$options.validations;
++        if (vals) {
++            this._vuelidate = validateModel(this, vals);
++        }
++    } catch (error) {
++        console.log(error);
++        return {};
+     }
+-
+     return {};
+   },
+   beforeCreate: function beforeCreate() {

@@ -1,6 +1,6 @@
 <template>
     <div class="modal">
-        <b-modal centered v-model="commonModalShow" no-close-on-backdrop no-close-on-esc>
+        <b-modal centered v-model="commonModalDetail.ModalShow" no-close-on-backdrop no-close-on-esc :hide-footer="commonModalDetail.HideModalFooter">
             <template v-slot:modal-header>
                 <slot name="modalheader"></slot>
             </template>
@@ -23,7 +23,7 @@ export default {
     },
     computed: {
         ...mapGetters({
-            commonModalShow: "usemodal/get_commonModalShow"
+            commonModalDetail: "usemodal/get_commonModalDetail"
         })
     }
 };

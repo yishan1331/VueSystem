@@ -11,7 +11,7 @@ const getters = {
 const actions = {
     async axiosAction(context, params) {
         await axios
-            .post("/static/php/modules.php", params)
+            .post("/php/modules.php", params)
             .then(
                 function (response) {
                     const result = response.data;

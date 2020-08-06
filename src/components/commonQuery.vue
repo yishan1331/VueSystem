@@ -178,6 +178,7 @@ export default {
         ...mapActions({
             axiosAction: "commonaxios/axiosAction",
             setalertMsg: "alertmodal/set_alertMsg",
+            togglealertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             setqueryResponse: "commonquery/set_queryResponse",
             changetableBusy: "commonquery/change_tableBusy"
@@ -248,6 +249,7 @@ export default {
             vm.axiosAction(params).then(() => {
                 var result = vm.axiosResult;
                 console.log(result);
+                vm.togglealertModal();
                 vm.changetableBusy();
                 if (result["Response"] == "ok") {
                     result["QueryTableData"] = result["QueryTableData"].sort(
@@ -292,6 +294,8 @@ export default {
                 vm.endoption.placeholder = todayDate_end;
                 vm.endTime.time = todayDate_end;
             } else {
+                vm.setalertMsg("請稍候...");
+                vm.togglealertModal();
                 vm.reset([
                     "startTime",
                     "endTime",

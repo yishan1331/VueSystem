@@ -2,56 +2,57 @@
     <div class="systemForm">
         <b-form>
             <b-row
-                class="my-4"
                 v-for="(item1,key1) in vforData"
                 :key="key1"
-                v-if="key1 != 'button'"
+                :class="{'my-4': key1 != 'button'}"
             >
-                <b-col sm="2">
-                    <label for="input-default">{{item1[1]}}:</label>
-                </b-col>
-                <b-col sm="5">
-                    <b-form-input
-                        v-if="item1[0] == 'readonly'"
-                        class="input-text"
-                        type="text"
-                        v-model="form[key1]"
-                        readonly
-                        :class="{ wronginput: form.formcontentwrong }"
-                    ></b-form-input>
-                    <b-form-input
-                        v-else-if="item1[0] == 'text'"
-                        class="input-text"
-                        type="text"
-                        v-model="form[key1]"
-                        :class="{ wronginput: form.formcontentwrong }"
-                    ></b-form-input>
-                    <!-- :style="styleObject" -->
-                    <b-form-checkbox
-                        v-else-if="item1[0] == 'accesscheckbox'"
-                        v-for="(item2,key2) in pageAccess"
-                        v-model="form[key1][key2]"
-                        :key="key2"
-                        style="display:inline-block;margin-right:10px"
-                    >{{pageAccessCH[key2]}}</b-form-checkbox>
-                    <b-form-select
-                        v-else-if="item1[0] == 'depselect'"
-                        v-model="form.noumenonID"
-                        :options="selectOptions"
-                        @change="depselectChange($event)"
-                    ></b-form-select>
-                </b-col>
-            </b-row>
-            <b-row v-else>
-                <b-col lg="12" class="pb-2">
-                    <div class="text-center">
-                        <b-button
-                            type="submit"
-                            variant="primary"
-                            @click.prevent="submit()"
-                        >{{item1[1]}}</b-button>
-                    </div>
-                </b-col>
+                <template v-if="key1 != 'button'">
+                    <b-col sm="2">
+                        <label for="input-default">{{item1[1]}}:</label>
+                    </b-col>
+                    <b-col sm="5">
+                        <b-form-input
+                            v-if="item1[0] == 'readonly'"
+                            class="input-text"
+                            type="text"
+                            v-model="form[key1]"
+                            readonly
+                            :class="{ wronginput: form.formcontentwrong }"
+                        ></b-form-input>
+                        <b-form-input
+                            v-else-if="item1[0] == 'text'"
+                            class="input-text"
+                            type="text"
+                            v-model="form[key1]"
+                            :class="{ wronginput: form.formcontentwrong }"
+                        ></b-form-input>
+                        <!-- :style="styleObject" -->
+                        <b-form-checkbox
+                            v-else-if="item1[0] == 'accesscheckbox'"
+                            v-for="(item2,key2) in pageAccess"
+                            v-model="form[key1][key2]"
+                            :key="key2"
+                            style="display:inline-block;margin-right:10px"
+                        >{{pageAccessCH[key2]}}</b-form-checkbox>
+                        <b-form-select
+                            v-else-if="item1[0] == 'depselect'"
+                            v-model="form.noumenonID"
+                            :options="selectOptions"
+                            @change="depselectChange($event)"
+                        ></b-form-select>
+                    </b-col>
+                </template>
+                <template v-else>
+                    <b-col lg="12" class="pb-2">
+                        <div class="text-center">
+                            <b-button
+                                type="submit"
+                                variant="primary"
+                                @click.prevent="submit()"
+                            >{{item1[1]}}</b-button>
+                        </div>
+                    </b-col>
+                </template>
             </b-row>
         </b-form>
     </div>
@@ -69,21 +70,20 @@ export default {
                 misbulletinboard: "MIS公告區",
                 misbulletinmanage: "MIS公告管理",
                 department: "部門",
-                account: "帳號"
-            }
+                account: "帳號",
+            },
         };
     },
-    created: function() {
+    created: function () {
         this.createFormData();
     },
     computed: {
         ...mapGetters({
-            commonModalShow: "usemodal/get_commonModalShow",
             vforData: "systemform/get_vforData",
             selectOptions: "systemform/get_selectOptions",
             pageAccess: "getlogin/get_pageAccess",
-            systemFormResponse: "systemform/get_systemFormResponse"
-        })
+            systemFormResponse: "systemform/get_systemFormResponse",
+        }),
         // styleObject() {
         //   console.log(this.style);
         //   return this.style ? { border: "1px solid red" } : {};
@@ -95,12 +95,12 @@ export default {
                 var vm = this;
                 vm.reset();
                 vm.createFormData();
-            }
-        }
+            },
+        },
     },
     methods: {
         ...mapActions({
-            setcompletedData: "systemform/set_completedData"
+            setcompletedData: "systemform/set_completedData",
         }),
         createFormData() {
             var vm = this;
@@ -118,7 +118,7 @@ export default {
                         Object.values(formdata)[i][0] == "accesscheckbox"
                     ) {
                         if (Object.keys(formdata)[i] === "accessList") {
-                            Object.keys(pageAccessobj).forEach(function(key) {
+                            Object.keys(pageAccessobj).forEach(function (key) {
                                 pageAccessobj[key] = false;
                             });
                             formdataitem[
@@ -133,7 +133,7 @@ export default {
                     if (Object.values(formdata)[i][0] == "accesscheckbox") {
                         if (Object.keys(formdata)[i] === "accessList") {
                             if (Object.values(formdata)[i][2] === "ALL") {
-                                Object.keys(pageAccessobj).forEach(function(
+                                Object.keys(pageAccessobj).forEach(function (
                                     key
                                 ) {
                                     pageAccessobj[key] = true;
@@ -161,8 +161,8 @@ export default {
             var vm = this;
             var selectOptionsObj = JSON.parse(JSON.stringify(vm.selectOptions));
             const selectOptionsList = selectOptionsObj
-                .map(item => Object.values(item))
-                .filter(function(item, index) {
+                .map((item) => Object.values(item))
+                .filter(function (item, index) {
                     return item[1] == event;
                 });
             vm.form.accessList = selectOptionsList[0][2];
@@ -178,8 +178,8 @@ export default {
             var def = this.$options.data();
             Object.assign(this.$data, def);
             //https://codepen.io/karimcossutti/pen/ObXyKq
-        }
-    }
+        },
+    },
 };
 </script>
 

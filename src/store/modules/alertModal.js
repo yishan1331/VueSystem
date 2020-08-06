@@ -20,11 +20,8 @@ const getters = {
     },
 }
 const actions = {
-    show_alertModal(context) {
-        context.commit('SHOW_ALERTMODAL');
-    },
-    hide_alertModal(context) {
-        context.commit('HIDE_ALERTMODAL');
+    toggle_alertModal(context){
+        context.commit('TOGGLE_ALERTMODAL');
     },
     settimeout_alertModal(context,time) {
         if(typeof(time) === "undefined"){
@@ -43,11 +40,8 @@ const actions = {
     },
 }
 const mutations = {
-    SHOW_ALERTMODAL(state) {
-        state.alertModalShow = true;
-    },
-    HIDE_ALERTMODAL(state) {
-        state.alertModalShow = false;
+    TOGGLE_ALERTMODAL(){
+        state.alertModalShow = !state.alertModalShow
     },
     SETTIMEOUT_ALERTMODAL(state,time) {
         state.alertModalShow = true;
