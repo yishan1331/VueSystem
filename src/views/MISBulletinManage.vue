@@ -4,7 +4,7 @@
         <b-card no-body>
             <b-tabs card v-model="tabIndex">
                 <b-tab title="上傳" active>
-                    <b-form @submit="uploadFormSubmit"  v-if="tabIndex == 0">
+                    <b-form @submit="uploadFormSubmit" v-if="tabIndex == 0">
                         <b-row class="my-4">
                             <b-col sm="2">
                                 <label for="input-default">類別:</label>
@@ -43,8 +43,13 @@
                                 <label for="textarea-large">公告內容:</label>
                                 <b-form-checkbox
                                     v-model="formcontentusetable"
-                                    v-b-tooltip="{ trigger:'hover',title: usetableTooltipExample, html:true, placement: 'bottom', variant: 'info'}"
-                                >使用表格</b-form-checkbox>
+                                    style="margin-bottom:5px"
+                                    v-b-tooltip="{ trigger:'hover',title: usetableTooltipExample, html:true, placement: 'right', variant: 'info'}"
+                                >自定義文字格式或使用表格(若兩者都勾選以此優先)</b-form-checkbox>
+                                <b-form-checkbox
+                                    v-model="formcontentusepre"
+                                    v-b-tooltip="{ trigger:'hover',title: usepreTooltipExample, html:true, placement: 'bottom', variant: 'info'}"
+                                >自定義格式內容(&lt;pre&gt;)</b-form-checkbox>
                             </b-col>
                             <b-col
                                 sm="10"
@@ -153,7 +158,6 @@
                 </b-tab>
             </b-tabs>
         </b-card>
-        <alertModal />
         <!-- 公告刪除modal -->
         <b-modal
             centered
@@ -240,8 +244,12 @@
                             <label for="textarea-large">公告內容:</label>
                             <b-form-checkbox
                                 v-model="modmodalcontentusetable"
-                                v-b-tooltip="{ trigger:'hover',title: usetableTooltipExample, html:true, placement: 'bottom', variant: 'info'}"
-                            >使用表格</b-form-checkbox>
+                                v-b-tooltip="{ trigger:'hover',title: usetableTooltipExample, html:true, placement: 'right', variant: 'info'}"
+                            >自定義文字格式或使用表格(若兩者都勾選以此優先)</b-form-checkbox>
+                            <b-form-checkbox
+                                v-model="modmodalcontentusepre"
+                                v-b-tooltip="{ trigger:'hover',title: usepreTooltipExample, html:true, placement: 'bottom', variant: 'info'}"
+                            >自定義格式內容(&lt;pre&gt;)</b-form-checkbox>
                         </b-col>
                         <b-col
                             sm="10"
@@ -352,7 +360,6 @@
 
 <script>
 import axios from "axios";
-import alertModal from "@/components/alertModal.vue";
 import commonQuery from "@/components/commonQuery.vue";
 import { validationMixin } from "vuelidate"; // 表單驗證
 import { required, minLength, between } from "vuelidate/lib/validators";
@@ -389,7 +396,10 @@ export default {
                 filename: [],
                 files: [],
             },
+            //upload form是否使用table checkbox
             formcontentusetable: false,
+            //upload form是否使用pre checkbox
+            formcontentusepre: false,
             fields: [
                 {
                     key: "category",
@@ -437,7 +447,10 @@ export default {
                 files: "",
                 filename: [],
             },
+            //mod form是否使用talbe checkbox
             modmodalcontentusetable: false,
+            //mod form是否使用pre checkbox
+            modmodalcontentusepre: false,
             modBulletinModalShow: false,
             delmodalcontent: {
                 seq: "",
@@ -496,7 +509,7 @@ export default {
                 return setvalid;
             }
             return setvalid;
-        }else{
+        } else {
             return {};
         }
     },
@@ -504,7 +517,6 @@ export default {
         this.SetCommonQueryData();
     },
     components: {
-        alertModal,
         commonQuery,
     },
     computed: {
@@ -600,7 +612,7 @@ export default {
     methods: {
         ...mapActions({
             setalertMsg: "alertmodal/set_alertMsg",
-            toggle_alertModal: "alertmodal/toggle_alertModal",
+            togglealertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             queryAgain: "commonquery/do_queryAgain",
             setinputData: "commonquery/set_inputData",
@@ -645,58 +657,16 @@ export default {
             console.log(status);
             if (status) {
                 console.log("call api");
-                let formData = new FormData();
                 let thiscontent;
-                let wordtype = ["wordUp", "wordDown"];
-                if (vm.form.content.hasOwnProperty("jsonvalid")) {
-                    let parsecontentvalue = JSON.parse(vm.form.content.value);
-                    console.log(parsecontentvalue);
-                    //檢查key是否為table,word且一定要有table
-                    if (!parsecontentvalue.hasOwnProperty("table")) {
-                        vm.setalertMsg(
-                            "公告內容若要使用表格顯示，傳入的物件key必要有table"
-                        );
-                        vm.settimeoutalertModal(1200);
-                        return;
-                    }
-                    console.log(Array.isArray(parsecontentvalue.table));
-                    if (!Array.isArray(parsecontentvalue.table)) {
-                        vm.setalertMsg("key->table的value必須為陣列");
-                        vm.settimeoutalertModal(1200);
-                        return;
-                    }
-                    wordtype.forEach((element) => {
-                        if (
-                            parsecontentvalue.hasOwnProperty(element) &&
-                            !typeof parsecontentvalue.element === "string"
-                        ) {
-                            console.log(parsecontentvalue[element]);
-                            console.log(typeof parsecontentvalue[element]);
-                            vm.setalertMsg(
-                                "key->" + element + "的value必須為字串"
-                            );
-                            vm.settimeoutalertModal(1200);
-                        } else {
-                            if (parsecontentvalue.hasOwnProperty(element)) {
-                                parsecontentvalue[
-                                    element
-                                ] = vm.replaceContentData(
-                                    parsecontentvalue[element]
-                                );
-                            }
-                        }
-                    });
-                    console.log(parsecontentvalue);
-                    console.log(JSON.stringify(parsecontentvalue));
-                    thiscontent = JSON.stringify(parsecontentvalue);
-                } else {
-                    thiscontent = vm.replaceContentData(vm.form.content.value);
-                    console.log(thiscontent);
-                }
+                thiscontent = vm.adjustContentData(vm.form.content);
+                if (!thiscontent) return;
                 console.log(thiscontent);
+                console.log(typeof thiscontent);
+                console.log(thiscontent);
+                let formData = new FormData();
                 formData.append("content", thiscontent);
                 vm.setalertMsg("請稍候...");
-                vm.toggle_alertModal();
+                vm.togglealertModal(true);
                 for (var i = 0; i < this.form.files.length; i++) {
                     let file = this.form.files[i];
                     formData.append("fileToUpload[" + i + "]", file);
@@ -721,7 +691,7 @@ export default {
                     )
                     .then(
                         function (response) {
-                            vm.toggle_alertModal();
+                            vm.togglealertModal(false);
                             const result = response.data;
                             vm.setalertMsg(result);
                             var altertime = 0;
@@ -802,26 +772,49 @@ export default {
                 console.log(JSON.stringify(items));
                 console.log(index);
                 console.log(event);
+                vm.modmodalcontentusetable = false;
+                vm.modmodalcontentusepre = false;
                 vm.RowClickedIndex = index;
                 vm.modmodalcontent.seq = items.seq;
                 vm.modmodalcontent.title.value = items.title;
                 vm.modmodalcontent.category = categorytoEN[items.category];
                 if (vm.checkIsJsonData(items.content)) {
-                    vm.modmodalcontentusetable = true;
-                    let parsecontent = JSON.parse(items.content);
+                    let parsecontent = items.content;
+                    if (
+                        Object.prototype.toString.call(items.content) !=
+                        "[object Object]"
+                    )
+                        parsecontent = JSON.parse(parsecontent);
                     console.log(parsecontent);
-                    if (parsecontent.hasOwnProperty("wordUp"))
-                        parsecontent.wordUp = parsecontent.wordUp
-                            .replace(/<br\s*[\/]?>/g, "\n")
-                            .replace(/&nbsp;/g, "");
-                    if (parsecontent.hasOwnProperty("wordDown"))
-                        parsecontent.wordDown = parsecontent.wordDown
-                            .replace(/<br\s*[\/]?>/g, "\n")
-                            .replace(/&nbsp;/g, "");
+                    if (parsecontent.hasOwnProperty("wordPreUp")) {
+                        if (typeof parsecontent.wordPreUp.content != "string") {
+                            vm.modmodalcontentusepre = true;
+                            parsecontent = parsecontent.wordPreUp.content.content.replace(
+                                /<br\s*[\/]?>/g,
+                                "\n"
+                            );
+                        }
+                    }
+                    if (!vm.modmodalcontentusepre)
+                        vm.modmodalcontentusetable = true;
+                    if (vm.modmodalcontentusepre) {
+                        console.log(parsecontent);
+                        vm.modmodalcontent.content.value = parsecontent;
+                    } else {
+                        if (parsecontent.hasOwnProperty("wordUp"))
+                            parsecontent.wordUp.content = parsecontent.wordUp.content
+                                .replace(/<br\s*[\/]?>/g, "\n")
+                                .replace(/&nbsp;/g, "");
+                        if (parsecontent.hasOwnProperty("wordDown"))
+                            parsecontent.wordDown.content = parsecontent.wordDown.content
+                                .replace(/<br\s*[\/]?>/g, "\n")
+                                .replace(/&nbsp;/g, "");
 
-                    vm.modmodalcontent.content.value = JSON.stringify(
-                        parsecontent
-                    );
+                        console.log(parsecontent);
+                        vm.modmodalcontent.content.value = JSON.stringify(
+                            parsecontent
+                        );
+                    }
                 } else {
                     items.content = items.content
                         .replace(/<br\s*[\/]?>/g, "\n")
@@ -911,56 +904,8 @@ export default {
             console.log(status);
             if (status) {
                 let thiscontent;
-                let wordtype = ["wordUp", "wordDown"];
-                if (vm.modmodalcontent.content.hasOwnProperty("jsonvalid")) {
-                    let parsecontentvalue = JSON.parse(
-                        vm.modmodalcontent.content.value
-                    );
-                    console.log(parsecontentvalue);
-                    //檢查key是否為table,word且一定要有table
-                    if (!parsecontentvalue.hasOwnProperty("table")) {
-                        vm.setalertMsg(
-                            "公告內容若要使用表格顯示，傳入的物件key必要有table"
-                        );
-                        vm.settimeoutalertModal(1200);
-                        return;
-                    }
-                    console.log(Array.isArray(parsecontentvalue.table));
-                    if (!Array.isArray(parsecontentvalue.table)) {
-                        vm.setalertMsg("key->table的value必須為陣列");
-                        vm.settimeoutalertModal(1200);
-                        return;
-                    }
-                    wordtype.forEach((element) => {
-                        if (
-                            parsecontentvalue.hasOwnProperty(element) &&
-                            !typeof parsecontentvalue.element === "string"
-                        ) {
-                            console.log(parsecontentvalue[element]);
-                            console.log(typeof parsecontentvalue[element]);
-                            vm.setalertMsg(
-                                "key->" + element + "的value必須為字串"
-                            );
-                            vm.settimeoutalertModal(1200);
-                        } else {
-                            if (parsecontentvalue.hasOwnProperty(element)) {
-                                parsecontentvalue[
-                                    element
-                                ] = vm.replaceContentData(
-                                    parsecontentvalue[element]
-                                );
-                            }
-                        }
-                    });
-                    console.log(parsecontentvalue);
-                    console.log(JSON.stringify(parsecontentvalue));
-                    thiscontent = JSON.stringify(parsecontentvalue);
-                } else {
-                    thiscontent = vm.replaceContentData(
-                        vm.modmodalcontent.content.value
-                    );
-                    console.log(thiscontent);
-                }
+                thiscontent = vm.adjustContentData(vm.modmodalcontent.content);
+                if (!thiscontent) return;
                 console.log(thiscontent);
                 let formData = new FormData();
                 for (var i = 0; i < this.modmodalcontent.files.length; i++) {
@@ -1113,7 +1058,7 @@ export default {
                 },
                 category: "system",
                 filename: [],
-                files: []
+                files: [],
             };
             vm.modmodalcontent = {
                 seq: "",
@@ -1131,10 +1076,12 @@ export default {
                 showhide: "",
                 boardannex: {},
                 files: "",
-                filename: []
+                filename: [],
             };
             vm.formcontentusetable = false;
+            vm.formcontentusepre = false;
             vm.modmodalcontentusetable = false;
+            vm.modmodalcontentusepre = false;
             vm.$nextTick(() => {
                 vm.$v.$reset();
             });
@@ -1150,6 +1097,148 @@ export default {
             Object.assign(this.$data, def);
             //https://codepen.io/karimcossutti/pen/ObXyKq
         },
+        adjustContentData(content) {
+            let status = false;
+            let thiscontent;
+            let vm = this;
+            let wordtype = ["wordUp", "wordDown", "wordPreUp", "wordPreDown"];
+            //有勾選『自定義文字格式或使用表格』checkbox
+            if (content.hasOwnProperty("jsonvalid")) {
+                let parsecontentvalue = JSON.parse(content.value);
+                console.log(parsecontentvalue);
+                if (parsecontentvalue.hasOwnProperty("table")) {
+                    status = true;
+                    let tablekey = ["fields", "items"];
+                    //檢查key是否有fields,items
+                    for (let i = 0; i < tablekey.length; i++) {
+                        if (
+                            !parsecontentvalue.table.hasOwnProperty(tablekey[i])
+                        ) {
+                            vm.setalertMsg(
+                                "公告內容若要使用表格顯示，table的value物件必須有key必需有fields、items兩個key"
+                            );
+                            vm.settimeoutalertModal(1200);
+                            return;
+                        }
+                        console.log(
+                            Array.isArray(parsecontentvalue.table[tablekey[i]])
+                        );
+                        if (
+                            !Array.isArray(parsecontentvalue.table[tablekey[i]])
+                        ) {
+                            vm.setalertMsg(
+                                "key:table -> " + tablekey[i] + "必須為陣列"
+                            );
+                            vm.settimeoutalertModal(1500);
+                            return false;
+                        }
+                        parsecontentvalue.table[tablekey[i]].forEach(
+                            (element) => {
+                                if (
+                                    Object.prototype.toString.call(element) !=
+                                        "[object Object]" ||
+                                    Object.keys(element) == 0
+                                ) {
+                                    vm.setalertMsg(
+                                        "key->table的的陣列內容必須為物件且不為空物件"
+                                    );
+                                    vm.settimeoutalertModal(1500);
+                                    return false;
+                                }
+                            }
+                        );
+                    }
+                }
+                for (let i = 0; i < wordtype.length; i++) {
+                    if (parsecontentvalue.hasOwnProperty(wordtype[i])) {
+                        console.log(wordtype[i]);
+                        console.log(parsecontentvalue[wordtype[i]]);
+                        status = true;
+                        console.log(
+                            Object.prototype.toString.call(
+                                parsecontentvalue[wordtype[i]]
+                            )
+                        );
+                        console.log(
+                            Object.keys(parsecontentvalue[wordtype[i]])
+                        );
+                        if (
+                            Object.prototype.toString.call(
+                                parsecontentvalue[wordtype[i]]
+                            ) != "[object Object]" ||
+                            Object.keys(parsecontentvalue[wordtype[i]]) == 0
+                        ) {
+                            console.log(parsecontentvalue[wordtype[i]]);
+                            vm.setalertMsg(
+                                "key->" +
+                                    wordtype[i] +
+                                    "的value必須為物件且不為空物件"
+                            );
+                            vm.settimeoutalertModal(1500);
+                            return false;
+                        }
+                        console.log(
+                            parsecontentvalue[wordtype[i]].hasOwnProperty(
+                                "content"
+                            )
+                        );
+                        if (
+                            !parsecontentvalue[wordtype[i]].hasOwnProperty(
+                                "content"
+                            ) ||
+                            typeof parsecontentvalue[wordtype[i]]["content"] !=
+                                "string"
+                        ) {
+                            vm.setalertMsg([
+                                "key->" +
+                                    wordtype[i] +
+                                    "的value物件缺少key:content",
+                                "且必須為字串",
+                            ]);
+                            vm.settimeoutalertModal(1500);
+                            return false;
+                        }
+                        if (
+                            wordtype[i] != "wordPreUp" &&
+                            wordtype[i] != "wordPreDown"
+                        ) {
+                            parsecontentvalue[wordtype[i]][
+                                "content"
+                            ] = vm.replaceContentData(
+                                parsecontentvalue[wordtype[i]]["content"]
+                            );
+                        }
+                    }
+                }
+                if (!status) {
+                    vm.setalertMsg([
+                        "key:至少要有下列其中一個",
+                        '["wordUp", "wordDown", "wordPreUp", "wordPreDown"]',
+                    ]);
+                    vm.settimeoutalertModal(1500);
+                    return false;
+                }
+                console.log(parsecontentvalue);
+                console.log(JSON.stringify(parsecontentvalue));
+                thiscontent = JSON.stringify(parsecontentvalue);
+            } else {
+                let tempObj = {};
+                thiscontent = content.value;
+                //有勾選『自定義格式內容』checkbox
+                if (vm.modmodalcontentusepre || vm.formcontentusepre) {
+                    tempObj["wordPreUp"] = {
+                        content: {
+                            content: thiscontent.replace(/\n/g, "<br/>"),
+                        },
+                    };
+                    thiscontent = JSON.stringify(tempObj);
+                } else {
+                    thiscontent = vm.replaceContentData(thiscontent);
+                }
+                console.log(thiscontent);
+            }
+            return thiscontent;
+        },
         //content value 資料處理
         replaceContentData(content) {
             console.log(content);
@@ -1163,10 +1252,19 @@ export default {
         },
         //Tooltip的使用範例
         usetableTooltipExample() {
-            return `<p>以物件傳入key為<span style="color:black;font-weight:bold;font-size:large">table</span>、<span style="color:black;font-weight:bold;font-size:large">wordUp</span>、<span style="color:black;font-weight:bold;font-size:large">wordDown</span>(選填)</p>
-            <p>key若為其他，系統則不做判斷顯示</p>
+            return `<p>以物件傳入key為<span style="color:black;font-weight:bold;font-size:large">table</span>、<span style="color:black;font-weight:bold;font-size:large">wordUp</span>、<span style="color:black;font-weight:bold;font-size:large">wordDown</span>、<span style="color:black;font-weight:bold;font-size:large">wordPreUp</span>、<span style="color:black;font-weight:bold;font-size:large">wordPreDown</span>(選填)</p>
+            <p>key若為其他，系統則不做判斷顯示，順序為wordPreUp，wordUp，wordDown，wordPreDown</p>
             <div style="border:1px solid #ccc;padding:5px;border-radius:10px;margin-bottom:5px">
-            <p style="font-size:larger;font-weight:bold;text-decoration:underline">key : table的value以陣列包物件方式傳入</p>
+            <p style="font-size:larger;font-weight:bold;text-decoration:underline">key : table的value為物件且必須有fields、items兩個key</p>
+            <ul style="padding-left:20px;margin-bottom:0">
+            <li><span style="font-size:large;font-weight:bold;text-decoration:underline">fields</span>為表格的表頭，以陣列包物件格式傳入</li>
+            <ol style="padding-left:20px;margin-bottom:0">
+            <li>每一筆物件就是一個表頭，物件順序跟顯示順序有關係</li>
+            <li>物件的key有：key(須以items內每一筆資料的key相同，必填)、label(顯示的名稱，選填)、sortable(是否排序true/false，選填)</li>
+            <li>格式若錯誤系統無法顯示</li>
+            <li>example:[{"key":"category","label": "類別","sortable": true},{"key":"title","label": "標題","sortable": false}]</li>
+            </ol>
+            <li><span style="font-size:large;font-weight:bold;text-decoration:underline">items</span>為表格的資料內容，以陣列包物件格式傳入</li>
             <ol style="padding-left:20px;margin-bottom:0">
             <li>每一筆物件就是一列資料</li>
             <li>各物件內的key都要相同</li>
@@ -1180,25 +1278,43 @@ export default {
             <li>使用參數key : "_cellVariants"</li>
             <li>格式為{"表頭":"color"}，color -> primary,secondary,success,warning,danger,info,light,dark</li>
             </ul>
-            <li>example:{ 表頭: 值, 表頭: 值, 表頭: 值 ,_rowVariant:info}</li>
+            <li>格式若錯誤系統無法顯示</li>
+            <li>example:{ "category": "值", "title": "值" ,"_rowVariant":"info", "_cellVariants":"danger"}</li>
+            </ol>
+            </ul>
+            </div>
+            <div style="border:1px solid #ccc;padding:5px;border-radius:10px">
+            <p style="font-size:larger;font-weight:bold;text-decoration:underline">key : wordUp、wordDown的value以物件傳入</p>
+            <ol style="padding-left:20px;margin-bottom:0">
+            <li>wordUp代表在表格上方的文字、wordDown代表表格下方的文字</li>
+            <li>物件格式為{"content":"文字內容(必填，若要換行輸入\\n換行符號)","color":"文字顏色","size":"文字大小","align":"文字位置(left,center,right)"}</li>
+            <li>以上參數須符合css才能正常顯示，content為必填，其他參數為選填</li>
             </ol>
             </div>
             <div style="border:1px solid #ccc;padding:5px;border-radius:10px">
-            <p style="font-size:larger;font-weight:bold;text-decoration:underline">key : wordUp、wordDown的value以字串傳入</p>
+            <p style="font-size:larger;font-weight:bold;text-decoration:underline">key : wordPreUp、wordPreDown的value以物件傳入</p>
             <ol style="padding-left:20px;margin-bottom:0">
-            <li>分別代表在表格上方的文字及下方的文字</li>
-            <li>若要換行輸入\\n換行符號</li>
+            <li>wordPreUp代表在表格上方的文字、wordPreDown代表在表格下方的文字</li>
+            <li>物件格式為{"content":"文字內容(必填，若要換行輸入\\n換行符號)","color":"文字顏色","size":"文字大小"}</li>
+            <li>資料內容將以html的&lt;pre&gt;標籤顯示</li>
             </ol>
             </div>`;
+        },
+        usepreTooltipExample() {
+            return `<p>直接輸入文字內容，公告區顯示時的空格換行與格式會與輸入時一致</p>
+            <p>資料內容將以html的&lt;pre&gt;標籤顯示</p>
+            `;
         },
         //檢查是否為JSON Data
         checkIsJsonData(jsonData) {
             let status = true;
-            try {
-                JSON.parse(jsonData);
-            } catch (e) {
-                //console.log('Error data', e);
-                status = false;
+            if (Object.prototype.toString.call(jsonData) != "[object Object]") {
+                try {
+                    JSON.parse(jsonData);
+                } catch (e) {
+                    //console.log('Error data', e);
+                    status = false;
+                }
             }
             console.log(status);
             return status;
@@ -1208,6 +1324,7 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped src="../../public/css/vuelidateYS.css"></style>
 <style scoped>
 .custom-select {
     width: 200px !important;
@@ -1253,38 +1370,12 @@ h5 {
     top: 10px;
     left: 5px;
 }
-
-.form-group--error {
-    animation-name: shakeError !important;
-    animation-fill-mode: forwards !important;
-    animation-duration: 0.6s !important;
-    animation-timing-function: ease-in-out !important;
-}
-.form-group--error + .form-group__message,
-.form-group--error .error,
-.form-group--error .jsonerror {
-    display: block;
-    color: #f57f6c;
-}
-.form-group--error input,
-.form-group--error textarea,
-.form-group--error input:focus,
-.form-group--error input:hover {
-    border-color: #f79483;
-}
-.error,
-.jsonerror {
-    font-size: 0.95rem;
-    /* line-height: 1; */
-    display: none;
-    /* margin-left: 14px; */
-    /* margin-top: -1.6875rem; */
-    /* margin-bottom: 0.9375rem; */
-}
-
-/* .tooltip-inner {
-    max-width: 300px !important;
+::v-deep .tooltip-inner {
+    max-width: 500px !important;
     text-align: left !important;
-} */
+}
+::v-deep .tooltip-inner p {
+    margin-bottom: 5px !important;
+}
 </style>
 

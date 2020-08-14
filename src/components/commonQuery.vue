@@ -20,7 +20,7 @@
             <label>時間:</label>
             <datepicker :date="startTime" :option="startoption"></datepicker>~
             <datepicker :date="endTime" :option="endoption" :limit="endoption.limit"></datepicker>
-            <b-button variant="primary" @click="QueryData()">查詢</b-button>
+            <b-button variant="primary" @click="QueryData()" class="ml-2">查詢</b-button>
         </div>
         <b-form-checkbox
             v-model="notsettingtime"
@@ -39,10 +39,10 @@ export default {
     data() {
         return {
             startTime: {
-                time: ""
+                time: "",
             },
             endTime: {
-                time: ""
+                time: "",
             },
             startoption: {
                 type: "day",
@@ -59,7 +59,7 @@ export default {
                     "September",
                     "October",
                     "November",
-                    "December"
+                    "December",
                 ],
                 format: "YYYY-MM-DD",
                 placeholder: "",
@@ -72,14 +72,14 @@ export default {
                     "box-shadow": "0 1px 3px 0 rgba(0, 0, 0, 0.2)",
                     "border-radius": "2px",
                     color: "#5F5F5F",
-                    width: "110px"
+                    width: "110px",
                 },
                 color: {
                     header: "#ccc",
-                    headerText: "#f00"
+                    headerText: "#f00",
                 },
                 overlayOpacity: 0.5, // 0.5 as default
-                dismissible: true // as true as default
+                dismissible: true, // as true as default
             },
             endoption: {
                 type: "day",
@@ -96,7 +96,7 @@ export default {
                     "September",
                     "October",
                     "November",
-                    "December"
+                    "December",
                 ],
                 format: "YYYY-MM-DD",
                 placeholder: "",
@@ -109,11 +109,11 @@ export default {
                     "box-shadow": "0 1px 3px 0 rgba(0, 0, 0, 0.2)",
                     "border-radius": "2px",
                     color: "#5F5F5F",
-                    width: "110px"
+                    width: "110px",
                 },
                 color: {
                     header: "#ccc",
-                    headerText: "#f00"
+                    headerText: "#f00",
                 },
                 overlayOpacity: 0.5, // 0.5 as default
                 dismissible: true, // as true as default
@@ -121,9 +121,9 @@ export default {
                     {
                         type: "fromto",
                         from: "1995-01-01",
-                        to: "9999-01-01"
-                    }
-                ]
+                        to: "9999-01-01",
+                    },
+                ],
             },
             inputtext: "",
             selected: "",
@@ -132,16 +132,16 @@ export default {
                 noumenonID: "部門編號",
                 depName: "部門名稱",
                 uID: "帳號",
-                uName: "姓名"
+                uName: "姓名",
             },
-            notsettingtime: true
+            notsettingtime: true,
         };
     },
-    created: function() {
+    created: function () {
         this.DateFormat("Default");
     },
     components: {
-        datepicker
+        datepicker,
     },
     computed: {
         ...mapGetters({
@@ -149,8 +149,8 @@ export default {
             queryResponse: "commonquery/get_queryResponse",
             receivequeryAgain: "commonquery/receive_queryAgain",
             inputData: "commonquery/get_inputData",
-            depDetail: "commonquery/get_depDetail"
-        })
+            depDetail: "commonquery/get_depDetail",
+        }),
     },
     watch: {
         "startTime.time": {
@@ -165,14 +165,15 @@ export default {
                 }
                 vm.endoption.limit[0].from = value;
                 vm.endoption.limit[0].to = "";
-            }
+            },
             // deep: true
         },
         receivequeryAgain: {
             handler() {
+                console.log("$$$$$$$$$$$$$$");
                 this.QueryData();
-            }
-        }
+            },
+        },
     },
     methods: {
         ...mapActions({
@@ -181,7 +182,7 @@ export default {
             togglealertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             setqueryResponse: "commonquery/set_queryResponse",
-            changetableBusy: "commonquery/change_tableBusy"
+            changetableBusy: "commonquery/change_tableBusy",
         }),
         onChange(event) {
             console.log(event);
@@ -221,13 +222,31 @@ export default {
                     params["whichFunction"] = "CommonSimpleQuery";
                     params["category"] = "category";
                     params["categoryparameter"] = vm.inputData.selected;
+                } else if (vm.inputData.table == "todoList") {
+                    console.log(vm.inputData.selected);
+                    params["methods"] = "POST";
+                    params["whichFunction"] = "CommonSqlSyntaxQuery_";
+                    params["condition"] = {
+                        condition_1: {
+                            table: "todoList",
+                            where: {
+                                depID: [vm.inputData.selected],
+                            },
+                            orderby: ["asc", "schedDate"],
+                            limit: ["ALL"],
+                            symbols: { depID: ["equal"] },
+                        },
+                    };
                 } else {
                     params["whichFunction"] = "CommonSqlSyntaxQuery";
                     params["methods"] = "POST";
                     params["purpose"] = vm.inputData.querypurpose;
                     if (vm.selected != "") {
                         params["where"] = {};
-                        if (vm.inputData.table == "user" && vm.inputData.selected == "depName") {
+                        if (
+                            vm.inputData.table == "user" &&
+                            vm.inputData.selected == "depName"
+                        ) {
                             params["where"]["noumenonID"] = vm.inputtext.trim();
                         } else {
                             params["where"][
@@ -239,8 +258,8 @@ export default {
                         params["intervaltime"] = {
                             createTime: [
                                 vm.startTime.time + " 00:00:00",
-                                vm.endTime.time + " 23:59:59"
-                            ]
+                                vm.endTime.time + " 23:59:59",
+                            ],
                         };
                     }
                 }
@@ -249,11 +268,11 @@ export default {
             vm.axiosAction(params).then(() => {
                 var result = vm.axiosResult;
                 console.log(result);
-                vm.togglealertModal();
+                vm.togglealertModal(false);
                 vm.changetableBusy();
                 if (result["Response"] == "ok") {
                     result["QueryTableData"] = result["QueryTableData"].sort(
-                        function(a, b) {
+                        function (a, b) {
                             return a.lastUpdateTime < b.lastUpdateTime ? 1 : -1;
                         }
                     );
@@ -295,13 +314,13 @@ export default {
                 vm.endTime.time = todayDate_end;
             } else {
                 vm.setalertMsg("請稍候...");
-                vm.togglealertModal();
+                vm.togglealertModal(true);
                 vm.reset([
                     "startTime",
                     "endTime",
                     "selected",
                     "inputtext",
-                    "notsettingtime"
+                    "notsettingtime",
                 ]);
                 vm.changetableBusy();
                 vm.QueryDataFunction();
@@ -330,8 +349,8 @@ export default {
             }
             Object.assign(this.$data, def);
             //https://codepen.io/karimcossutti/pen/ObXyKq
-        }
-    }
+        },
+    },
 };
 </script>
 
@@ -350,5 +369,8 @@ export default {
 }
 .mt10px {
     margin-top: 10px;
+}
+.datepicker-overlay {
+    z-index: 9999 !important;
 }
 </style>

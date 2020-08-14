@@ -80,13 +80,11 @@ export default {
         }),
         checkUser(e) {
             var vm = this;
-
-            if (vm.user.uID === ""){
+            if (vm.user.uID === "") {
                 vm.setalertMsg("帳號尚未輸入");
                 vm.settimeoutalertModal();
-                return
+                return;
             }
-
             var params = {};
             params["methods"] = "GET";
             params["whichFunction"] = "Login";
@@ -94,14 +92,16 @@ export default {
             vm.axiosAction(params).then(() => {
                 var result = vm.axiosResult;
                 console.log(result);
+                console.log(result["QueryTableData"][0].accessList);
+                console.log(JSON.stringify(result));
                 if (result["Response"] != "ok") {
                     vm.setalertMsg(result["Response"]);
                     vm.settimeoutalertModal();
                 } else {
-                    if (result["QueryTableData"].length ===0){
+                    if (result["QueryTableData"].length === 0) {
                         vm.setalertMsg("查無此帳號");
                         vm.settimeoutalertModal();
-                        return
+                        return;
                     }
                     if (vm.user.pwd === result["QueryTableData"][0].pwd) {
                         vm.setalertMsg("登入成功");
@@ -110,33 +110,20 @@ export default {
                         obj.account = vm.user.uID;
                         obj.status = true;
                         obj.username = result["QueryTableData"][0].uName;
-                        obj.accesslist = JSON.parse(
-                            result["QueryTableData"][0].accessList
-                        );
-                        var access = JSON.parse(
-                            result["QueryTableData"][0].accessList
-                        );
+                        obj.accesslist = result["QueryTableData"][0].accessList;
+                        var access = result["QueryTableData"][0].accessList;
                         var pageAccessobj = Object.assign({}, vm.pageAccess);
-                        if (
-                            JSON.parse(
-                                result["QueryTableData"][0].accessList
-                            ) != "ALL"
-                        ) {
-                            const trueList = Object.keys(access).filter(
-                                (acc) => access[acc]
-                            );
-                            trueList.push("home");
-                            childRouter[0].children = childRouter[0].children.filter(
-                                (item) => trueList.includes(item.path)
-                            );
-                            vm.change_pageAccess(access);
-                        } else {
-                            var obj2 = {};
-                            Object.keys(pageAccessobj).forEach(function (key) {
-                                obj2[key] = true;
-                            });
-                            vm.change_pageAccess(obj2);
-                        }
+                        let trueList = [];
+                        Object.entries(access).forEach((element) => {
+                            console.log(element);
+                            if (element[1]["status"]) trueList.push(element[0]);
+                        });
+                        console.log(trueList);
+                        trueList.push("home");
+                        childRouter[0].children = childRouter[0].children.filter(
+                            (item) => trueList.includes(item.path)
+                        );
+                        vm.change_pageAccess(access);
                         console.log(childRouter);
                         vm.$router.addRoutes(childRouter);
                         vm.change_loginData(obj);
@@ -155,14 +142,16 @@ export default {
             // obj.account = vm.user.uID;
             // obj.status = true;
             // obj.username = "admin";
-            // obj.accesslist = "ALL";
+            // obj.accesslist = {
+            //     misbulletinboard: { status: true },
+            //     department: { status: true },
+            //     account: { status: true },
+            //     misbulletinmanage: { status: true },
+            //     structure: { status: true },
+            //     todolist: { status: true, remark: "ALL" },
+            // };
             // vm.change_loginData(obj);
-            // var obj2 = {};
-            // var pageAccessobj = Object.assign({}, vm.pageAccess);
-            // Object.keys(pageAccessobj).forEach(function (key) {
-            //     obj2[key] = true;
-            // });
-            // vm.change_pageAccess(obj2);
+            // vm.change_pageAccess(obj.accesslist);
             // console.log(childRouter);
             // vm.$router.addRoutes(childRouter);
             // vm.change_loginData(obj);
@@ -170,7 +159,6 @@ export default {
             // setTimeout(function () {
             //     vm.$router.push("/index");
             // }, 900);
-            // vm.$router.push("/index");
             //===========================測試用===========================//
         },
     },

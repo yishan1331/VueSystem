@@ -22,13 +22,7 @@ const getters = {
         return state.queryAgain;
     },
     get_inputData: state => {
-        var inputData = {};
-        inputData.options = state.inputData.options;
-        inputData.selected = state.inputData.selected;
-        inputData.inputtext = state.inputData.inputtext;
-        inputData.table = state.inputData.table;
-        inputData.querypurpose = state.inputData.querypurpose;
-        return inputData;
+        return state.inputData;
     },
     get_depDetail: state => {
         return state.depDetail;
@@ -42,6 +36,7 @@ const actions = {
         context.commit("CHANGE_TABLEBUSY");
     },
     do_queryAgain(context) {
+        console.log("###########");
         context.commit("DO_QUERYAGAIN");
     },
     set_inputData(context, obj) {
@@ -59,7 +54,9 @@ const mutations = {
         state.tableBusy = !state.tableBusy;
     },
     DO_QUERYAGAIN(state) {
+        console.log("###########");
         state.queryAgain = !state.queryAgain;
+        console.log(state.queryAgain);
     },
     SET_INPUTDATA(state, obj) {
         state.inputData.options = obj.options;
@@ -67,6 +64,7 @@ const mutations = {
         state.inputData.inputtext = obj.inputtext;
         state.inputData.table = obj.table;
         state.inputData.querypurpose = obj.querypurpose;
+        console.log(state.inputData);
     },
     SET_DEPDETAIL(state, data) {
         state.depDetail = data;

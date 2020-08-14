@@ -2,7 +2,7 @@
 function DepartmentAdd($params, $returnData)
 {
     $this_accessList = json_decode($params->accessList);
-    $url = "https://192.168.39.75:3687/api/sapidoSystem/1.0/my/department/registerDep?uid=@sapido@PaaS";
+    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/department/registerDep?uid=@sapido@PaaS";
     $data = array(
         'depID' => $params->depID,
         'depName' => $params->depName,
@@ -20,7 +20,7 @@ function DepartmentAdd($params, $returnData)
 function DepartmentMod($params, $returnData)
 {
     $this_accessList = json_decode($params->accessList);
-    $url = "https://192.168.39.75:3687/api/sapidoSystem/1.0/my/department/update_Department?uid=@sapido@PaaS";
+    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/department/update_Department?uid=@sapido@PaaS";
     $data = array(
         'depID' => $params->depID,
         'depName' => $params->depName,
@@ -34,7 +34,7 @@ function DepartmentMod($params, $returnData)
 function AccountAdd($params, $returnData)
 {
     $this_accessList = json_decode($params->accessList);
-    $url = "https://192.168.39.75:3687/api/sapidoSystem/1.0/my/user/reg_User?uid=@sapido@PaaS";
+    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/user/reg_User?uid=@sapido@PaaS";
     $data = array(
         'uID' => $params->uID,
         'pwd' => $params->pwd,
@@ -52,7 +52,7 @@ function AccountAdd($params, $returnData)
 function AccountMod($params, $returnData)
 {
     $this_accessList = json_decode($params->accessList);
-    $url = "https://192.168.39.75:3687/api/sapidoSystem/1.0/my/user/update_User?uid=@sapido@PaaS";
+    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/user/update_User?uid=@sapido@PaaS";
     $data = array(
         'old_uID' => $params->uID,
         'new_uID' => $params->uID,
@@ -70,7 +70,7 @@ function AccountMod($params, $returnData)
 }
 function AccountDel($params, $returnData)
 {
-    $url = "https://192.168.39.75:3687/api/sapidoSystem/1.0/my/user/delete_User?uid=@sapido@PaaS&del_uID=" . $params->uID;
+    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/user/delete_User?uid=@sapido@PaaS&del_uID=" . $params->uID;
     $returnData[0] = $url;
     return $returnData;
 }

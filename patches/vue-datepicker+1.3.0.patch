@@ -1,0 +1,13 @@
+diff --git a/node_modules/vue-datepicker/vue-datepicker-es6.vue b/node_modules/vue-datepicker/vue-datepicker-es6.vue
+index 957234f..bdcb373 100644
+--- a/node_modules/vue-datepicker/vue-datepicker-es6.vue
++++ b/node_modules/vue-datepicker/vue-datepicker-es6.vue
+@@ -3,7 +3,7 @@
+   position: fixed;
+   width: 100%;
+   height: 100%;
+-  z-index: 998;
++  z-index: 9999; /* Yishan 20200811 more z-index */
+   top: 0;
+   left: 0;
+   overflow: hidden;

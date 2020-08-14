@@ -5,8 +5,8 @@
 	"scripts": {
 		"serve": "vue-cli-service serve",
 		"build": "vue-cli-service build",
-        "test:unit": "vue-cli-service test:unit",
-        "postinstall": "patch-package"
+		"test:unit": "vue-cli-service test:unit",
+		"postinstall": "patch-package"
 	},
 	"dependencies": {
 		"@fortawesome/fontawesome-svg-core": "^1.2.26",
@@ -32,8 +32,9 @@
 		"@vue/cli-plugin-unit-jest": "~4.4.0",
 		"@vue/cli-plugin-vuex": "~4.4.0",
 		"@vue/cli-service": "~4.4.0",
-        "@vue/test-utils": "^1.0.3",
-        "patch-package": "^6.2.2",
+		"@vue/test-utils": "^1.0.3",
+		"babel-plugin-transform-remove-console": "^6.9.4",
+		"patch-package": "^6.2.2",
 		"sass": "^1.26.5",
 		"sass-loader": "^8.0.2",
 		"vue-template-compiler": "^2.6.11"

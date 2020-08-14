@@ -2,13 +2,13 @@
 //登入
 function Login($params, $returnData)
 {
-    $url = "https://192.168.39.75:3687/api/sapidoSystem/1.0/my/CommonUse/Interval/user?uid=@sapido@PaaS&attr=uID&valueStart=" . $params->uID . "&valueEnd=" . $params->uID;
+    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/Interval/user?uid=@sapido@PaaS&attr=uID&valueStart=" . $params->uID . "&valueEnd=" . $params->uID;
     $returnData[0] = $url;
     return $returnData;
 }
 function ChangePwd($params, $returnData)
 {
-    $url = "https://192.168.39.75:3687/api/sapidoSystem/1.0/my/user/update_User?uid=@sapido@PaaS";
+    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/user/update_User?uid=@sapido@PaaS";
     //The JSON data.
     $data = array(
         'old_uID' => $params->uID,

@@ -1,11 +1,7 @@
 <template>
     <div class="systemForm">
         <b-form>
-            <b-row
-                v-for="(item1,key1) in vforData"
-                :key="key1"
-                :class="{'my-4': key1 != 'button'}"
-            >
+            <b-row v-for="(item1,key1) in vforData" :key="key1" :class="{'my-4': key1 != 'button'}">
                 <template v-if="key1 != 'button'">
                     <b-col sm="2">
                         <label for="input-default">{{item1[1]}}:</label>
@@ -30,10 +26,19 @@
                         <b-form-checkbox
                             v-else-if="item1[0] == 'accesscheckbox'"
                             v-for="(item2,key2) in pageAccess"
-                            v-model="form[key1][key2]"
+                            v-model="form[key1][key2]['status']"
                             :key="key2"
                             style="display:inline-block;margin-right:10px"
-                        >{{pageAccessCH[key2]}}</b-form-checkbox>
+                        >
+                            {{pageAccessCH[key2]}}
+                            <b-form-select
+                                v-if="key2 == 'todolist'"
+                                v-model="form[key1][key2]['remark']"
+                                :options="[{'text':'雲端AI(智慧)平台部','value':'1003'},{'text':'系統研發部','value':'1002'},{'text':'資訊通訊部','value':'1001'},{'text':'ALL','value':'ALL'}]"
+                                size="sm"
+                                style="width: 100px !important"
+                            ></b-form-select>
+                        </b-form-checkbox>
                         <b-form-select
                             v-else-if="item1[0] == 'depselect'"
                             v-model="form.noumenonID"
@@ -66,12 +71,6 @@ export default {
         return {
             form: {},
             // style: {},
-            pageAccessCH: {
-                misbulletinboard: "MIS公告區",
-                misbulletinmanage: "MIS公告管理",
-                department: "部門",
-                account: "帳號",
-            },
         };
     },
     created: function () {
@@ -82,6 +81,7 @@ export default {
             vforData: "systemform/get_vforData",
             selectOptions: "systemform/get_selectOptions",
             pageAccess: "getlogin/get_pageAccess",
+            pageAccessCH: "getlogin/get_pageAccessCH",
             systemFormResponse: "systemform/get_systemFormResponse",
         }),
         // styleObject() {
@@ -105,8 +105,9 @@ export default {
         createFormData() {
             var vm = this;
             var pageAccessobj = JSON.parse(JSON.stringify(vm.pageAccess));
-
+            console.log(pageAccessobj);
             var formdata = JSON.parse(JSON.stringify(vm.vforData));
+            console.log(formdata);
             var formdataitem = {};
             // var formdatastyle = {};
             for (var i = 0; i < Object.keys(formdata).length; i++) {
@@ -119,7 +120,13 @@ export default {
                     ) {
                         if (Object.keys(formdata)[i] === "accessList") {
                             Object.keys(pageAccessobj).forEach(function (key) {
-                                pageAccessobj[key] = false;
+                                console.log(key);
+                                if (key == "todolist") {
+                                    pageAccessobj[key]["status"] = false;
+                                    pageAccessobj[key]["remark"] = null;
+                                } else {
+                                    pageAccessobj[key]["status"] = false;
+                                }
                             });
                             formdataitem[
                                 Object.keys(formdata)[i]
@@ -132,20 +139,26 @@ export default {
                 } else if (Object.values(formdata)[i].length == 3) {
                     if (Object.values(formdata)[i][0] == "accesscheckbox") {
                         if (Object.keys(formdata)[i] === "accessList") {
-                            if (Object.values(formdata)[i][2] === "ALL") {
-                                Object.keys(pageAccessobj).forEach(function (
-                                    key
-                                ) {
-                                    pageAccessobj[key] = true;
-                                });
-                                formdataitem[
-                                    Object.keys(formdata)[i]
-                                ] = pageAccessobj;
-                            } else {
-                                formdataitem[
-                                    Object.keys(formdata)[i]
-                                ] = Object.values(formdata)[i][2];
-                            }
+                            // if (Object.values(formdata)[i][2] === "ALL") {
+                            //     Object.keys(pageAccessobj).forEach(function (
+                            //         key
+                            //     ) {
+                            //         if (key == "todolist") {
+                            //             pageAccessobj[key]["status"] = true;
+                            //             pageAccessobj[key]["remark"] = "ALL";
+                            //         } else {
+                            //             pageAccessobj[key]["status"] = true;
+                            //         }
+                            //         pageAccessobj[key] = true;
+                            //     });
+                            //     formdataitem[
+                            //         Object.keys(formdata)[i]
+                            //     ] = pageAccessobj;
+                            // } else {
+                            formdataitem[
+                                Object.keys(formdata)[i]
+                            ] = Object.values(formdata)[i][2];
+                            // }
                         }
                     } else {
                         formdataitem[Object.keys(formdata)[i]] = Object.values(
@@ -155,6 +168,7 @@ export default {
                 }
             }
             vm.form = formdataitem;
+            console.log(vm.form);
             // vm.style = formdatastyle;
         },
         depselectChange(event) {
@@ -170,6 +184,9 @@ export default {
         submit() {
             var vm = this;
             // if (vm.vforData.button[0] == "Add") {
+            if (!vm.form.accessList.todolist.status)
+                vm.form.accessList.todolist.remark = null;
+            console.log(vm.form);
             vm.setcompletedData(vm.form);
             // }
         },

@@ -71,7 +71,6 @@
                 </b-tab>
             </b-tabs>
         </b-card>
-        <alertModal />
         <!-- 帳號刪除modal -->
         <b-modal
             centered
@@ -134,7 +133,6 @@
 
 <script>
 import axios from "axios";
-import alertModal from "@/components/alertModal.vue";
 import systemForm from "@/components/systemForm.vue";
 import commonQuery from "@/components/commonQuery.vue";
 import { mapGetters, mapActions } from "vuex";
@@ -147,48 +145,47 @@ export default {
                 {
                     key: "uID",
                     label: "帳號",
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "uName",
                     label: "姓名",
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "uInfo",
                     label: "使用者介紹",
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "noumenonID",
                     label: "部門",
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "accessList",
                     label: "權限列表",
-                    sortable: true
-                }
+                    sortable: true,
+                },
             ],
             items: [],
             modAccountModalShow: false,
             delmodalcontent: {
-                uID: ""
+                uID: "",
             },
             delAccountModalShow: false,
-            depDetail: []
+            depDetail: [],
         };
     },
-    created: function() {
+    created: function () {
         this.SetSystemFormData();
         this.SetSystemFormSelectOptionsFunc();
         this.SetCommonQueryData();
     },
-    mounted: function() {},
+    mounted: function () {},
     components: {
-        alertModal,
         commonQuery,
-        systemForm
+        systemForm,
     },
     computed: {
         ...mapGetters({
@@ -197,8 +194,8 @@ export default {
             pageAccess: "getlogin/get_pageAccess",
             commonQueryResponse: "commonquery/get_queryResponse",
             tableBusy: "commonquery/get_tableBusy",
-            systemFormCompletedData: "systemform/get_completedData"
-        })
+            systemFormCompletedData: "systemform/get_completedData",
+        }),
     },
     watch: {
         commonQueryResponse: {
@@ -223,16 +220,15 @@ export default {
                         vm.depDetail[0][
                             vm.commonQueryResponse[i]["noumenonID"]
                         ];
-                    itemsobj["accessList"] = JSON.parse(
-                        vm.commonQueryResponse[i]["accessList"]
-                    );
+                    itemsobj["accessList"] =
+                        vm.commonQueryResponse[i]["accessList"];
                     itemsarray.push(itemsobj);
                 }
                 console.log(itemsarray);
                 if (itemsarray.length != 0) {
                     vm.items = itemsarray;
                 }
-            }
+            },
         },
         tabIndex: {
             handler(value) {
@@ -240,11 +236,11 @@ export default {
                 vm.reset(["tabIndex", "depDetail"]);
                 if (vm.tabIndex == 0) {
                     vm.SetSystemFormData();
-                    vm.SetCommonQueryData();
+                    //     vm.SetCommonQueryData();
                 }
                 vm.setsystemFormResponse();
                 vm.setSystemFormCompletedData({});
-            }
+            },
         },
         systemFormCompletedData: {
             handler() {
@@ -259,6 +255,17 @@ export default {
                         if (vm.systemFormCompletedData.noumenonID == "") {
                             msg.push("部門尚未選擇");
                         }
+                        console.log(
+                            vm.systemFormCompletedData.accessList.todolist
+                                .remark
+                        );
+                    }
+                    if (
+                        vm.systemFormCompletedData.accessList.todolist.status &&
+                        vm.systemFormCompletedData.accessList.todolist.remark ==
+                            null
+                    ) {
+                        msg.push("權限:『待辦事項』需選擇指定部門");
                     }
                     if (vm.systemFormCompletedData.pwd == "") {
                         msg.push("密碼尚未輸入");
@@ -277,8 +284,8 @@ export default {
                         }
                     }
                 }
-            }
-        }
+            },
+        },
     },
     methods: {
         ...mapActions({
@@ -291,7 +298,7 @@ export default {
             setvforData: "systemform/set_vforData",
             setsystemFormResponse: "systemform/set_systemFormResponse",
             setSystemFormCompletedData: "systemform/set_completedData",
-            setSystemFormSelectOptions: "systemform/set_selectOptions"
+            setSystemFormSelectOptions: "systemform/set_selectOptions",
         }),
         SetSystemFormData(moditemobj) {
             var vforData = {};
@@ -311,12 +318,12 @@ export default {
                 vforData["noumenonID"] = [
                     "depselect",
                     "部門",
-                    moditemobj.noumenonID
+                    moditemobj.noumenonID,
                 ];
                 vforData["accessList"] = [
                     "accesscheckbox",
                     "使用者權限",
-                    moditemobj.accessList
+                    moditemobj.accessList,
                 ];
                 vforData["button"] = ["Mod", "修改"];
             }
@@ -339,15 +346,16 @@ export default {
                     depDetail[1] = {}; //key為depName
                     for (var i = 0; i < result["QueryTableData"].length; i++) {
                         var systemformselectoptions = {};
-                        depDetail[0][result["QueryTableData"][i]["depID"]] = result["QueryTableData"][i]["depName"];
-                        depDetail[1][result["QueryTableData"][i]["depName"]] = result["QueryTableData"][i]["depID"];
+                        depDetail[0][result["QueryTableData"][i]["depID"]] =
+                            result["QueryTableData"][i]["depName"];
+                        depDetail[1][result["QueryTableData"][i]["depName"]] =
+                            result["QueryTableData"][i]["depID"];
                         systemformselectoptions["text"] =
                             result["QueryTableData"][i]["depName"];
                         systemformselectoptions["value"] =
                             result["QueryTableData"][i]["depID"];
-                        systemformselectoptions["accessList"] = JSON.parse(
-                            result["QueryTableData"][i]["accessList"]
-                        );
+                        systemformselectoptions["accessList"] =
+                            result["QueryTableData"][i]["accessList"];
                         array.push(systemformselectoptions);
                     }
                     vm.setSystemFormSelectOptions(array);
@@ -362,16 +370,16 @@ export default {
         SetCommonQueryData() {
             var vm = this;
             var obj = {};
-            var misbulletinqueryselected = "ALL";
-            var misbulletinqueryoptions = [
+            var accountqueryselected = "ALL";
+            var accountqueryoptions = [
                 { value: "uID", text: "帳號" },
                 { value: "uName", text: "姓名" },
                 { value: "noumenonID", text: "部門編號" },
                 { value: "depName", text: "部門名稱" },
-                { value: "ALL", text: "全選" }
+                { value: "ALL", text: "全選" },
             ];
-            obj.options = misbulletinqueryoptions;
-            obj.selected = misbulletinqueryselected;
+            obj.options = accountqueryoptions;
+            obj.selected = accountqueryselected;
             obj.table = "user";
             obj.inputtext = "text";
             obj.querypurpose = "query_like";
@@ -393,7 +401,8 @@ export default {
                         var thispwd = result["QueryTableData"][0].pwd;
                         thisitemobj["pwd"] = thispwd;
                     }
-                    thisitemobj["noumenonID"] = vm.depDetail[1][thisitemobj["noumenonID"]]
+                    thisitemobj["noumenonID"] =
+                        vm.depDetail[1][thisitemobj["noumenonID"]];
                     console.log(thisitemobj);
                     vm.SetSystemFormData(thisitemobj);
                     vm.modAccountModalShow = true;
@@ -408,37 +417,43 @@ export default {
             var params = {};
             params["methods"] = "POST";
             params["whichFunction"] = "AccountMod";
-            params["uID"] = vm.systemFormCompletedData.uID;
+            params["uID"] = String(vm.systemFormCompletedData.uID);
             params["pwd"] = vm.systemFormCompletedData.pwd;
-            params["uName"] = vm.systemFormCompletedData.uName;
-            params["uInfo"] = vm.systemFormCompletedData.uInfo;
-            params["noumenonID"] = vm.systemFormCompletedData.noumenonID;
-            if (
-                Object.values(vm.systemFormCompletedData.accessList).indexOf(
-                    false
-                ) != -1
-            ) {
-                params["accessList"] = JSON.stringify(
-                    vm.systemFormCompletedData.accessList
-                );
-            } else {
-                params["accessList"] = '"ALL"';
-            }
-            params["creatorID"] = vm.loginData.account;
+            params["uName"] = String(vm.systemFormCompletedData.uName);
+            params["uInfo"] = String(vm.systemFormCompletedData.uInfo);
+            params["noumenonID"] = String(
+                vm.systemFormCompletedData.noumenonID
+            );
+            // if (
+            //     Object.values(vm.systemFormCompletedData.accessList).indexOf(
+            //         false
+            //     ) != -1
+            // ) {
+            params["accessList"] = JSON.stringify(
+                vm.systemFormCompletedData.accessList
+            );
+            // } else {
+            //     params["accessList"] = '"ALL"';
+            // }
+            params["creatorID"] = String(vm.loginData.account);
+            console.log(params);
             vm.axiosAction(params).then(() => {
                 vm.setSystemFormCompletedData({});
                 var result = vm.axiosResult;
+                console.log(result);
                 var msg = "";
                 if (result["Response"] == "ok") {
                     vm.setsystemFormResponse();
                     msg = "修改成功";
+                    setTimeout(function () {
+                        vm.queryAgain();
+                    }, 500);
                 } else {
                     msg = result["Response"];
                 }
                 vm.setalertMsg(msg);
                 vm.settimeoutalertModal();
                 vm.modAccountModalShow = false;
-                vm.queryAgain();
             });
         },
         AccountAdd() {
@@ -446,23 +461,25 @@ export default {
             var params = {};
             params["methods"] = "POST";
             params["whichFunction"] = "AccountAdd";
-            params["uID"] = vm.systemFormCompletedData.uID;
+            params["uID"] = String(vm.systemFormCompletedData.uID);
             params["pwd"] = vm.systemFormCompletedData.pwd;
-            params["uName"] = vm.systemFormCompletedData.uName;
-            params["uInfo"] = vm.systemFormCompletedData.uInfo;
-            params["noumenonID"] = vm.systemFormCompletedData.noumenonID;
-            if (
-                Object.values(vm.systemFormCompletedData.accessList).indexOf(
-                    false
-                ) != -1
-            ) {
-                params["accessList"] = JSON.stringify(
-                    vm.systemFormCompletedData.accessList
-                );
-            } else {
-                params["accessList"] = '"ALL"';
-            }
-            params["creatorID"] = vm.loginData.account;
+            params["uName"] = String(vm.systemFormCompletedData.uName);
+            params["uInfo"] = String(vm.systemFormCompletedData.uInfo);
+            params["noumenonID"] = String(
+                vm.systemFormCompletedData.noumenonID
+            );
+            // if (
+            //     Object.values(vm.systemFormCompletedData.accessList).indexOf(
+            //         false
+            //     ) != -1
+            // ) {
+            params["accessList"] = JSON.stringify(
+                vm.systemFormCompletedData.accessList
+            );
+            // } else {
+            //     params["accessList"] = '"ALL"';
+            // }
+            params["creatorID"] = String(vm.loginData.account);
 
             vm.axiosAction(params).then(() => {
                 var result = vm.axiosResult;
@@ -484,7 +501,7 @@ export default {
             var params = {};
             params["methods"] = "GET";
             params["whichFunction"] = "AccountDel";
-            params["uID"] = vm.delmodalcontent.uID;
+            params["uID"] = String(vm.delmodalcontent.uID);
             vm.axiosAction(params).then(() => {
                 var result = vm.axiosResult;
                 console.log(result);
@@ -508,8 +525,8 @@ export default {
             }
             Object.assign(this.$data, def);
             //https://codepen.io/karimcossutti/pen/ObXyKq
-        }
-    }
+        },
+    },
 };
 </script>
 

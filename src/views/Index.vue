@@ -3,7 +3,7 @@
         <!-- <nav
             class="navbar navbar-expand-lg navbar-light fixed-top"
             style="background-color:#7C93B6;"
-        > -->
+        >-->
         <b-navbar toggleable="lg" type="dark" id="navbar" sticky style="background-color:#7C93B6;">
             <div>
                 <router-link :to="'home'">
@@ -26,36 +26,84 @@
                     <li class="nav-item">
                         <router-link
                             class="nav-link"
-                            v-show="pageAccess.misbulletinboard"
+                            v-show="pageAccess.misbulletinboard.status"
                             :to="'misbulletinboard'"
                         >MIS公告區</router-link>
                     </li>
                     <li class="nav-item">
                         <router-link
                             class="nav-link"
-                            v-show="pageAccess.misbulletinmanage"
+                            v-show="pageAccess.misbulletinmanage.status"
                             :to="'misbulletinmanage'"
                         >MIS公告管理</router-link>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown" role="button">系統架構</a>
+                        <div class="dropdown-menu">
+                            <router-link
+                                class="nav-link"
+                                v-show="pageAccess.structure.status"
+                                :to="'structure'"
+                            >架構圖</router-link>
+                        </div>
                     </li>
                     <li class="nav-item dropdown">
                         <a
                             class="nav-link dropdown"
                             role="button"
-                            v-show="pageAccess.department || pageAccess.account"
+                            v-show="pageAccess.todolist.status"
+                        >報告</a>
+                        <div class="dropdown-menu">
+                            <router-link
+                                class="nav-link"
+                                v-show="pageAccess.todolist.status"
+                                :to="'todolist'"
+                            >各部待辦事項</router-link>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a
+                            class="nav-link dropdown"
+                            role="button"
+                            v-show="pageAccess.department.status || pageAccess.account.status"
                         >系統管理</a>
                         <div class="dropdown-menu">
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.department"
+                                v-show="pageAccess.department.status"
                                 :to="'department'"
                             >部門</router-link>
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.account"
+                                v-show="pageAccess.account.status"
                                 :to="'account'"
                             >帳號</router-link>
                         </div>
                     </li>
+                    <!-- <li class="nav-item dropdown">
+                        <a class="nav-link dropdown" role="button">MIS</a>
+                        <div class="dropdown-menu">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown" role="button">系統</a>
+                                <div class="dropdown-menu dropdown-l2">
+                                    <router-link class="nav-link" :to="''">架構</router-link>
+                                    <router-link class="nav-link" :to="''">網路</router-link>
+                                    <router-link class="nav-link" :to="''">儲存</router-link>
+                                    <router-link class="nav-link" :to="''">伺服器</router-link>
+                                </div>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown" role="button">報告</a>
+                                <div class="dropdown-menu dropdown-l2">
+                                    <router-link class="nav-link" :to="''">每日狀況回報</router-link>
+                                    <router-link class="nav-link" :to="''">金智洋月報</router-link>
+                                    <router-link class="nav-link" :to="''">易昇鋼鐵月報</router-link>
+                                    <router-link class="nav-link" :to="'todolist'">待辦事項</router-link>
+                                    <router-link class="nav-link" :to="''">Weekly Report</router-link>
+                                </div>
+                            </li>
+                        </div>
+                    </li>-->
                 </ul>
                 <form class="form-inline my-2 my-lg-0">
                     <div class="username">
@@ -70,7 +118,7 @@
                     <a class="logout a-hover" style="float:right" @click.prevent="logout">登出</a>
                 </form>
             </div>
-        <!-- </nav> -->
+            <!-- </nav> -->
         </b-navbar>
         <b-container>
             <router-view style="margin-top:10px"></router-view>
@@ -244,19 +292,21 @@ export default {
                         params = {};
                         params["methods"] = "POST";
                         params["whichFunction"] = "ChangePwd";
-                        params["uID"] = result["QueryTableData"][0].uID;
+                        params["uID"] = String(result["QueryTableData"][0].uID);
                         params["noumenonType"] =
                             result["QueryTableData"][0].noumenonType;
                         params["uInfo"] = result["QueryTableData"][0].uInfo;
-                        params["accessList"] = JSON.parse(
-                            result["QueryTableData"][0].accessList
-                        );
+                        params["accessList"] =
+                            result["QueryTableData"][0].accessList;
                         params["uName"] = result["QueryTableData"][0].uName;
                         params["pwd"] = vm.ChangePwdmodal.change_newpwd;
-                        params["noumenonID"] =
-                            result["QueryTableData"][0].noumenonID;
-                        params["creatorID"] =
-                            result["QueryTableData"][0].creatorID;
+                        params["noumenonID"] = String(
+                            result["QueryTableData"][0].noumenonID
+                        );
+                        params["creatorID"] = String(
+                            result["QueryTableData"][0].creatorID
+                        );
+                        console.log(params);
                         vm.axiosAction(params).then(() => {
                             var result = vm.axiosResult;
                             if (result["Response"] != "ok") {
@@ -303,6 +353,9 @@ export default {
     color: #eefbf0;
     font-size: 20px;
 }
+.dropdown-menu .nav-link:hover {
+    background-color: lightgrey;
+}
 .username {
     height: 24px;
 }
@@ -314,11 +367,15 @@ export default {
 .dropdown-menu {
     margin: 0;
     margin-top: 0px;
-    background-color: #9daec8;
+    background-color: #97a7c0;
     width: 125px !important;
-    min-width: 127px !important;
+    /* min-width: 127px !important; */
 }
-
+.dropdown-l2 {
+    top: 0;
+    left: 75px;
+    background-color: #8b99b1 !important;
+}
 .dropdown:hover > .dropdown-menu {
     display: block;
 }
@@ -342,9 +399,9 @@ export default {
 h5 {
     margin: 0 auto;
 }
-.a-hover:hover{
+.a-hover:hover {
     text-decoration: unset;
-    color:rgba(255, 255, 255, 0.75);
+    color: rgba(255, 255, 255, 0.75);
     cursor: pointer;
 }
 </style>

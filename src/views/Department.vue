@@ -71,7 +71,6 @@
                 </b-tab>
             </b-tabs>
         </b-card>
-        <alertModal />
         <!-- 部門刪除modal -->
         <b-modal
             centered
@@ -134,7 +133,6 @@
 
 <script>
 import axios from "axios";
-import alertModal from "@/components/alertModal.vue";
 import systemForm from "@/components/systemForm.vue";
 import commonQuery from "@/components/commonQuery.vue";
 import { mapGetters, mapActions } from "vuex";
@@ -147,42 +145,41 @@ export default {
                 {
                     key: "depID",
                     label: "部門編號",
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "depName",
                     label: "部門名稱",
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "depInfo",
                     label: "部門介紹",
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "accessList",
                     label: "權限列表",
-                    sortable: true
-                }
+                    sortable: true,
+                },
             ],
             items: [],
             modDepartmentModalShow: false,
             delmodalcontent: {
-                depID: ""
+                depID: "",
             },
-            delDepartmentModalShow: false
+            delDepartmentModalShow: false,
         };
     },
-    created: function() {
+    created: function () {
         this.SetSystemFormData();
         this.SetDepDetail();
         this.SetCommonQueryData();
     },
-    mounted: function() {},
+    mounted: function () {},
     components: {
-        alertModal,
         commonQuery,
-        systemForm
+        systemForm,
     },
     computed: {
         ...mapGetters({
@@ -191,8 +188,8 @@ export default {
             pageAccess: "getlogin/get_pageAccess",
             commonQueryResponse: "commonquery/get_queryResponse",
             tableBusy: "commonquery/get_tableBusy",
-            systemFormCompletedData: "systemform/get_completedData"
-        })
+            systemFormCompletedData: "systemform/get_completedData",
+        }),
     },
     watch: {
         commonQueryResponse: {
@@ -213,15 +210,14 @@ export default {
                     itemsobj["depID"] = vm.commonQueryResponse[i]["depID"];
                     itemsobj["depName"] = vm.commonQueryResponse[i]["depName"];
                     itemsobj["depInfo"] = vm.commonQueryResponse[i]["depInfo"];
-                    itemsobj["accessList"] = JSON.parse(
-                        vm.commonQueryResponse[i]["accessList"]
-                    );
+                    itemsobj["accessList"] =
+                        vm.commonQueryResponse[i]["accessList"];
                     itemsarray.push(itemsobj);
                 }
                 if (itemsarray.length != 0) {
                     vm.items = itemsarray;
                 }
-            }
+            },
         },
         tabIndex: {
             handler(value) {
@@ -229,9 +225,11 @@ export default {
                 vm.reset(["tabIndex"]);
                 if (vm.tabIndex == 0) {
                     vm.SetSystemFormData();
+                    //     vm.SetCommonQueryData();
                 }
+                vm.setsystemFormResponse();
                 vm.setSystemFormCompletedData({});
-            }
+            },
         },
         systemFormCompletedData: {
             handler() {
@@ -241,6 +239,10 @@ export default {
                 if (Object.keys(vm.systemFormCompletedData).length != 0) {
                     if (vm.systemFormCompletedData.depID == "") {
                         msg.push("部門編號尚未輸入");
+                    }
+                    console.log(vm.systemFormCompletedData.accessList.todolist.remark);
+                    if (vm.systemFormCompletedData.accessList.todolist.status && vm.systemFormCompletedData.accessList.todolist.remark == null) {
+                        msg.push("權限:『待辦事項』需選擇指定部門");
                     }
                     console.log(msg);
                     if (msg.length != 0) {
@@ -256,8 +258,8 @@ export default {
                         }
                     }
                 }
-            }
-        }
+            },
+        },
     },
     methods: {
         ...mapActions({
@@ -269,7 +271,7 @@ export default {
             queryAgain: "commonquery/do_queryAgain",
             setvforData: "systemform/set_vforData",
             setsystemFormResponse: "systemform/set_systemFormResponse",
-            setSystemFormCompletedData: "systemform/set_completedData"
+            setSystemFormCompletedData: "systemform/set_completedData",
         }),
         SetSystemFormData(moditemobj) {
             var vforData = {};
@@ -286,7 +288,7 @@ export default {
                 vforData["accessList"] = [
                     "accesscheckbox",
                     "部門權限",
-                    moditemobj.accessList
+                    moditemobj.accessList,
                 ];
                 vforData["button"] = ["Mod", "修改"];
             }
@@ -296,14 +298,14 @@ export default {
         SetCommonQueryData() {
             var vm = this;
             var obj = {};
-            var misbulletinqueryselected = "ALL";
-            var misbulletinqueryoptions = [
+            var departmentqueryselected = "ALL";
+            var departmentqueryoptions = [
                 { value: "depID", text: "部門編號" },
                 { value: "depName", text: "部門名稱" },
-                { value: "ALL", text: "全選" }
+                { value: "ALL", text: "全選" },
             ];
-            obj.options = misbulletinqueryoptions;
-            obj.selected = misbulletinqueryselected;
+            obj.options = departmentqueryoptions;
+            obj.selected = departmentqueryselected;
             obj.table = "department";
             obj.querypurpose = "query_like";
             obj.inputtext = "text";
@@ -350,26 +352,30 @@ export default {
             var params = {};
             params["methods"] = "POST";
             params["whichFunction"] = "DepartmentMod";
-            params["depID"] = vm.systemFormCompletedData.depID;
-            params["depName"] = vm.systemFormCompletedData.depName;
-            params["depInfo"] = vm.systemFormCompletedData.depInfo;
+            params["depID"] = String(vm.systemFormCompletedData.depID);
+            params["depName"] = String(vm.systemFormCompletedData.depName);
+            params["depInfo"] = String(vm.systemFormCompletedData.depInfo);
             params["accessList"] = JSON.stringify(
                 vm.systemFormCompletedData.accessList
             );
+            console.log(params);
             vm.axiosAction(params).then(() => {
                 vm.setSystemFormCompletedData({});
                 var result = vm.axiosResult;
+                console.log(result);
                 var msg = "";
                 if (result["Response"] == "ok") {
                     vm.setsystemFormResponse();
                     msg = "修改成功";
+                    setTimeout(function () {
+                        vm.queryAgain();
+                    }, 500);
                 } else {
                     msg = result["Response"];
                 }
                 vm.setalertMsg(msg);
                 vm.settimeoutalertModal();
                 vm.modDepartmentModalShow = false;
-                vm.queryAgain();
             });
         },
         DepAdd() {
@@ -377,21 +383,14 @@ export default {
             var params = {};
             params["methods"] = "POST";
             params["whichFunction"] = "DepartmentAdd";
-            params["depID"] = vm.systemFormCompletedData.depID;
-            params["depName"] = vm.systemFormCompletedData.depName;
-            if (
-                Object.values(vm.systemFormCompletedData.accessList).indexOf(
-                    false
-                ) != -1
-            ) {
-                params["accessList"] = JSON.stringify(
-                    vm.systemFormCompletedData.accessList
-                );
-            } else {
-                params["accessList"] = '"ALL"';
-            }
-            params["depInfo"] = vm.systemFormCompletedData.depInfo;
-            params["creatorID"] = vm.loginData.account;
+            params["depID"] = String(vm.systemFormCompletedData.depID);
+            params["depName"] = String(vm.systemFormCompletedData.depName);
+            params["accessList"] = JSON.stringify(
+                vm.systemFormCompletedData.accessList
+            );
+            params["depInfo"] = String(vm.systemFormCompletedData.depInfo);
+            params["creatorID"] = String(vm.loginData.account);
+            console.log(params);
             vm.axiosAction(params).then(() => {
                 vm.setSystemFormCompletedData({});
                 var result = vm.axiosResult;
@@ -415,8 +414,8 @@ export default {
             }
             Object.assign(this.$data, def);
             //https://codepen.io/karimcossutti/pen/ObXyKq
-        }
-    }
+        },
+    },
 };
 </script>
 

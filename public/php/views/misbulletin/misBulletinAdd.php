@@ -6,7 +6,7 @@ $this_content = $_POST['content'];
 $this_filename = $_POST['filename'];
 $this_account = $_POST['account'];
 
-$targetDir = "../../../../misbulletinfiles/";
+$targetDir = "../../../misbulletinfiles/";
 if (!file_exists($targetDir)) {
     mkdir($targetDir, 0777);
 }
@@ -37,7 +37,7 @@ if (count($_FILES) != 0) {
 } else {
     $nofileupload = true;
 }
-$url = "https://192.168.39.75:3687/api/sapidoSystem/1.0/my/CommonUse/misBulletin?uid=@sapido@PaaS";
+$url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/misBulletin?uid=@sapido@PaaS";
 //The JSON data.
 $data = array(
     "seq" => [""],

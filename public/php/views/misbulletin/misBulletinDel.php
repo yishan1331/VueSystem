@@ -8,11 +8,11 @@ $nofiledelete = false;
 if ($this_filename == "") {
     $nofiledelete = true;
 } else {
-    $targetDir = "../../../../misbulletinfiles/";
+    $targetDir = "../../../misbulletinfiles/";
 }
 $msg = [];
 
-$url = "https://192.168.39.75:3687/api/sapidoSystem/1.0/my/CommonUse/misBulletin?uid=@sapido@PaaS";
+$url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/misBulletin?uid=@sapido@PaaS";
 //The JSON data.
 $data = array(
     "seq" => ["$this_seq"],

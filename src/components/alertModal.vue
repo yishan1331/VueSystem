@@ -7,6 +7,7 @@
             hide-header-close
             no-close-on-backdrop
             no-close-on-esc
+            id="alertModal"
         >
             <template v-slot:default>
                 <h4

@@ -4,6 +4,8 @@ import misbulletinboard from "@/views/MISBulletinBoard";
 import misbulletinmanage from "@/views/MISBulletinManage";
 import department from "@/views/Department";
 import account from "@/views/Account";
+import todolist from "@/views/TodoList";
+import structure from "@/views/Structure";
 // import pagenotfound from "@/views/PageNotFound";
 
 export const childRouter = [
@@ -44,6 +46,20 @@ export const childRouter = [
             {
                 path: "account",
                 component: account,
+                meta: {
+                    needLogin: true
+                }
+            },
+            {
+                path: "todolist",
+                component: todolist,
+                meta: {
+                    needLogin: true
+                }
+            },
+            {
+                path: "structure",
+                component: structure,
                 meta: {
                     needLogin: true
                 }
