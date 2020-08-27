@@ -9,12 +9,10 @@
                 <h5 style="margin-top:5px">{{now}}</h5>
             </b-col>
             <b-col sm="9" class="text-right">
-                <b-button
-                    pill
-                    variant="light"
-                    @click="selectDepModalShow = !selectDepModalShow;selectDepModalOpacity = false"
-                    v-if="pageAccess.todolist.remark === 'ALL'"
-                >選擇條件</b-button>
+                <b-button pill v-b-toggle.collapse-1 variant="light">選擇條件</b-button>
+                <b-collapse id="collapse-1" :visible="selectDepCollapseShow" class="mt-2">
+                    <commonQuery />
+                </b-collapse>
             </b-col>
         </b-row>
         <b-row>
@@ -37,16 +35,16 @@
                     <b-button
                         pill
                         variant="primary"
-                        @click="addTaskModalShow = !addTaskModalShow;addTaskDetail.schedDate.time=nowFormat"
+                        @click="addTaskModalShow = !addTaskModalShow;addTaskDetail.schedDate.time=nowFormat;addTaskDetail.startDate.time=nowFormat"
                     >新增事項</b-button>
-                    <b-button pill class="ml-2" @click="exportCSV()">匯出CSV</b-button>
+                    <b-button pill class="ml-2" @click="exportModalShow = !exportModalShow">匯出</b-button>
                 </div>
             </b-col>
         </b-row>
 
         <h3 v-if="items.length == 0">查無資料</h3>
         <b-table
-            sticky-header="600px"
+            sticky-header="550px"
             responsive
             :items="items"
             :fields="fields"
@@ -56,74 +54,83 @@
             :tbody-tr-attr="rowClass"
         >
             <template v-slot:cell(status)="row">
-                <div :class="{hide:activeItemsIndex == row.index,completedTask:row.item.status}">
+                <div :class="{hide:activeItemsSeq == row.item.seq,completedTask:row.item.status}">
                     <b-form-checkbox disabled v-model="row.item.status">
                         <span v-if="row.item.status">完成日期({{row.item.completedDate}})</span>
                     </b-form-checkbox>
                 </div>
-                <div :class="{hide:activeItemsIndex != row.index}">
+                <div :class="{hide:activeItemsSeq != row.item.seq}">
                     <b-form-checkbox v-model="row.item.status" size="lg"></b-form-checkbox>
                 </div>
             </template>
             <template v-slot:cell(taskInfo)="row">
                 <div
-                    :class="{hide:activeItemsIndex == row.index,completedTask:row.item.status}"
+                    :class="{hide:activeItemsSeq == row.item.seq,completedTask:row.item.status}"
                 >{{row.item.taskInfo}}</div>
-                <div :class="{hide:activeItemsIndex != row.index}">
+                <div :class="{hide:activeItemsSeq != row.item.seq}">
                     <b-form-input class="input-text" type="text" v-model="row.item.taskInfo"></b-form-input>
                 </div>
             </template>
             <template v-slot:cell(schedDate)="row">
-                <template v-if="row.item.schedDate.time == '' && activeItemsIndex != row.index">尚未指定</template>
+                <template
+                    v-if="row.item.schedDate.time == '' && activeItemsSeq != row.item.seq"
+                >尚未指定</template>
                 <template v-else>
                     <div
-                        :class="{hide:activeItemsIndex == row.index,completedTask:row.item.status}"
+                        :class="{hide:activeItemsSeq == row.item.seq,completedTask:row.item.status}"
                     >{{row.item.schedDate.time}}</div>
                 </template>
-                <div :class="{hide:activeItemsIndex != row.index}">
+                <div :class="{hide:activeItemsSeq != row.item.seq}">
                     <datepicker :date="row.item.schedDate" :option="datepickerOptions"></datepicker>
                 </div>
             </template>
             <template v-slot:cell(priority)="row">
                 <div
-                    :class="{hide:activeItemsIndex == row.index,completedTask:row.item.status}"
+                    :class="{hide:activeItemsSeq == row.item.seq,completedTask:row.item.status}"
                 >{{priorityConfig[row.item.priority]}}</div>
-                <div :class="{hide:activeItemsIndex != row.index}">
+                <div :class="{hide:activeItemsSeq != row.item.seq}">
                     <b-form-select v-model="row.item.priority" :options="priorityOptions"></b-form-select>
                 </div>
             </template>
             <template v-slot:cell(assignTo)="row">
                 <div
-                    :class="{hide:activeItemsIndex == row.index,completedTask:row.item.status}"
+                    :class="{hide:activeItemsSeq == row.item.seq,completedTask:row.item.status}"
                 >{{staffConfig[row.item.assignTo]}}</div>
-                <div :class="{hide:activeItemsIndex != row.index}">
+                <div :class="{hide:activeItemsSeq != row.item.seq}">
                     <b-form-select v-model="row.item.assignTo" :options="getStaffOptions"></b-form-select>
                 </div>
             </template>
             <template v-slot:cell(startDate)="row">
                 <div
-                    :class="{hide:activeItemsIndex == row.index,completedTask:row.item.status}"
+                    :class="{hide:activeItemsSeq == row.item.seq,completedTask:row.item.status}"
                 >{{row.item.startDate.time}}</div>
-                <div :class="{hide:activeItemsIndex != row.index}">
+                <div :class="{hide:activeItemsSeq != row.item.seq}">
                     <datepicker :date="row.item.startDate" :option="datepickerOptions"></datepicker>
                 </div>
             </template>
             <template v-slot:cell(action)="row">
-                <template v-if="activeItemsIndex != row.index">
+                <template v-if="activeItemsSeq != row.item.seq">
                     <b-button
-                        v-if="activeItemsIndex == null"
-                        @click="activeItemsIndex = row.index"
+                        v-if="activeItemsSeq == null"
+                        @click="activeItemsSeq = row.item.seq;tempOldItemAction(true,row.item)"
                     >編輯</b-button>
                     <b-button v-else disabled>編輯</b-button>
+                    <b-button
+                        v-if="activeItemsSeq == null"
+                        variant="danger"
+                        @click="delTaskModalShow = !delTaskModalShow;delItemSeq = row.item.seq"
+                        style="margin-left:10px"
+                    >刪除</b-button>
+                    <b-button v-else disabled variant="danger" style="margin-left:10px">刪除</b-button>
                 </template>
-                <template v-else-if="activeItemsIndex == row.index">
-                    <b-button @click="activeItemsIndex = null;modTask(row.item)">完成編輯</b-button>
+                <template v-else-if="activeItemsSeq == row.item.seq">
+                    <b-button @click="activeItemsSeq = null;modTask(row.item)">完成編輯</b-button>
+                    <b-button
+                        variant="light"
+                        @click="activeItemsSeq = null;tempOldItemAction(false,row.item)"
+                        style="margin-left:10px"
+                    >取消</b-button>
                 </template>
-                <b-button
-                    variant="danger"
-                    @click="delTaskModalShow = !delTaskModalShow;delItemSeq = row.item.seq"
-                    style="margin-left:10px"
-                >刪除</b-button>
             </template>
         </b-table>
         <!-- 新增事項modal -->
@@ -139,7 +146,6 @@
                 <h5>新增待辦事項</h5>
             </template>
             <template v-slot:default>
-                <!-- <b-form @submit="uploadFormSubmit" > -->
                 <b-form @submit="addTask">
                     <b-row class="my-4">
                         <b-col sm="2">
@@ -289,20 +295,26 @@
                 </div>
             </template>
         </b-modal>
-        <!-- 選擇條件modal -->
+        <!-- export modal -->
         <b-modal
             centered
-            v-model="selectDepModalShow"
+            v-model="exportModalShow"
             hide-header
             hide-header-close
             no-close-on-backdrop
             no-close-on-esc
-            id="choose"
-            :content-class="{choose_content : selectDepModalOpacity}"
+            size="sm"
         >
             <template v-slot:default>
-                <div class="d-block">
-                    <commonQuery />
+                <div class="d-block text-center">
+                    <b-button pill variant="success" class="ml-2" @click="exportfile('CSV')">匯出CSV</b-button>
+                    <b-button
+                        pill
+                        variant="warning"
+                        class="ml-2"
+                        :disabled="ttfStatus"
+                        @click="exportfile('PDF')"
+                    >匯出PDF</b-button>
                 </div>
             </template>
             <template v-slot:modal-footer>
@@ -311,11 +323,12 @@
                         variant="light"
                         size="sm"
                         class="float-right"
-                        @click.prevent="selectDepModalShow = !selectDepModalShow"
+                        @click.prevent="exportModalShow = !exportModalShow"
                     >Close</b-button>
                 </div>
             </template>
         </b-modal>
+        <exportFile />
     </div>
 </template>
 
@@ -323,6 +336,7 @@
 import modal from "@/components/modal.vue";
 import datepicker from "vue-datepicker/vue-datepicker-es6.vue";
 import commonQuery from "@/components/commonQuery.vue";
+import exportFile from "@/components/exportFile.vue";
 import { validationMixin } from "vuelidate"; // 表單驗證
 import { required, minLength, between } from "vuelidate/lib/validators";
 import { mapGetters, mapActions } from "vuex";
@@ -332,6 +346,7 @@ export default {
         return {
             now: "",
             nowFormat: "",
+            thisweekday: [],
             //今天到期數量
             dueTodayNum: 0,
             overDueNum: 0,
@@ -347,7 +362,16 @@ export default {
                 { key: "action", label: "編輯按鈕", sortable: false },
             ],
             items: [],
-            activeItemsIndex: null,
+            activeItemsSeq: null,
+            tempThisOldItem: {
+                status: null,
+                completedDate: null,
+                taskInfo: null,
+                schedDate: { time: null },
+                priority: null,
+                assignTo: null,
+                startDate: { time: null },
+            },
             delItemSeq: null,
             datepickerOptions: {
                 type: "day",
@@ -426,8 +450,8 @@ export default {
             staffConfig: {},
             depStaffRelation: {},
             delTaskModalShow: false,
-            selectDepModalShow: false,
-            selectDepModalOpacity: true,
+            selectDepCollapseShow: false,
+            exportModalShow: false,
         };
     },
     // 表單驗證引入
@@ -460,6 +484,7 @@ export default {
         modal,
         datepicker,
         commonQuery,
+        exportFile,
     },
     computed: {
         ...mapGetters({
@@ -470,17 +495,19 @@ export default {
             pageAccess: "getlogin/get_pageAccess",
             queryResponse: "commonquery/get_queryResponse",
             inputData: "commonquery/get_inputData",
+            ttfStatus: "exportfile/get_ttfStatus",
         }),
     },
     created: function () {
         let vm = this;
         vm.getNow();
-        if (vm.pageAccess.todolist.remark === "ALL") {
-            vm.SetCommonQueryData();
-        } else {
+        if (vm.pageAccess.todolist.remark != "ALL") {
             vm.setalertMsg("請稍候....");
             vm.togglealertModal(true);
+        } else {
+            vm.selectDepCollapseShow = true;
         }
+        vm.SetCommonQueryData();
         vm.getBelongDepStaff();
     },
     mounted: function () {},
@@ -494,6 +521,7 @@ export default {
                     "depStaffRelation",
                     "now",
                     "nowFormat",
+                    "selectDepCollapseShow",
                 ]);
                 // vm.changetableBusy();
                 if (
@@ -519,25 +547,44 @@ export default {
             setalertMsgProgressValue: "alertmodal/set_alertMsgProgressValue",
             changesetPartitionStatus: "home/change_setPartitionStatus",
             setinputData: "commonquery/set_inputData",
+            setapiParams: "commonquery/set_apiParams",
             queryAgain: "commonquery/do_queryAgain",
+            setautoTable: "exportfile/set_autoTable",
         }),
         SetCommonQueryData() {
             var vm = this;
-            var obj = {};
+            var todolistqueryoptions = [];
             var todolistqueryselected = "ALL";
-            var todolistqueryoptions = [
-                { text: "雲端AI(智慧)平台部", value: "1003" },
-                { text: "系統研發部", value: "1002" },
-                { text: "資訊通訊部", value: "1001" },
-                { text: "全選", value: "ALL" },
-            ];
-            obj.options = todolistqueryoptions;
-            obj.selected = todolistqueryselected;
-            obj.table = "todoList";
-            obj.inputtext = "";
+            if (vm.pageAccess.todolist.remark == "ALL") {
+                todolistqueryoptions = [
+                    { text: "雲端AI(智慧)平台部", value: "1003" },
+                    { text: "系統研發部", value: "1002" },
+                    { text: "資訊通訊部", value: "1001" },
+                    { text: "全選", value: "ALL" },
+                ];
+            } else {
+                todolistqueryoptions = [
+                    {
+                        text: vm.depConfig[vm.pageAccess.todolist.remark],
+                        value: String(vm.pageAccess.todolist.remark),
+                    },
+                ];
+                todolistqueryselected = vm.pageAccess.todolist.remark;
+            }
+            var obj = {
+                options: todolistqueryoptions,
+                selected: todolistqueryselected,
+                inputtext: "",
+            };
             vm.setinputData(obj);
-            vm.selectDepModalOpacity = false;
-            vm.selectDepModalShow = true;
+            let commonApiParams = {
+                table: "todoList",
+                attr: "depID",
+                timeattr: "schedDate",
+                intervaltime: { schedDate: [vm.thisweekday] },
+            };
+            console.log(commonApiParams);
+            vm.setapiParams(commonApiParams);
         },
         getNow() {
             let vm = this;
@@ -549,6 +596,15 @@ export default {
                 "星期四",
                 "星期五",
                 "星期六",
+            ];
+            let weekdaysCountConfig = [
+                [Number(-6), Number(0)],
+                [Number(0), Number(6)],
+                [Number(-1), Number(5)],
+                [Number(-2), Number(4)],
+                [Number(-3), Number(3)],
+                [Number(-4), Number(2)],
+                [Number(-5), Number(1)],
             ];
             let nowDate = new Date();
             vm.now =
@@ -567,72 +623,29 @@ export default {
             vm.nowFormat =
                 nowDate.getFullYear() + "-" + thisMonth + "-" + thisDay;
             console.log(vm.nowFormat);
+            vm.thisweekday = [
+                nowDate.getFullYear() +
+                    "-" +
+                    thisMonth +
+                    "-" +
+                    (Number(thisDay) +
+                        weekdaysCountConfig[nowDate.getDay()][0]) +
+                    " 00:00:00",
+                nowDate.getFullYear() +
+                    "-" +
+                    thisMonth +
+                    "-" +
+                    (Number(thisDay) +
+                        weekdaysCountConfig[nowDate.getDay()][1]) +
+                    " 23:59:59",
+            ];
+            console.log(vm.thisweekday);
         },
         getTodoList() {
             let vm = this;
-            // vm.items = [];
-            // vm.activeItemsIndex = null;
-            // var params = {};
-            // params["methods"] = "POST";
-            // params["whichFunction"] = "CommonSqlSyntaxQuery_";
-            // params["condition"] = {
-            //     condition_1: {
-            //         table: "todoList",
-            //         where: { depID: ["1003"] },
-            //         orderby: ["asc", "schedDate"],
-            //         limit: ["ALL"],
-            //         symbols: { depID: ["equal"] },
-            //     },
-            // };
-            // console.log(params);
             vm.setalertMsg("請稍候....");
             vm.togglealertModal(true);
-            // let anyerror = false;
-            // vm.axiosAction(params)
-            //     .then(() => {
-            //         var result = vm.axiosResult;
-            //         console.log(result);
-            //         console.log(JSON.stringify(result["QueryTableData"]));
-            //         if (result["Response"] == "ok") {
-            //             if (result["QueryTableData"].length == 0) {
-            //                 vm.setalertMsg("查無資料");
-            //                 anyerror = true;
-            //             } else {
-            //                 result["QueryTableData"].forEach((element) => {
-            //                     let thisstatus = false;
-            //                     if (element.status) thisstatus = true;
-            //                     let itemsobj = {
-            //                         seq: element.seq,
-            //                         status: thisstatus,
-            //                         completedDate: element.completedDate,
-            //                         taskInfo: element.taskInfo,
-            //                         schedDate: { time: element.schedDate },
-            //                         priority: element.priority,
-            //                         assignTo: element.assignTo,
-            //                         createTime: element.createTime.split(
-            //                             " "
-            //                         )[0],
-            //                     };
-            //                     vm.items.push(itemsobj);
-            //                 });
-            //                 vm.checkDueNum();
-            //                 vm.togglealertModal(false);
-            //             }
-            //         } else {
-            //             vm.setalertMsg(result["Response"]);
-            //             anyerror = true;
-            //         }
-            //     })
-            //     .catch(function (err) {
-            //         console.log(err);
-            //         vm.setalertMsg(err);
-            //         anyerror = true;
-            //     })
-            //     .finally(() => {
-            //         console.log("done");
-            //         if (anyerror) vm.settimeoutalertModal();
-            //     });
-
+            vm.selectDepCollapseShow = false;
             vm.queryResponse.forEach((element) => {
                 let thisstatus = false;
                 if (element.status) thisstatus = true;
@@ -691,12 +704,7 @@ export default {
                         } else {
                             //抓todoList
                             if (vm.pageAccess.todolist.remark != "ALL") {
-                                vm.setinputData({
-                                    selected: vm.pageAccess.todolist.remark,
-                                    table: "todoList",
-                                });
-                                console.log("~~~~~~~~~~");
-                                vm.queryAgainAction("twice");
+                                vm.queryAgain();
                             }
                             // vm.getTodoList();
                             let itemsobj = {};
@@ -771,6 +779,27 @@ export default {
                 });
             }
         },
+        //紀錄舊的temp item data,若取消編輯可恢復資料
+        tempOldItemAction(status, item) {
+            let vm = this;
+            if (status) {
+                vm.tempThisOldItem.status = item.status;
+                vm.tempThisOldItem.completedDate = item.completedDate;
+                vm.tempThisOldItem.taskInfo = item.taskInfo;
+                vm.tempThisOldItem.schedDate.time = item.schedDate.time;
+                vm.tempThisOldItem.priority = item.priority;
+                vm.tempThisOldItem.assignTo = item.assignTo;
+                vm.tempThisOldItem.startDate.time = item.startDate.time;
+            } else {
+                item.status = vm.tempThisOldItem.status;
+                item.completedDate = vm.tempThisOldItem.completedDate;
+                item.taskInfo = vm.tempThisOldItem.taskInfo;
+                item.schedDate.time = vm.tempThisOldItem.schedDate.time;
+                item.priority = vm.tempThisOldItem.priority;
+                item.assignTo = vm.tempThisOldItem.assignTo;
+                item.startDate.time = vm.tempThisOldItem.startDate.time;
+            }
+        },
         addTask(evt) {
             evt.preventDefault();
             let vm = this;
@@ -785,8 +814,8 @@ export default {
             console.log(status);
             console.log(vm.addTaskDetail);
             if (status) {
-                vm.setalertMsg("請稍候...");
-                vm.togglealertModal(true);
+                // vm.setalertMsg("請稍候...");
+                // vm.togglealertModal(true);
                 var params = {
                     methods: "POST",
                     whichFunction: "CommonRegister",
@@ -829,9 +858,8 @@ export default {
                         vm.settimeoutalertModal();
                         vm.formReset();
                         setTimeout(function () {
-                            // vm.getTodoList();
-                            vm.queryAgainAction("once");
-                        }, 500);
+                            vm.queryAgain();
+                        }, 1200);
                         vm.addTaskModalShow = !vm.addTaskModalShow;
                     });
             }
@@ -844,8 +872,8 @@ export default {
         },
         modTask(items) {
             let vm = this;
-            vm.setalertMsg("請稍候.....");
-            vm.togglealertModal(true);
+            // vm.setalertMsg("請稍候.....");
+            // vm.togglealertModal(true);
             console.log(items);
             let thiscompletedDate = "";
             if (items.status) thiscompletedDate = vm.nowFormat;
@@ -885,10 +913,8 @@ export default {
                     console.log("done");
                     vm.settimeoutalertModal();
                     setTimeout(function () {
-                        // vm.getTodoList();
-                        vm.queryAgainAction("once");
-                        console.log("&&&&&&&&&");
-                    }, 500);
+                        vm.queryAgain();
+                    }, 1200);
                 });
         },
         delTask() {
@@ -921,9 +947,8 @@ export default {
                     console.log("done");
                     vm.settimeoutalertModal();
                     setTimeout(function () {
-                        // vm.getTodoList();
-                        vm.queryAgainAction("once");
-                    }, 500);
+                        vm.queryAgain();
+                    }, 1200);
                     vm.delTaskModalShow = !vm.delTaskModalShow;
                 });
         },
@@ -934,16 +959,6 @@ export default {
             const day = date.getDate();
             // Return `true` if the date should be disabled
             return weekday === 0 || weekday === 6;
-        },
-        queryAgainAction(times) {
-            let vm = this;
-            vm.selectDepModalOpacity = true;
-            vm.selectDepModalShow = true;
-            console.log("@@@@@@@@@@@");
-            setTimeout(() => {
-                vm.queryAgain();
-                // if (times === "twice") vm.queryAgain();
-            }, 0);
         },
         rowClass(item, type) {
             // console.log(item);
@@ -994,8 +1009,7 @@ export default {
             Object.assign(this.$data, def);
             //https://codepen.io/karimcossutti/pen/ObXyKq
         },
-        //匯出csv檔
-        exportCSV() {
+        exportfile(filetype) {
             let vm = this;
             console.log(vm.items);
             if (vm.items.length == 0) {
@@ -1017,121 +1031,76 @@ export default {
                 item.assignTo = vm.staffConfig[item.assignTo];
                 item.priority = vm.priorityConfig[item.priority];
             });
-            const data = thisexportdata.map((itemsdata) =>
-                Object.values(itemsdata)
-            );
-            console.log(data);
-            //加入空白，匯出Excel不會改變格式
-            data.forEach((item) => {
-                item[0] = " " + item[0];
-            });
-            //加表頭
-            data.unshift([
-                "部門",
-                "完成",
-                "完成日期",
-                "描述",
-                "預計完成日期",
-                "優先順序",
-                "指派對象",
-                "發起日",
-            ]);
-            console.log(data);
             let thisdep = "全部門";
             if (vm.inputData.selected != "ALL") {
                 thisdep = vm.depConfig[vm.inputData.selected];
             }
             console.log(thisdep);
             const fileName = thisdep + "的待辦事項_" + vm.nowFormat;
-            this.toCSV(data, fileName);
-        },
-        toCSV(data, outputName) {
-            const csvContent = data.map((row) => row.join(",")).join("\n");
-            const link = document.createElement("a");
-            link.setAttribute(
-                "href",
-                "data:text/csv;charset=utf-8,%EF%BB%BF" + encodeURI(csvContent)
+            const data = thisexportdata.map((itemsdata) =>
+                Object.values(itemsdata)
             );
-            link.style = "visibility:hidden";
-            link.download = outputName + ".csv";
-            // link.setAttribute("download", `${outputName}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        },
-        JSONToCSVConvertor(JSONData, ReportTitle, ShowLabel) {
-            //If JSONData is not an object then JSON.parse will parse the JSON string in an Object
-            var arrData =
-                typeof JSONData != "object" ? JSON.parse(JSONData) : JSONData;
-
-            var CSV = "";
-            //Set Report title in first row or line
-
-            CSV += ReportTitle + "\r\n\n";
-
-            //This condition will generate the Label/Header
-            if (ShowLabel) {
-                var row = "";
-
-                //This loop will extract the label from 1st index of on array
-                for (var index in arrData[0]) {
-                    //Now convert each value to string and comma-seprated
-                    row += index + ",";
-                }
-
-                row = row.slice(0, -1);
-
-                //append Label row with line break
-                CSV += row + "\r\n";
+            if (filetype === "CSV") {
+                //加入空白，匯出Excel不會改變格式
+                data.forEach((item) => {
+                    item[0] = " " + item[0];
+                });
+                //加表頭
+                data.unshift([
+                    "部門",
+                    "完成",
+                    "完成日期",
+                    "描述",
+                    "預計完成日期",
+                    "優先順序",
+                    "指派對象",
+                    "發起日",
+                ]);
+                vm.setautoTable({
+                    body: data,
+                    exportfilename: fileName,
+                    exportfiletype: filetype,
+                });
+            } else {
+                vm.setautoTable({
+                    body: data,
+                    columns: [
+                        { header: "部門", dataKey: "depID" },
+                        { header: "完成", dataKey: "status" },
+                        { header: "完成日期", dataKey: "completedDate" },
+                        { header: "描述", dataKey: "taskInfo" },
+                        { header: "預計完成日期", dataKey: "schedDate" },
+                        { header: "優先順序", dataKey: "priority" },
+                        { header: "指派對象", dataKey: "assignTo" },
+                        { header: "發起日", dataKey: "startDate" },
+                    ],
+                    columnStyles: {
+                        depID: { font: "msjh" },
+                        status: { font: "msjh" },
+                        completedDate: { font: "msjh" },
+                        taskInfo: { font: "msjh" },
+                        schedDate: { font: "msjh" },
+                        priority: { font: "msjh" },
+                        assignTo: { font: "msjh" },
+                        startDate: { font: "msjh" },
+                    },
+                    headStyles: {
+                        font: "msjh",
+                        fillColor: [160, 215, 255],
+                        valign: "middle",
+                        halign: "center",
+                        textColor: 10,
+                        lineWidth: 1,
+                        cellPadding: 3,
+                        minCellWidth: 50,
+                    },
+                    exportfilename: fileName,
+                    exportfiletype: filetype,
+                });
             }
-
-            //1st loop is to extract each row
-            for (var i = 0; i < arrData.length; i++) {
-                var row = "";
-
-                //2nd loop will extract each column and convert it in string comma-seprated
-                for (var index in arrData[i]) {
-                    row += '"' + arrData[i][index] + '",';
-                }
-
-                row.slice(0, row.length - 1);
-
-                //add a line break after each row
-                CSV += row + "\r\n";
-            }
-
-            if (CSV == "") {
-                alert("Invalid data");
-                return;
-            }
-            console.log(CSV);
-
-            //Generate a file name
-            var fileName = "";
-            //this will remove the blank-spaces from the title and replace it with an underscore
-            fileName += ReportTitle.replace(/ /g, "_");
-
-            //Initialize file format you want csv or xls
-            // var uri = "data:text/csv;charset=utf-8" + escape(CSV);
-            var uri = "data:text/csv;charset=utf-8,%EF%BB%BF" + encodeURI(CSV);
-
-            // Now the little tricky part.
-            // you can use either>> window.open(uri);
-            // but this will not work in some browsers
-            // or you will not get the correct file extension
-
-            //this trick will generate a temp <a /> tag
-            var link = document.createElement("a");
-            link.href = uri;
-
-            //set the visibility hidden so it will not effect on your web-layout
-            link.style = "visibility:hidden";
-            link.download = fileName + ".csv";
-
-            //this part will append the anchor tag and remove it after automatic click
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            setTimeout(() => {
+                vm.exportModalShow = false;
+            }, 1000);
         },
     },
 };

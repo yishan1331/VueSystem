@@ -82,8 +82,7 @@
                             <b-col sm="2">
                                 <label for="textarea-large">
                                     附件:
-                                    <br />(小於1000000KB)
-                                    <br />(只接受PDF檔、圖片檔)
+                                    <br />(小於10MB)
                                 </label>
                             </b-col>
                             <b-col sm="10">
@@ -95,7 +94,7 @@
                                     ref="file"
                                     :file-name-formatter="formatNames"
                                     @change="fileChange"
-                                    accept="image/*, .pdf"
+                                    accept="image/*,.pdf,.zip"
                                 ></b-form-file>
                             </b-col>
                         </b-row>
@@ -312,8 +311,7 @@
                         <b-col sm="2">
                             <label for="textarea-large">
                                 附件:
-                                <br />(小於1000000KB)
-                                <br />(只接受PDF檔、圖檔)
+                                <br />(小於10MB)
                             </label>
                         </b-col>
                         <b-col sm="10">
@@ -325,7 +323,7 @@
                                 ref="file"
                                 :file-name-formatter="formatNames"
                                 @change="fileChange"
-                                accept="image/*, .pdf"
+                                accept="image/*,.pdf,.zip"
                             ></b-form-file>
                         </b-col>
                     </b-row>
@@ -616,10 +614,10 @@ export default {
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             queryAgain: "commonquery/do_queryAgain",
             setinputData: "commonquery/set_inputData",
+            setapiParams: "commonquery/set_apiParams",
         }),
         SetCommonQueryData() {
             var vm = this;
-            var obj = {};
             var misbulletinqueryselected = "ALL";
             var misbulletinqueryoptions = [
                 { value: "system", text: "系統" },
@@ -627,10 +625,19 @@ export default {
                 { value: "network", text: "網路" },
                 { value: "ALL", text: "全選" },
             ];
-            obj.options = misbulletinqueryoptions;
-            obj.selected = misbulletinqueryselected;
-            obj.table = "misBulletin";
-            obj.inputtext = "";
+            var obj = {
+                options: misbulletinqueryoptions,
+                selected: misbulletinqueryselected,
+                inputtext: "",
+            };
+            vm.setinputData(obj);
+            let commonApiParams = {
+                table: "misBulletin",
+                attr: "category",
+                timeattr: "lastUpdateTime",
+                intervaltime: {},
+            };
+            vm.setapiParams(commonApiParams);
             vm.setinputData(obj);
         },
         //公告上傳
@@ -945,6 +952,7 @@ export default {
                     .then(
                         function (response) {
                             const result = response.data;
+                            console.log(result);
                             vm.setalertMsg(result);
                             var altertime = 0;
                             if (result.length == 1) {
@@ -957,11 +965,16 @@ export default {
                             vm.settimeoutalertModal(altertime);
                             vm.modmodalcontent = this.$options.data().modmodalcontent;
                             vm.modBulletinModalShow = false;
-                            vm.queryAgain();
                         }.bind(this)
                     )
                     .catch(function (err) {
                         console.log(err);
+                    })
+                    .finally(() => {
+                        console.log("done");
+                        setTimeout(() => {
+                            vm.queryAgain();
+                        }, 500);
                     });
             }
         },

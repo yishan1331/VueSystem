@@ -11,6 +11,7 @@
     color: #f57f6c;
 }
 .form-group--error input,
+.form-group--error .b-form-spinbutton,
 .form-group--error select,
 .form-group--error textarea,
 .form-group--error input:focus,

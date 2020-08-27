@@ -38,7 +38,11 @@
                         >MIS公告管理</router-link>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown" role="button">系統架構</a>
+                        <a
+                            class="nav-link dropdown"
+                            role="button"
+                            v-show="pageAccess.structure.status"
+                        >系統架構</a>
                         <div class="dropdown-menu">
                             <router-link
                                 class="nav-link"
@@ -59,6 +63,11 @@
                                 v-show="pageAccess.todolist.status"
                                 :to="'todolist'"
                             >各部待辦事項</router-link>
+                            <router-link
+                                class="nav-link"
+                                v-show="pageAccess.weeklyreport.status"
+                                :to="'weeklyreport'"
+                            >Weekly Report</router-link>
                         </div>
                     </li>
                     <li class="nav-item dropdown">

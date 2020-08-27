@@ -135,7 +135,7 @@ export default {
                 },
             ],
             items: [],
-            contenfields:[],
+            contenfields: [],
             contentitems: [],
             boardtitle: "",
             boardcontentUP: "",
@@ -157,120 +157,6 @@ export default {
     created: function () {
         this.SetCommonQueryData();
         this.LatestBulletinDataQuery();
-        // this.setLatestBulletin({
-        //     category: "system",
-        //     showhide: 1,
-        //     seq: 14,
-        //     lastUpdateTime: "2020-08-07 14:40:34",
-        //     title: "test",
-        //     filename: "",
-        //     content:
-        //         '{"wordUp":{"color":"red","content":"Hello aaa<br/>789","size":"30px"},"wordPreDown":{"content":"sfsdfs \\n adkl;adkas;d \\n hjhfjkhkj   hjklhadjkasd    ioueoiqhf","color":"blue"}}',
-        //     creatorID: "2493",
-        //     createTime: "2020-08-07 14:40:34",
-        // });
-        // this.setLatestBulletin({
-        //     category: "system",
-        //     showhide: 1,
-        //     seq: 13,
-        //     lastUpdateTime: "2020-08-10 11:56:46",
-        //     title: "2020/07_金智洋重要系統IP對照表",
-        //     filename: "重要系統IP對照表.pdf",
-        //     content: {
-        //         table: [
-        //             {
-        //                 System: "IoT/PDM",
-        //                 Note:
-        //                     "22、3687只開放金智洋網段連入維護使用，80、443、8443為網頁服務對所有人開放",
-        //                 Location: "OFCO2",
-        //                 "External IP": "211.20.223.148",
-        //                 Port: "#NOTE",
-        //                 "Internal IP": "172.16.2.55",
-        //             },
-        //             {
-        //                 System: "KingMakerSQL",
-        //                 Note: "",
-        //                 Location: "OFCO2",
-        //                 "External IP": "NA",
-        //                 Port: "",
-        //                 "Internal IP": "172.16.2.57",
-        //             },
-        //             {
-        //                 _rowVariant: "info",
-        //                 System: "IoT MES網頁",
-        //                 Note: "",
-        //                 Location: "Sapido",
-        //                 "External IP": "NA",
-        //                 Port: "",
-        //                 "Internal IP": "192.168.39.75",
-        //             },
-        //             {
-        //                 _rowVariant: "info",
-        //                 System: "IoT 開發區",
-        //                 Note: "",
-        //                 Location: "Sapido",
-        //                 "External IP": "211.22.242.15",
-        //                 Port: "8080,8888",
-        //                 "Internal IP": "192.168.39.71",
-        //             },
-        //             {
-        //                 _rowVariant: "info",
-        //                 System: "IoT 測試區",
-        //                 Note: "",
-        //                 Location: "OFCO2",
-        //                 "External IP": "NA",
-        //                 Port: "",
-        //                 "Internal IP": "192.168.88.248",
-        //             },
-        //             {
-        //                 _rowVariant: "info",
-        //                 System: "PDM 開發區",
-        //                 Note: "",
-        //                 Location: "Sapido",
-        //                 "External IP": "211.22.242.18",
-        //                 Port: "",
-        //                 "Internal IP": "192.168.39.73",
-        //             },
-        //             {
-        //                 System: "KingMaker正式區",
-        //                 Note:
-        //                     "http://192.168.88.27/servlet/jform?file=KingMaker.dat&locale=TW 內部 http://211.22.242.16/servlet/jform?file=KingMaker.dat&locale=TW 外部",
-        //                 Location: "Sapido",
-        //                 "External IP": "211.22.242.16",
-        //                 Port: "80",
-        //                 "Internal IP": "192.168.88.27",
-        //             },
-        //             {
-        //                 System: "KingMaker開發區(QueenMaker)",
-        //                 Note:
-        //                     "http://192.168.88.27/servlet/jform?file=QueenMaker.dat&locale=TW 內部 http://211.22.242.16/servlet/jform?file=QueenMaker.dat&locale=TW 外部",
-        //                 Location: "Sapido",
-        //                 "External IP": "211.22.242.16",
-        //                 Port: "80",
-        //                 "Internal IP": "192.168.88.27",
-        //             },
-        //             {
-        //                 System: "MIS公告區",
-        //                 Note: "",
-        //                 Location: "Sapido",
-        //                 "External IP": "NA",
-        //                 Port: "8888",
-        //                 "Internal IP": "192.168.39.75",
-        //             },
-        //             {
-        //                 System: "RedMine",
-        //                 Note: "https://211.22.242.16/",
-        //                 Location: "Sapido",
-        //                 "External IP": "211.22.242.16",
-        //                 Port: "443",
-        //                 "Internal IP": "192.168.88.66",
-        //             },
-        //         ],
-        //         wordDown: { content: "附上相關附件" },
-        //     },
-        //     creatorID: "",
-        //     createTime: "2020-08-10 11:17:51",
-        // });
     },
     mounted: function () {
         this.totalRows = this.items.length;
@@ -335,10 +221,10 @@ export default {
             changetableBusy: "commonquery/change_tableBusy",
             setqueryResponse: "commonquery/set_queryResponse",
             setinputData: "commonquery/set_inputData",
+            setapiParams: "commonquery/set_apiParams",
         }),
         SetCommonQueryData() {
             var vm = this;
-            var obj = {};
             var misbulletinqueryselected = "ALL";
             var misbulletinqueryoptions = [
                 { value: "system", text: "系統" },
@@ -346,11 +232,19 @@ export default {
                 { value: "network", text: "網路" },
                 { value: "ALL", text: "全選" },
             ];
-            obj.options = misbulletinqueryoptions;
-            obj.selected = misbulletinqueryselected;
-            obj.table = "misBulletin";
-            obj.inputtext = "";
+            var obj = {
+                options: misbulletinqueryoptions,
+                selected: misbulletinqueryselected,
+                inputtext: "",
+            };
             vm.setinputData(obj);
+            let commonApiParams = {
+                table: "misBulletin",
+                attr: "category",
+                timeattr: "lastUpdateTime",
+                intervaltime: {},
+            };
+            vm.setapiParams(commonApiParams);
         },
         //查詢最新五筆
         LatestBulletinDataQuery() {
@@ -360,18 +254,20 @@ export default {
             vm.changetableBusy();
             var params = {};
             params["methods"] = "POST";
-            params["whichFunction"] = "CommonSqlSyntaxQuery";
-            params["table"] = "misBulletin";
-            params["purpose"] = "query";
-            params["where"] = {};
-            params["where"]["showhide"] = 1;
-            params["orderby"] = ["desc", "lastUpdateTime"];
-            params["limit"] = ["0", "5"];
-            params["symbols"] = {};
-            params["symbols"]["showhide"] = "equal";
+            params["whichFunction"] = "CommonSqlSyntaxQuery_";
+            params["condition"] = {
+                condition_1: {
+                    table: "misBulletin",
+                    orderby: ["desc", "lastUpdateTime"],
+                    limit: [0,5],
+                    where: {"showhide":[1]},
+                    symbols: {"showhide":["equal"]},
+                },
+            };
             vm.axiosAction(params)
                 .then(() => {
                     var result = vm.axiosResult;
+                    console.log(result);
                     vm.togglealertModal(false);
                     if (result["Response"] == "ok") {
                         if (result["QueryTableData"].length == 0) {
@@ -427,7 +323,7 @@ export default {
         //表格點擊
         onRowClicked(items) {
             var vm = this;
-            vm.reset(["items","totalRows","currentPage"]);
+            vm.reset(["items", "totalRows", "currentPage"]);
             console.log(items);
             vm.boardtitle = items.title;
             vm.setLatestBulletinContent(items);
@@ -502,9 +398,10 @@ export default {
                 )
                     parsecontent = JSON.parse(parsecontent);
                 console.log(parsecontent);
-                if (parsecontent.hasOwnProperty("table"))
+                if (parsecontent.hasOwnProperty("table")) {
                     vm.contenfields = parsecontent.table.fields;
                     vm.contentitems = parsecontent.table.items;
+                }
                 if (parsecontent.hasOwnProperty("wordUp")) {
                     if (!Array.isArray(parsecontent.wordUp.content))
                         parsecontent.wordUp.content = parsecontent.wordUp.content.split(

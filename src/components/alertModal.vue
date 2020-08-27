@@ -45,9 +45,9 @@ export default {
             alertModalShow: "alertmodal/get_alertModalShow",
             alertMsg: "alertmodal/get_alertMsg",
             alertMsgProgressValue: "alertmodal/get_alertMsgProgressValue",
-            alertMsgProgressShow: "alertmodal/get_alertMsgProgressShow"
-        })
-    }
+            alertMsgProgressShow: "alertmodal/get_alertMsgProgressShow",
+        }),
+    },
 };
 </script>
 

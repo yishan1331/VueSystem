@@ -42,6 +42,10 @@ router.beforeEach((to, from, next) => {
         console.log(loginData);
         console.log(router.app.$options.store.getters["getlogin/get_pageAccess"]);
         if (loginData.status) {
+            //將commonquery init初始化
+            router.app.$options.store.dispatch("commonquery/set_isInit", true);
+            //將exportfile status初始化
+            router.app.$options.store.dispatch("exportfile/set_ttfStatus", true);
             next();
         } else {
             router.app.$options.store.dispatch("alertmodal/set_alertMsg", "請先登入");

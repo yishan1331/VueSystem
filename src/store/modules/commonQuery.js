@@ -6,10 +6,15 @@ const state = {
         options: [],
         selected: "",
         inputtext: "",
-        table: "",
-        querypurpose:""
     },
-    depDetail:null,
+    apiParams: {
+        table: "",
+        attr: "",
+        timeattr: "",
+        intervaltime: {},
+    },
+    isInit: true,
+    depDetail: null,
 };
 const getters = {
     get_queryResponse: state => {
@@ -23,6 +28,12 @@ const getters = {
     },
     get_inputData: state => {
         return state.inputData;
+    },
+    get_apiParams: state => {
+        return state.apiParams;
+    },
+    get_isInit: state => {
+        return state.isInit;
     },
     get_depDetail: state => {
         return state.depDetail;
@@ -42,6 +53,12 @@ const actions = {
     set_inputData(context, obj) {
         context.commit("SET_INPUTDATA", obj);
     },
+    set_apiParams(context, obj) {
+        context.commit("SET_APIPARAMS", obj);
+    },
+    set_isInit(context, status) {
+        context.commit("SET_ISINIT", status);
+    },
     set_depDetail(context, data) {
         context.commit("SET_DEPDETAIL", data);
     },
@@ -59,12 +76,14 @@ const mutations = {
         console.log(state.queryAgain);
     },
     SET_INPUTDATA(state, obj) {
-        state.inputData.options = obj.options;
-        state.inputData.selected = obj.selected;
-        state.inputData.inputtext = obj.inputtext;
-        state.inputData.table = obj.table;
-        state.inputData.querypurpose = obj.querypurpose;
-        console.log(state.inputData);
+        state.inputData = obj;
+    },
+    SET_APIPARAMS(state, obj) {
+        state.apiParams = obj;
+    },
+    SET_ISINIT(state, status) {
+        state.isInit = status;
+        console.log(state.isInit);
     },
     SET_DEPDETAIL(state, data) {
         state.depDetail = data;

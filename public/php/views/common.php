@@ -1,4 +1,14 @@
 <?php
+function IntervalQuery($params, $returnData){
+    if ($params->settingtime) {
+        $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/Interval/" . $params->table . "?uid=@sapido@PaaS&attr=" . $params->timeattr . "&valueStart=" . $params->start_time . "&valueEnd=" . $params->end_time;
+    } else {
+        $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/TableData?uid=@sapido@PaaS&table=" . $params->table;
+    }
+    $returnData[0] = $url;
+    return $returnData;
+}
+
 function CommonSimpleQuery($params, $returnData)
 {
     if ($params->category == "ALL") {

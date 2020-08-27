@@ -32,7 +32,7 @@
                         >
                             {{pageAccessCH[key2]}}
                             <b-form-select
-                                v-if="key2 == 'todolist'"
+                                v-if="key2 == 'todolist' || key2 == 'weeklyreport'"
                                 v-model="form[key1][key2]['remark']"
                                 :options="[{'text':'雲端AI(智慧)平台部','value':'1003'},{'text':'系統研發部','value':'1002'},{'text':'資訊通訊部','value':'1001'},{'text':'ALL','value':'ALL'}]"
                                 size="sm"
@@ -121,7 +121,7 @@ export default {
                         if (Object.keys(formdata)[i] === "accessList") {
                             Object.keys(pageAccessobj).forEach(function (key) {
                                 console.log(key);
-                                if (key == "todolist") {
+                                if (key == "todolist" || key == "weeklyreport") {
                                     pageAccessobj[key]["status"] = false;
                                     pageAccessobj[key]["remark"] = null;
                                 } else {
@@ -186,6 +186,8 @@ export default {
             // if (vm.vforData.button[0] == "Add") {
             if (!vm.form.accessList.todolist.status)
                 vm.form.accessList.todolist.remark = null;
+            if (!vm.form.accessList.weeklyreport.status)
+                vm.form.accessList.weeklyreport.remark = null;
             console.log(vm.form);
             vm.setcompletedData(vm.form);
             // }

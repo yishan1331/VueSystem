@@ -28,8 +28,8 @@ if ($_POST['deletefile'] == "") {
         $fileCount = count($_FILES['fileToUpload']['name']);
         for ($i = 0; $i < $fileCount; $i++) {
             $targetFile = $targetDir . basename($_FILES["fileToUpload"]["name"][$i]);
-            // Check file size
-            if ($_FILES["fileToUpload"]["size"][$i] > 1000000) {
+            // Check file size < 10MB(1024*1024*10)
+            if ($_FILES["fileToUpload"]["size"][$i] > (1024*1024*10)) {
                 array_push($msg, "檔名:'" . basename($_FILES["fileToUpload"]["name"][$i]) . "' 檔案太大");
                 array_push($msg, "修改失敗");
                 $filecanupload = false;

@@ -74,6 +74,7 @@ export default {
             axiosAction: "commonaxios/axiosAction",
             setalertMsg: "alertmodal/set_alertMsg",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
+            togglealertModal: "alertmodal/toggle_alertModal",
             change_loginData: "getlogin/change_loginData",
             change_pageAccess: "getlogin/change_pageAccess",
             changeloginCusID: "getlogin/change_loginCusID",
@@ -85,11 +86,14 @@ export default {
                 vm.settimeoutalertModal();
                 return;
             }
+            vm.setalertMsg("請稍候...");
+            vm.togglealertModal(true);
             var params = {};
             params["methods"] = "GET";
             params["whichFunction"] = "Login";
             params["uID"] = vm.user.uID;
             vm.axiosAction(params).then(() => {
+                vm.togglealertModal(false);
                 var result = vm.axiosResult;
                 console.log(result);
                 console.log(result["QueryTableData"][0].accessList);
@@ -149,6 +153,7 @@ export default {
             //     misbulletinmanage: { status: true },
             //     structure: { status: true },
             //     todolist: { status: true, remark: "ALL" },
+            //     weeklyreport: { status: true, remark: "1003" },
             // };
             // vm.change_loginData(obj);
             // vm.change_pageAccess(obj.accesslist);

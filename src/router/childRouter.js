@@ -5,6 +5,7 @@ import misbulletinmanage from "@/views/MISBulletinManage";
 import department from "@/views/Department";
 import account from "@/views/Account";
 import todolist from "@/views/TodoList";
+import weeklyreport from "@/views/WeeklyReport";
 import structure from "@/views/Structure";
 // import pagenotfound from "@/views/PageNotFound";
 
@@ -53,6 +54,13 @@ export const childRouter = [
             {
                 path: "todolist",
                 component: todolist,
+                meta: {
+                    needLogin: true
+                }
+            },
+            {
+                path: "weeklyreport",
+                component: weeklyreport,
                 meta: {
                     needLogin: true
                 }

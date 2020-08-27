@@ -240,9 +240,22 @@ export default {
                     if (vm.systemFormCompletedData.depID == "") {
                         msg.push("部門編號尚未輸入");
                     }
-                    console.log(vm.systemFormCompletedData.accessList.todolist.remark);
-                    if (vm.systemFormCompletedData.accessList.todolist.status && vm.systemFormCompletedData.accessList.todolist.remark == null) {
+                    console.log(
+                        vm.systemFormCompletedData.accessList.todolist.remark
+                    );
+                    if (
+                        vm.systemFormCompletedData.accessList.todolist.status &&
+                        vm.systemFormCompletedData.accessList.todolist.remark ==
+                            null
+                    ) {
                         msg.push("權限:『待辦事項』需選擇指定部門");
+                    }
+                    if (
+                        vm.systemFormCompletedData.accessList.weeklyreport.status &&
+                        vm.systemFormCompletedData.accessList.weeklyreport.remark ==
+                            null
+                    ) {
+                        msg.push("權限:『Weekly Report』需選擇指定部門");
                     }
                     console.log(msg);
                     if (msg.length != 0) {
@@ -267,6 +280,7 @@ export default {
             setalertMsg: "alertmodal/set_alertMsg",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             setinputData: "commonquery/set_inputData",
+            setapiParams: "commonquery/set_apiParams",
             setdepDetail: "commonquery/set_depDetail",
             queryAgain: "commonquery/do_queryAgain",
             setvforData: "systemform/set_vforData",
@@ -297,19 +311,25 @@ export default {
         },
         SetCommonQueryData() {
             var vm = this;
-            var obj = {};
             var departmentqueryselected = "ALL";
             var departmentqueryoptions = [
                 { value: "depID", text: "部門編號" },
                 { value: "depName", text: "部門名稱" },
                 { value: "ALL", text: "全選" },
             ];
-            obj.options = departmentqueryoptions;
-            obj.selected = departmentqueryselected;
-            obj.table = "department";
-            obj.querypurpose = "query_like";
-            obj.inputtext = "text";
+            var obj = {
+                options: departmentqueryoptions,
+                selected: departmentqueryselected,
+                inputtext: "text",
+            };
             vm.setinputData(obj);
+            let commonApiParams = {
+                table: "department",
+                timeattr: "lastUpdateTime",
+                attr: "",
+                intervaltime: {},
+            };
+            vm.setapiParams(commonApiParams);
         },
         SetDepDetail() {
             var vm = this;

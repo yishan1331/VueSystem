@@ -149,6 +149,8 @@ export default {
             queryResponse: "commonquery/get_queryResponse",
             receivequeryAgain: "commonquery/receive_queryAgain",
             inputData: "commonquery/get_inputData",
+            apiParams: "commonquery/get_apiParams",
+            isInit: "commonquery/get_isInit",
             depDetail: "commonquery/get_depDetail",
         }),
     },
@@ -182,6 +184,7 @@ export default {
             togglealertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             setqueryResponse: "commonquery/set_queryResponse",
+            setisInit: "commonquery/set_isInit",
             changetableBusy: "commonquery/change_tableBusy",
         }),
         onChange(event) {
@@ -206,63 +209,84 @@ export default {
                     return;
                 }
             }
+            vm.setalertMsg("請稍候...");
+            vm.togglealertModal(true);
             //預設今天
+            params["timeattr"] = vm.apiParams.timeattr;
             params["start_time"] = vm.startTime.time + " 00:00:00";
             params["end_time"] = vm.endTime.time + " 23:59:59";
-            params["settingtime"] = vm.notsettingtime;
-            params["table"] = vm.inputData.table;
+            params["settingtime"] = !vm.notsettingtime;
 
             if (vm.inputData.selected == "ALL") {
-                params["whichFunction"] = "CommonSimpleQuery";
-                params["category"] = vm.inputData.selected;
+                params["whichFunction"] = "IntervalQuery";
                 params["methods"] = "GET";
+                params["table"] = vm.apiParams.table;
             } else {
-                if (vm.inputData.table == "misBulletin") {
-                    params["methods"] = "GET";
-                    params["whichFunction"] = "CommonSimpleQuery";
-                    params["category"] = "category";
-                    params["categoryparameter"] = vm.inputData.selected;
-                } else if (vm.inputData.table == "todoList") {
-                    console.log(vm.inputData.selected);
-                    params["methods"] = "POST";
-                    params["whichFunction"] = "CommonSqlSyntaxQuery_";
-                    params["condition"] = {
-                        condition_1: {
-                            table: "todoList",
-                            where: {
-                                depID: [vm.inputData.selected],
-                            },
-                            orderby: ["asc", "schedDate"],
-                            limit: ["ALL"],
-                            symbols: { depID: ["equal"] },
-                        },
-                    };
+                params["methods"] = "POST";
+                params["whichFunction"] = "CommonSqlSyntaxQuery_";
+                //default params
+                let fieldsparams = "";
+                let orderbyparams = ["desc", "lastUpdateTime"];
+                let limitparams = ["ALL"];
+                let whereparams = {};
+                let symbolsparams = {};
+                let intervaltimeparams = {};
+                if (!vm.notsettingtime) {
+                    intervaltimeparams[vm.apiParams.timeattr] = [
+                        [
+                            vm.startTime.time + " 00:00:00",
+                            vm.endTime.time + " 23:59:59",
+                        ],
+                    ];
                 } else {
-                    params["whichFunction"] = "CommonSqlSyntaxQuery";
-                    params["methods"] = "POST";
-                    params["purpose"] = vm.inputData.querypurpose;
-                    if (vm.selected != "") {
-                        params["where"] = {};
-                        if (
-                            vm.inputData.table == "user" &&
-                            vm.inputData.selected == "depName"
-                        ) {
-                            params["where"]["noumenonID"] = vm.inputtext.trim();
-                        } else {
-                            params["where"][
-                                vm.inputData.selected
-                            ] = vm.inputtext.trim();
-                        }
+                    //若是第一次查詢才找是否有defaul參數intervaltime
+                    console.log(vm.isInit);
+                    if (
+                        vm.isInit &&
+                        Object.keys(vm.apiParams.intervaltime).length != 0
+                    ) {
+                        intervaltimeparams = vm.apiParams.intervaltime;
+                        vm.setisInit(false);
+                    } else {
+                        intervaltimeparams = "";
                     }
-                    if (!vm.notsettingtime) {
-                        params["intervaltime"] = {
-                            createTime: [
-                                vm.startTime.time + " 00:00:00",
-                                vm.endTime.time + " 23:59:59",
-                            ],
-                        };
+                    console.log(vm.isInit);
+                }
+                console.log(vm.apiParams);
+                if (vm.apiParams.attr == "") {
+                    if (
+                        vm.apiParams.table == "user" &&
+                        vm.inputData.selected == "depName"
+                    ) {
+                        whereparams["noumenonID"] = [vm.inputtext.trim()];
+                        symbolsparams["noumenonID"] = ["equal"];
+                    } else {
+                        whereparams[vm.inputData.selected] = [
+                            vm.inputtext.trim(),
+                        ];
+                        symbolsparams[vm.inputData.selected] = ["equal"];
+                    }
+                } else {
+                    whereparams[vm.apiParams.attr] = [vm.inputData.selected];
+                    symbolsparams[vm.apiParams.attr] = ["equal"];
+                    if (vm.apiParams.table == "todoList") {
+                        orderbyparams = ["asc", "schedDate"];
+                    }
+                    if (vm.apiParams.table == "weeklyReport") {
+                        orderbyparams = ["asc", "date"];
                     }
                 }
+                params["condition"] = {
+                    condition_1: {
+                        table: vm.apiParams.table,
+                        fields: fieldsparams,
+                        orderby: orderbyparams,
+                        limit: limitparams,
+                        where: whereparams,
+                        symbols: symbolsparams,
+                        intervaltime: intervaltimeparams,
+                    },
+                };
             }
             console.log(params);
             vm.axiosAction(params).then(() => {
@@ -271,11 +295,11 @@ export default {
                 vm.togglealertModal(false);
                 vm.changetableBusy();
                 if (result["Response"] == "ok") {
-                    result["QueryTableData"] = result["QueryTableData"].sort(
-                        function (a, b) {
-                            return a.lastUpdateTime < b.lastUpdateTime ? 1 : -1;
-                        }
-                    );
+                    // result["QueryTableData"] = result["QueryTableData"].sort(
+                    //     function (a, b) {
+                    //         return a.lastUpdateTime < b.lastUpdateTime ? 1 : -1;
+                    //     }
+                    // );
                     if (result["QueryTableData"].length == 0) {
                         if (vm.queryResponse == "查無資料") {
                             vm.setalertMsg("查無資料");
@@ -313,8 +337,6 @@ export default {
                 vm.endoption.placeholder = todayDate_end;
                 vm.endTime.time = todayDate_end;
             } else {
-                vm.setalertMsg("請稍候...");
-                vm.togglealertModal(true);
                 vm.reset([
                     "startTime",
                     "endTime",

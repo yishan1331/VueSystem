@@ -192,36 +192,34 @@ export default {
             axiosResult: "commonaxios/get_axiosResult",
             loginData: "getlogin/get_loginData",
             pageAccess: "getlogin/get_pageAccess",
-            commonQueryResponse: "commonquery/get_queryResponse",
+            queryResponse: "commonquery/get_queryResponse",
             tableBusy: "commonquery/get_tableBusy",
             systemFormCompletedData: "systemform/get_completedData",
         }),
     },
     watch: {
-        commonQueryResponse: {
+        queryResponse: {
             handler() {
                 var vm = this;
                 vm.reset(["tabIndex", "depDetail"]);
                 if (
-                    vm.commonQueryResponse == "查無資料" ||
-                    vm.commonQueryResponse == "時間尚未選擇"
+                    vm.queryResponse == "查無資料" ||
+                    vm.queryResponse == "時間尚未選擇"
                 ) {
-                    vm.setalertMsg(vm.commonQueryResponse);
+                    vm.setalertMsg(vm.queryResponse);
                     vm.settimeoutalertModal();
                     return;
                 }
+                console.log(vm.queryResponse);
                 var itemsarray = [];
-                for (var i = 0; i < vm.commonQueryResponse.length; i++) {
+                for (var i = 0; i < vm.queryResponse.length; i++) {
                     var itemsobj = {};
-                    itemsobj["uID"] = vm.commonQueryResponse[i]["uID"];
-                    itemsobj["uName"] = vm.commonQueryResponse[i]["uName"];
-                    itemsobj["uInfo"] = vm.commonQueryResponse[i]["uInfo"];
+                    itemsobj["uID"] = vm.queryResponse[i]["uID"];
+                    itemsobj["uName"] = vm.queryResponse[i]["uName"];
+                    itemsobj["uInfo"] = vm.queryResponse[i]["uInfo"];
                     itemsobj["noumenonID"] =
-                        vm.depDetail[0][
-                            vm.commonQueryResponse[i]["noumenonID"]
-                        ];
-                    itemsobj["accessList"] =
-                        vm.commonQueryResponse[i]["accessList"];
+                        vm.depDetail[0][vm.queryResponse[i]["noumenonID"]];
+                    itemsobj["accessList"] = vm.queryResponse[i]["accessList"];
                     itemsarray.push(itemsobj);
                 }
                 console.log(itemsarray);
@@ -267,6 +265,14 @@ export default {
                     ) {
                         msg.push("權限:『待辦事項』需選擇指定部門");
                     }
+                    if (
+                        vm.systemFormCompletedData.accessList.weeklyreport
+                            .status &&
+                        vm.systemFormCompletedData.accessList.weeklyreport
+                            .remark == null
+                    ) {
+                        msg.push("權限:『Weekly Report』需選擇指定部門");
+                    }
                     if (vm.systemFormCompletedData.pwd == "") {
                         msg.push("密碼尚未輸入");
                     }
@@ -293,6 +299,7 @@ export default {
             setalertMsg: "alertmodal/set_alertMsg",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             setinputData: "commonquery/set_inputData",
+            setapiParams: "commonquery/set_apiParams",
             setdepDetail: "commonquery/set_depDetail",
             queryAgain: "commonquery/do_queryAgain",
             setvforData: "systemform/set_vforData",
@@ -369,7 +376,6 @@ export default {
         },
         SetCommonQueryData() {
             var vm = this;
-            var obj = {};
             var accountqueryselected = "ALL";
             var accountqueryoptions = [
                 { value: "uID", text: "帳號" },
@@ -378,12 +384,19 @@ export default {
                 { value: "depName", text: "部門名稱" },
                 { value: "ALL", text: "全選" },
             ];
-            obj.options = accountqueryoptions;
-            obj.selected = accountqueryselected;
-            obj.table = "user";
-            obj.inputtext = "text";
-            obj.querypurpose = "query_like";
+            var obj = {
+                options: accountqueryoptions,
+                selected: accountqueryselected,
+                inputtext: "text",
+            };
             vm.setinputData(obj);
+            let commonApiParams = {
+                table: "user",
+                timeattr: "lastUpdateTime",
+                attr: "",
+                intervaltime: {},
+            };
+            vm.setapiParams(commonApiParams);
         },
         onRowClicked(items, index, event) {
             var vm = this;
@@ -447,7 +460,7 @@ export default {
                     msg = "修改成功";
                     setTimeout(function () {
                         vm.queryAgain();
-                    }, 500);
+                    }, 1200);
                 } else {
                     msg = result["Response"];
                 }
@@ -514,7 +527,9 @@ export default {
                 vm.delAccountModalShow = false;
                 vm.setalertMsg(msg);
                 vm.settimeoutalertModal();
-                vm.queryAgain();
+                setTimeout(function () {
+                    vm.queryAgain();
+                }, 1200);
             });
         },
         //資料reset
