@@ -234,7 +234,7 @@ export default {
                 vm.reset(["tabIndex", "depDetail"]);
                 if (vm.tabIndex == 0) {
                     vm.SetSystemFormData();
-                    //     vm.SetCommonQueryData();
+                    vm.SetCommonQueryData();
                 }
                 vm.setsystemFormResponse();
                 vm.setSystemFormCompletedData({});

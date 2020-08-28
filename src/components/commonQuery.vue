@@ -295,11 +295,11 @@ export default {
                 vm.togglealertModal(false);
                 vm.changetableBusy();
                 if (result["Response"] == "ok") {
-                    // result["QueryTableData"] = result["QueryTableData"].sort(
-                    //     function (a, b) {
-                    //         return a.lastUpdateTime < b.lastUpdateTime ? 1 : -1;
-                    //     }
-                    // );
+                    result["QueryTableData"] = result["QueryTableData"].sort(
+                        function (a, b) {
+                            return a.lastUpdateTime < b.lastUpdateTime ? 1 : -1;
+                        }
+                    );
                     if (result["QueryTableData"].length == 0) {
                         if (vm.queryResponse == "查無資料") {
                             vm.setalertMsg("查無資料");

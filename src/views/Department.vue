@@ -225,7 +225,7 @@ export default {
                 vm.reset(["tabIndex"]);
                 if (vm.tabIndex == 0) {
                     vm.SetSystemFormData();
-                    //     vm.SetCommonQueryData();
+                    vm.SetCommonQueryData();
                 }
                 vm.setsystemFormResponse();
                 vm.setSystemFormCompletedData({});
@@ -251,9 +251,10 @@ export default {
                         msg.push("權限:『待辦事項』需選擇指定部門");
                     }
                     if (
-                        vm.systemFormCompletedData.accessList.weeklyreport.status &&
-                        vm.systemFormCompletedData.accessList.weeklyreport.remark ==
-                            null
+                        vm.systemFormCompletedData.accessList.weeklyreport
+                            .status &&
+                        vm.systemFormCompletedData.accessList.weeklyreport
+                            .remark == null
                     ) {
                         msg.push("權限:『Weekly Report』需選擇指定部門");
                     }

@@ -77,7 +77,12 @@
                 <template v-slot:cell(Status)="row">
                     <div :class="{hide:activeItemsSeq == row.item.seq}">{{row.item.Status}}</div>
                     <div :class="{hide:activeItemsSeq != row.item.seq}">
-                        <b-form-input class="input-text" type="text" v-model="row.item.Status"></b-form-input>
+                        <b-form-input
+                            class="input-text"
+                            type="text"
+                            v-model="row.item.Status"
+                            @click="editLongData(row,'Status',true)"
+                        ></b-form-input>
                     </div>
                 </template>
                 <template v-slot:cell(Progress)="row">
@@ -85,13 +90,7 @@
                         <p style="color:green">{{row.item.Progress}}%</p>
                     </div>
                     <div :class="{hide:activeItemsSeq != row.item.seq}">
-                        <b-form-spinbutton
-                            class="input-title"
-                            v-model="row.item.Progress"
-                            min="0"
-                            max="100"
-                            step="20"
-                        ></b-form-spinbutton>
+                        <b-form-input class="input-text" type="number" v-model="row.item.Progress"></b-form-input>
                     </div>
                 </template>
                 <template v-slot:cell(Action)="row">
@@ -101,7 +100,7 @@
                             class="input-text"
                             type="text"
                             v-model="row.item.Action"
-                            @click="editActionData(row)"
+                            @click="editLongData(row,'Action',true)"
                         ></b-form-input>
                     </div>
                 </template>
@@ -112,11 +111,21 @@
                     </div>
                 </template>
                 <template v-slot:cell(Owner)="row">
-                    <div
-                        :class="{hide:activeItemsSeq == row.item.seq}"
-                    >{{staffConfig[row.item.Owner]}}</div>
+                    <div :class="{hide:activeItemsSeq == row.item.seq}">
+                        <span v-for="(item,index) in row.item.Owner.split(',')" :key="index">
+                            {{staffConfig[item]}}
+                            <span
+                                v-if="index != row.item.Owner.split(',').length -1"
+                            >,</span>
+                        </span>
+                    </div>
                     <div :class="{hide:activeItemsSeq != row.item.seq}">
-                        <b-form-select v-model="row.item.Owner" :options="getStaffOptions"></b-form-select>
+                        <b-form-input
+                            class="input-text"
+                            type="text"
+                            v-model="row.item.Owner"
+                            @click="editLongData(row,'Owner',true)"
+                        ></b-form-input>
                     </div>
                 </template>
                 <template v-slot:cell(Dep)="row">
@@ -143,7 +152,7 @@
                         <b-button v-else disabled variant="danger" style="margin-left:10px">刪除</b-button>
                     </template>
                     <template v-else-if="activeItemsSeq == row.item.seq">
-                        <b-button @click="activeItemsSeq = null;modTask(row.item)">完成編輯</b-button>
+                        <b-button @click="modTask(row.item)">完成編輯</b-button>
                         <b-button
                             variant="light"
                             @click="activeItemsSeq = null;tempOldItemAction(false,row.item)"
@@ -193,29 +202,21 @@
                                 sm="10"
                                 :class="{ 'form-group--error': $v.addTaskDetail[index].value.$error }"
                             >
-                                <b-form-spinbutton
-                                    :id="'input-'+index"
+                                <b-form-input
                                     v-if="index == 'Progress'"
+                                    :id="'input-'+index"
+                                    v-model.trim="$v.addTaskDetail.Progress.$model.value"
                                     class="input-title"
-                                    v-model="$v.addTaskDetail.Progress.$model.value"
-                                    min="0"
-                                    max="100"
-                                    step="20"
-                                ></b-form-spinbutton>
+                                    type="number"
+                                ></b-form-input>
                                 <b-form-select
                                     :id="'input-'+index"
                                     v-else-if="index == 'Owner'"
                                     v-model="$v.addTaskDetail.Owner.$model.value"
                                     :options="getStaffOptions"
                                     size="sm"
-                                >
-                                    <template v-slot:first>
-                                        <b-form-select-option
-                                            :value="null"
-                                            disabled
-                                        >-- Please select an option --</b-form-select-option>
-                                    </template>
-                                </b-form-select>
+                                    multiple
+                                ></b-form-select>
                                 <b-form-select
                                     :id="'input-'+index"
                                     v-else-if="index == 'Dep'"
@@ -264,11 +265,11 @@
                                         :option="datepickerOptions"
                                     ></datepicker>
                                 </template>
-                                <template v-else-if="index == 'Action'">
+                                <template v-else-if="index == 'Action' || index == 'Status'">
                                     <b-form-textarea
                                         :id="'input-'+index"
                                         v-model="addTaskDetail[index]"
-                                        rows="6"
+                                        rows="4"
                                         max-rows="12"
                                     ></b-form-textarea>
                                 </template>
@@ -374,7 +375,7 @@
                                 :disabled="ttfStatus"
                                 @click="exportfile('PDF')"
                                 v-b-tooltip.hover
-                                title="合併儲存格會因資料內容不同可能出現排版問題，此時可以下載不合併的版本"
+                                title="合併儲存格會因資料長度太長可能出現排版問題(大約50chars、115bytes左右)，此時可以下載不合併的版本或分成多筆資料"
                             >PDF</b-button>
                         </b-col>
                     </b-row>
@@ -391,7 +392,7 @@
                 </div>
             </template>
         </b-modal>
-        <!-- edit Action modal -->
+        <!-- edit LongData modal -->
         <b-modal
             centered
             v-model="editActionModalShow"
@@ -403,7 +404,13 @@
         >
             <template v-slot:default>
                 <div class="d-block text-center">
-                    <b-form-textarea v-model="editActionItems.Action" rows="6" max-rows="12"></b-form-textarea>
+                    <b-form-select
+                        v-if="editActionItems.which == 'Owner'"
+                        v-model="editActionItems.Data"
+                        :options="getStaffOptions"
+                        multiple
+                    ></b-form-select>
+                    <b-form-textarea v-else v-model="editActionItems.Data" rows="6" max-rows="12"></b-form-textarea>
                 </div>
             </template>
             <template v-slot:modal-footer>
@@ -419,7 +426,7 @@
                         size="sm"
                         class="float-right"
                         style="margin-right:10px"
-                        @click.prevent="editActionModalShow = !editActionModalShow;items[editActionItems.index].Action = editActionItems.Action"
+                        @click.prevent="editLongData(null,null,false)"
                     >確定</b-button>
                 </div>
             </template>
@@ -528,7 +535,7 @@ export default {
                 Remark: "",
                 Owner: {
                     key: "Owner",
-                    value: null,
+                    value: [],
                     invalid: false,
                 },
                 Dep: {
@@ -555,8 +562,9 @@ export default {
             exportPDFselected: true,
             editActionModalShow: false,
             editActionItems: {
-                index: null,
-                Action: "",
+                seq: null,
+                Data: "",
+                which: "",
             },
         };
     },
@@ -949,11 +957,11 @@ export default {
                         Group: element.groupID,
                         Item: element.item,
                         Date: { time: element.date },
-                        Status: element.status,
+                        Status: vm.replaceContentData(element.status, false),
                         Progress: element.progress,
-                        Action: element.action,
+                        Action: vm.replaceContentData(element.action, false),
                         Remark: element.remark,
-                        Owner: element.owner,
+                        Owner: String(element.owner),
                     };
                 } else {
                     itemsobj = {
@@ -1051,11 +1059,35 @@ export default {
                 Object.assign(item, vm.tempThisOldItem);
             }
         },
-        editActionData(row) {
+        editLongData(row, which, status) {
             let vm = this;
-            vm.editActionItems.index = row.index;
-            vm.editActionItems.Action = row.item.Action;
-            vm.editActionModalShow = true;
+            console.log(row);
+            if (status) {
+                vm.editActionItems.seq = row.item.seq;
+                vm.editActionItems.which = which;
+                if (which === "Owner") {
+                    vm.editActionItems.Data = row.item.Owner.split(",");
+                } else {
+                    vm.editActionItems.Data = vm.replaceContentData(
+                        row.item[which],
+                        false
+                    );
+                }
+            } else {
+                vm.items.filter(function (element) {
+                    if (element.seq == vm.editActionItems.seq) {
+                        let thisdata = vm.editActionItems.Data;
+                        if (Array.isArray(thisdata)) {
+                            thisdata = thisdata.join(",");
+                        } else {
+                            thisdata = vm.replaceContentData(thisdata, true);
+                            console.log(thisdata);
+                        }
+                        element[vm.editActionItems.which] = thisdata;
+                    }
+                });
+            }
+            vm.editActionModalShow = !vm.editActionModalShow;
         },
         addTask(evt) {
             evt.preventDefault();
@@ -1098,17 +1130,29 @@ export default {
                             seq: [""],
                             depID: [
                                 vm.depStaffRelation[
-                                    vm.addTaskDetail.Owner.value
+                                    vm.addTaskDetail.Owner.value[0]
                                 ],
                             ],
                             groupID: [vm.addTaskDetail.Group.value],
                             item: [vm.addTaskDetail.Item.value],
                             date: [vm.addTaskDetail.Date.time],
-                            status: [vm.addTaskDetail.Status],
+                            status: [
+                                vm.replaceContentData(
+                                    vm.addTaskDetail.Status,
+                                    true
+                                ),
+                            ],
+                            // status: [vm.addTaskDetail.Status],
                             progress: [vm.addTaskDetail.Progress.value],
-                            action: [vm.addTaskDetail.Action],
+                            action: [
+                                vm.replaceContentData(
+                                    vm.addTaskDetail.Action,
+                                    true
+                                ),
+                            ],
+                            // action: [vm.addTaskDetail.Action],
                             remark: [vm.addTaskDetail.Remark],
-                            owner: [vm.addTaskDetail.Owner.value],
+                            owner: [vm.addTaskDetail.Owner.value.join(",")],
                             creatorID: [vm.loginData.account],
                         },
                     };
@@ -1157,25 +1201,42 @@ export default {
             console.log(vm.nowFormat);
             console.log(items);
             let params = {};
+            let checkvalid = [];
             if (vm.tabIndex == 0) {
+                checkvalid = ["Group", "Item", "Progress", "Owner"];
+                for (let i = 0; i < checkvalid.length; i++) {
+                    if (items[checkvalid[i]] == "") {
+                        vm.setalertMsg("尚有未輸入的值");
+                        vm.settimeoutalertModal();
+                        return;
+                    }
+                }
                 params = {
                     methods: "PATCH",
                     whichFunction: "CommonUpdate",
                     table: "weeklyReport",
                     postdata: {
                         old_seq: [items.seq],
-                        depID: [vm.depStaffRelation[items.Owner]],
+                        depID: [vm.depStaffRelation[items.Owner.split(",")[0]]],
                         groupID: [items.Group],
                         item: [items.Item],
                         date: [items.Date.time],
-                        status: [items.Status],
+                        status: [vm.replaceContentData(items.Status, true)],
                         progress: [items.Progress],
-                        action: [items.Action],
+                        action: [vm.replaceContentData(items.Action, true)],
                         remark: [items.Remark],
-                        owner: [items.Owner],
+                        owner: [String(items.Owner)],
                     },
                 };
             } else {
+                checkvalid = ["Group", "Item"];
+                for (let i = 0; i < checkvalid.length; i++) {
+                    if (items[checkvalid[i]] == "") {
+                        vm.setalertMsg("尚有未輸入的值");
+                        vm.settimeoutalertModal();
+                        return;
+                    }
+                }
                 params = {
                     methods: "PATCH",
                     whichFunction: "CommonUpdate",
@@ -1189,6 +1250,7 @@ export default {
                     },
                 };
             }
+            vm.activeItemsSeq = null;
             console.log(params);
             vm.axiosAction(params)
                 .then(() => {
@@ -1306,7 +1368,7 @@ export default {
                 Remark: "",
                 Owner: {
                     key: "Owner",
-                    value: null,
+                    value: [],
                     invalid: false,
                 },
                 Dep: {
@@ -1351,17 +1413,19 @@ export default {
             let vm = this;
             //清空
             vm.nextWeekData = [];
+            vm.setalertMsg("請稍候....");
+            vm.togglealertModal(true);
             //抓下週工作重點
             var params = {};
             params["methods"] = "POST";
             params["whichFunction"] = "CommonSqlSyntaxQuery_";
             let thiswhere = [];
             let thissymbols = [];
-            if (vm.pageAccess.weeklyreport.remark === "ALL") {
+            if (vm.inputData.selected === "ALL") {
                 thiswhere = Object.keys(vm.depConfig);
                 thissymbols = ["equal", "equal", "equal"];
             } else {
-                thiswhere.push(vm.pageAccess.weeklyreport.remark);
+                thiswhere.push(vm.inputData.selected);
                 thissymbols = ["equal"];
             }
             params["condition"] = {
@@ -1423,7 +1487,6 @@ export default {
                 vm.settimeoutalertModal();
                 return;
             }
-
             vm.getNextWeekData().then(() => {
                 let thisweekexportdata = JSON.parse(JSON.stringify(vm.items));
                 thisweekexportdata.map(function (item) {
@@ -1431,7 +1494,14 @@ export default {
                     delete item.depID;
                     item.Date = item.Date.time;
                     // item.depID = vm.depConfig[item.depID];
-                    item.Owner = vm.staffConfig[item.Owner];
+                    console.log(item.Owner);
+                    let thisOwner = item.Owner.split(",");
+                    for (let i = 0; i < thisOwner.length; i++) {
+                        thisOwner[i] = vm.staffConfig[thisOwner[i]];
+                        if (i == thisOwner.length - 1) {
+                            item.Owner = thisOwner.join(",");
+                        }
+                    }
                 });
                 console.log(thisweekexportdata);
                 console.log(JSON.stringify(thisweekexportdata));
@@ -1712,17 +1782,17 @@ export default {
             //亂數10種顏色供Group換色
             let tempColor = [
                 [238, 174, 145],
-                [210, 180, 140],
-                [222, 184, 135],
-                [240, 230, 140],
-                [144, 238, 144],
                 [221, 160, 221],
-                [255, 182, 193],
                 [244, 164, 96],
+                [222, 184, 135],
+                [144, 238, 144],
+                [240, 230, 140],
+                [210, 180, 140],
+                [255, 182, 193],
                 [255, 222, 173],
                 [143, 188, 143],
             ];
-            tempColor = tempColor.sort(vm.shuffle);
+            // tempColor = tempColor.sort(vm.shuffle);
             var body = [];
             for (let q = 0; q < data.length; q++) {
                 let row = [];
@@ -1747,6 +1817,20 @@ export default {
                                 checkduplicate[key_][thiscontent]["INDEX"];
                             thisrowSpan =
                                 checkduplicate[key_][thiscontent]["COUNT"];
+
+                            let totalGroup = Object.keys(checkduplicate[key_]);
+                            console.log(totalGroup);
+                            //自定義格式
+                            if (haveColor && key_ === "Group") {
+                                console.log(totalGroup.indexOf(thiscontent));
+                                console.log(
+                                    totalGroup.indexOf(thiscontent) % 10
+                                );
+                                thisfillColor =
+                                    tempColor[
+                                        totalGroup.indexOf(thiscontent) % 10
+                                    ];
+                            }
                         } else {
                             let temp = spanKeys.rowSpan.slice();
                             temp.splice(
@@ -1771,9 +1855,6 @@ export default {
                         }
                         if (q == thisINDEX) {
                             thishalign = "center";
-                            //自定義格式
-                            if (haveColor && key_ === "Group")
-                                thisfillColor = tempColor[q];
                             // if (thiscontent == "") thisrowSpan = 0;
                             row.push({
                                 colSpan: thiscolSpan,
@@ -1865,6 +1946,23 @@ export default {
                 thischeckduplicate[thiskey][data[thiskey]]["INDEX"] = thisq;
             }
             return thischeckduplicate;
+        },
+
+        replaceContentData(content, status) {
+            console.log(content);
+            if (status) {
+                return (
+                    content // .replace(/\r\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
+                        .replace(/\r\n/g, "<br/>")
+                        // .replace(/\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
+                        .replace(/\n/g, "<br/>")
+                        .replace(/\s/g, "&nbsp;")
+                );
+            } else {
+                return content
+                    .replace(/<br\s*[\/]?>/g, "\n")
+                    .replace(/&nbsp;/g, "");
+            }
         },
 
         //達到可以同時多key sort //https://www.sitepoint.com/sort-an-array-of-objects-in-javascript/

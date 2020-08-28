@@ -37,15 +37,16 @@ export default {
     methods: {
         ...mapActions({
             setttfStatus: "exportfile/set_ttfStatus",
+            setalertMsg: "alertmodal/set_alertMsg",
+            settimeoutalertModal: "alertmodal/settimeout_alertModal",
+            togglealertModal: "alertmodal/toggle_alertModal",
         }),
         createScriptMSJHcdn() {
             let vm = this;
             let scriptTag = document.createElement("script");
             // scriptTag.setAttribute("type", "module");
             scriptTag.src = "./font/msjh.js";
-            document
-                .getElementsByClassName("export")[0]
-                .appendChild(scriptTag);
+            document.getElementsByClassName("export")[0].appendChild(scriptTag);
             setTimeout(function () {
                 vm.setttfStatus(false);
             }, 8000);
@@ -53,22 +54,29 @@ export default {
         //匯出pdf檔
         exportPDF() {
             let vm = this;
-            //加載新的字體
-            jsPDF.API.events.push(["addFonts", callAddFont]);
-            const doc = new jsPDF("p", "pt");
-            //jsPDF中文亂碼解決辦法，加入自定義字形檔ttf
-            doc.setFont("msjh", "normal");
-            doc.text(15, 15, vm.thisautoTable.text);
-            doc.autoTable({
-                theme: vm.thisautoTable.theme,
-                body: vm.thisautoTable.body,
-                columns: vm.thisautoTable.columns,
-                //jsPDF-autoTable 表格內容中文亂碼解決辦法 https://github.com/simonbengtsson/jsPDF-AutoTable/blob/master/examples/examples.js
-                columnStyles: vm.thisautoTable.columnStyles,
-                //表格標題中文亂碼解決辦法
-                headStyles: vm.thisautoTable.headStyles,
-            });
-            doc.save(vm.thisautoTable.exportfilename + ".pdf");
+            try {
+                //加載新的字體
+                jsPDF.API.events.push(["addFonts", callAddFont]);
+                const doc = new jsPDF("p", "pt");
+                //jsPDF中文亂碼解決辦法，加入自定義字形檔ttf
+                doc.setFont("msjh", "normal");
+                doc.text(15, 15, vm.thisautoTable.text);
+                doc.autoTable({
+                    theme: vm.thisautoTable.theme,
+                    body: vm.thisautoTable.body,
+                    columns: vm.thisautoTable.columns,
+                    //jsPDF-autoTable 表格內容中文亂碼解決辦法 https://github.com/simonbengtsson/jsPDF-AutoTable/blob/master/examples/examples.js
+                    columnStyles: vm.thisautoTable.columnStyles,
+                    //表格標題中文亂碼解決辦法
+                    headStyles: vm.thisautoTable.headStyles,
+                });
+                doc.save(vm.thisautoTable.exportfilename + ".pdf");
+                vm.togglealertModal(false);
+            } catch (e) {
+                vm.setalertMsg("中文字體尚未加載完成，請稍後再匯出PDF");
+                vm.settimeoutalertModal(1200);
+                return;
+            }
         },
         //匯出csv檔
         exportCSV() {
