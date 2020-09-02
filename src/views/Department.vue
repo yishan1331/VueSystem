@@ -10,7 +10,7 @@
                 <b-tab title="修改">
                     <h5 class="card-title" v-if="items.length == 0">選擇查詢條件</h5>
                     <b-table
-                        sticky-header="430px"
+                        sticky-header="550px"
                         responsive
                         hover
                         :busy="tableBusy"
@@ -31,7 +31,7 @@
                 <b-tab title="刪除">
                     <h5 class="card-title">尚未開放刪除</h5>
                     <!-- <b-table
-            sticky-header="430px"
+            sticky-header="550px"
             responsive
             hover
             :busy="tableBusy"
@@ -52,7 +52,7 @@
                 <b-tab title="查詢">
                     <h5 class="card-title" v-if="items.length == 0">選擇查詢條件</h5>
                     <b-table
-                        sticky-header="430px"
+                        sticky-header="550px"
                         responsive
                         hover
                         :busy="tableBusy"

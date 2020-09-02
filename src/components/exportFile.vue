@@ -60,10 +60,25 @@ export default {
                 const doc = new jsPDF("p", "pt");
                 //jsPDF中文亂碼解決辦法，加入自定義字形檔ttf
                 doc.setFont("msjh", "normal");
-                doc.text(15, 15, vm.thisautoTable.text);
+                //抓取頁面高＆寬
+                const pageHeight =
+                    doc.internal.pageSize.height ||
+                    doc.internal.pageSize.getHeight();
+                const pageWidth =
+                    doc.internal.pageSize.width ||
+                    doc.internal.pageSize.getWidth();
+                console.log(pageHeight);
+                console.log(pageWidth);
+                //報表title text置中
+                doc.text(vm.thisautoTable.text[0], pageWidth / 2, 30, "center");
+                //報表時間 text靠右
+                doc.setFontSize(10);
+                doc.text(vm.thisautoTable.text[1], pageWidth - 10, 30, "right");
+
                 doc.autoTable({
                     theme: vm.thisautoTable.theme,
                     body: vm.thisautoTable.body,
+                    showHead: "firstPage", //只顯示第一頁的Head
                     columns: vm.thisautoTable.columns,
                     //jsPDF-autoTable 表格內容中文亂碼解決辦法 https://github.com/simonbengtsson/jsPDF-AutoTable/blob/master/examples/examples.js
                     columnStyles: vm.thisautoTable.columnStyles,
@@ -73,6 +88,7 @@ export default {
                 doc.save(vm.thisautoTable.exportfilename + ".pdf");
                 vm.togglealertModal(false);
             } catch (e) {
+                console.log(e);
                 vm.setalertMsg("中文字體尚未加載完成，請稍後再匯出PDF");
                 vm.settimeoutalertModal(1200);
                 return;

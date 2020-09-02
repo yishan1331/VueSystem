@@ -124,7 +124,7 @@
                     <b-button v-else disabled variant="danger" style="margin-left:10px">刪除</b-button>
                 </template>
                 <template v-else-if="activeItemsSeq == row.item.seq">
-                    <b-button @click="activeItemsSeq = null;modTask(row.item)">完成編輯</b-button>
+                    <b-button @click="modTask(row.item)">完成編輯</b-button>
                     <b-button
                         variant="light"
                         @click="activeItemsSeq = null;tempOldItemAction(false,row.item)"
@@ -494,6 +494,7 @@ export default {
             axiosResult: "commonaxios/get_axiosResult",
             pageAccess: "getlogin/get_pageAccess",
             queryResponse: "commonquery/get_queryResponse",
+            thisQueryTimeInterval: "commonquery/get_thisQueryTimeInterval",
             inputData: "commonquery/get_inputData",
             ttfStatus: "exportfile/get_ttfStatus",
         }),
@@ -521,6 +522,7 @@ export default {
                     "depStaffRelation",
                     "now",
                     "nowFormat",
+                    "thisweekday",
                     "selectDepCollapseShow",
                 ]);
                 // vm.changetableBusy();
@@ -581,22 +583,20 @@ export default {
                 table: "todoList",
                 attr: "depID",
                 timeattr: "schedDate",
-                intervaltime: { schedDate: [vm.thisweekday] },
+                intervaltime: {
+                    schedDate: [
+                        [
+                            vm.thisweekday[0] + " 00:00:00",
+                            vm.thisweekday[1] + " 23:59:59",
+                        ],
+                    ],
+                },
             };
             console.log(commonApiParams);
             vm.setapiParams(commonApiParams);
         },
         getNow() {
             let vm = this;
-            let weekdays = [
-                "星期日",
-                "星期一",
-                "星期二",
-                "星期三",
-                "星期四",
-                "星期五",
-                "星期六",
-            ];
             let weekdaysCountConfig = [
                 [Number(-6), Number(0)],
                 [Number(0), Number(6)],
@@ -607,39 +607,74 @@ export default {
                 [Number(-5), Number(1)],
             ];
             let nowDate = new Date();
+            let returnobj = {};
+            returnobj = vm.dateFormat(nowDate);
+            console.log(returnobj);
             vm.now =
-                weekdays[nowDate.getDay()] +
+                returnobj.weekday +
                 ", " +
-                (nowDate.getMonth() + 1) +
+                returnobj.month +
                 "月 " +
-                nowDate.getDate() +
+                returnobj.day +
                 ", " +
-                nowDate.getFullYear();
+                returnobj.year;
 
-            let thisDay = nowDate.getDate();
-            let thisMonth = nowDate.getMonth() + 1;
-            if (thisDay < 10) thisDay = "0" + thisDay;
-            if (thisMonth < 10) thisMonth = "0" + thisMonth;
             vm.nowFormat =
-                nowDate.getFullYear() + "-" + thisMonth + "-" + thisDay;
+                returnobj.year + "-" + returnobj.month + "-" + returnobj.day;
             console.log(vm.nowFormat);
+
+            Date.prototype.addDays = function (days) {
+                this.setDate(this.getDate() + days);
+                return this;
+            };
+
+            let thisweekdaystart = new Date();
+            thisweekdaystart.addDays(
+                weekdaysCountConfig[thisweekdaystart.getDay()][0]
+            );
+            let thisweekdaystartreturnobj = {};
+            thisweekdaystartreturnobj = vm.dateFormat(thisweekdaystart);
+            let thisweekdayend = new Date();
+            thisweekdayend.addDays(
+                weekdaysCountConfig[thisweekdayend.getDay()][1]
+            );
+            let thisweekdayendreturnobj = {};
+            thisweekdayendreturnobj = vm.dateFormat(thisweekdayend);
             vm.thisweekday = [
-                nowDate.getFullYear() +
+                thisweekdaystartreturnobj.year +
                     "-" +
-                    thisMonth +
+                    thisweekdaystartreturnobj.month +
                     "-" +
-                    (Number(thisDay) +
-                        weekdaysCountConfig[nowDate.getDay()][0]) +
-                    " 00:00:00",
-                nowDate.getFullYear() +
+                    thisweekdaystartreturnobj.day,
+                thisweekdayendreturnobj.year +
                     "-" +
-                    thisMonth +
+                    thisweekdayendreturnobj.month +
                     "-" +
-                    (Number(thisDay) +
-                        weekdaysCountConfig[nowDate.getDay()][1]) +
-                    " 23:59:59",
+                    thisweekdayendreturnobj.day,
             ];
             console.log(vm.thisweekday);
+        },
+        dateFormat(time) {
+            let vm = this;
+            let weekdays = [
+                "星期日",
+                "星期一",
+                "星期二",
+                "星期三",
+                "星期四",
+                "星期五",
+                "星期六",
+            ];
+            let thisDay = time.getDate();
+            if (thisDay < 10) thisDay = "0" + thisDay;
+            let thisMonth = time.getMonth() + 1;
+            if (thisMonth < 10) thisMonth = "0" + thisMonth;
+            return {
+                year: time.getFullYear(),
+                month: thisMonth,
+                day: thisDay,
+                weekday: weekdays[time.getDay()],
+            };
         },
         getTodoList() {
             let vm = this;
@@ -879,6 +914,14 @@ export default {
             if (items.status) thiscompletedDate = vm.nowFormat;
             console.log(vm.nowFormat);
             console.log(items);
+            let checkvalid = ["taskInfo"];
+            for (let i = 0; i < checkvalid.length; i++) {
+                if (items[checkvalid[i]] == "") {
+                    vm.setalertMsg("尚有未輸入的值");
+                    vm.settimeoutalertModal();
+                    return;
+                }
+            }
             var params = {
                 methods: "PATCH",
                 whichFunction: "CommonUpdate",
@@ -895,6 +938,7 @@ export default {
                 },
             };
             console.log(params);
+            vm.activeItemsSeq = null;
             vm.axiosAction(params)
                 .then(() => {
                     var result = vm.axiosResult;
@@ -1062,6 +1106,18 @@ export default {
                     exportfiletype: filetype,
                 });
             } else {
+                console.log(vm.thisweekday);
+                //抓取此次時間區段
+                let thistimeinterval = "";
+                console.log(vm.thisQueryTimeInterval);
+                if (vm.thisQueryTimeInterval == "DEFAULT") {
+                    thistimeinterval = vm.thisweekday.join(" ~ ");
+                } else if (vm.thisQueryTimeInterval == "ALL") {
+                    thistimeinterval = "資料表內所有資料";
+                } else {
+                    thistimeinterval = vm.thisQueryTimeInterval.join(" ~ ");
+                }
+                console.log(thistimeinterval);
                 vm.setautoTable({
                     body: data,
                     columns: [
@@ -1096,6 +1152,7 @@ export default {
                     },
                     exportfilename: fileName,
                     exportfiletype: filetype,
+                    text: [thisdep, thistimeinterval],
                 });
             }
             setTimeout(() => {

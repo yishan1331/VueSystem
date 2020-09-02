@@ -20,7 +20,7 @@
             <label>時間:</label>
             <datepicker :date="startTime" :option="startoption"></datepicker>~
             <datepicker :date="endTime" :option="endoption" :limit="endoption.limit"></datepicker>
-            <b-button variant="primary" @click="QueryData()" class="ml-2">查詢</b-button>
+            <b-button variant="primary" @click="QueryData($event)" class="ml-2">查詢</b-button>
         </div>
         <b-form-checkbox
             v-model="notsettingtime"
@@ -138,7 +138,7 @@ export default {
         };
     },
     created: function () {
-        this.DateFormat("Default");
+        this.DefaultDate("Default");
     },
     components: {
         datepicker,
@@ -184,6 +184,7 @@ export default {
             togglealertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             setqueryResponse: "commonquery/set_queryResponse",
+            setthisQueryTimeInterval: "commonquery/set_thisQueryTimeInterval",
             setisInit: "commonquery/set_isInit",
             changetableBusy: "commonquery/change_tableBusy",
         }),
@@ -238,6 +239,11 @@ export default {
                             vm.endTime.time + " 23:59:59",
                         ],
                     ];
+                    //設定此次抓取的時間區間
+                    vm.setthisQueryTimeInterval([
+                        vm.startTime.time,
+                        vm.endTime.time,
+                    ]);
                 } else {
                     //若是第一次查詢才找是否有defaul參數intervaltime
                     console.log(vm.isInit);
@@ -246,9 +252,13 @@ export default {
                         Object.keys(vm.apiParams.intervaltime).length != 0
                     ) {
                         intervaltimeparams = vm.apiParams.intervaltime;
-                        vm.setisInit(false);
+                        // vm.setisInit(false);
+                        //設定此次抓取的時間區間
+                        vm.setthisQueryTimeInterval("DEFAULT");
                     } else {
                         intervaltimeparams = "";
+                        //設定此次抓取的時間區間
+                        vm.setthisQueryTimeInterval("ALL");
                     }
                     console.log(vm.isInit);
                 }
@@ -259,16 +269,16 @@ export default {
                         vm.inputData.selected == "depName"
                     ) {
                         whereparams["noumenonID"] = [vm.inputtext.trim()];
-                        symbolsparams["noumenonID"] = ["equal"];
+                        symbolsparams["noumenonID"] = ["like"];
                     } else {
                         whereparams[vm.inputData.selected] = [
                             vm.inputtext.trim(),
                         ];
-                        symbolsparams[vm.inputData.selected] = ["equal"];
+                        symbolsparams[vm.inputData.selected] = ["like"];
                     }
                 } else {
                     whereparams[vm.apiParams.attr] = [vm.inputData.selected];
-                    symbolsparams[vm.apiParams.attr] = ["equal"];
+                    symbolsparams[vm.apiParams.attr] = ["like"];
                     if (vm.apiParams.table == "todoList") {
                         orderbyparams = ["asc", "schedDate"];
                     }
@@ -316,22 +326,49 @@ export default {
             });
         },
         //時間格式化
-        DateFormat(Default) {
+        DefaultDate(Default) {
             var vm = this;
-            var now = new Date();
             if (Default === "Default") {
-                var todayDate_start =
-                    now.getFullYear() +
+                let weekdaysCountConfig = [
+                    [Number(-6), Number(0)],
+                    [Number(0), Number(6)],
+                    [Number(-1), Number(5)],
+                    [Number(-2), Number(4)],
+                    [Number(-3), Number(3)],
+                    [Number(-4), Number(2)],
+                    [Number(-5), Number(1)],
+                ];
+                Date.prototype.addDays = function (days) {
+                    this.setDate(this.getDate() + days);
+                    return this;
+                };
+
+                let thisweekdaystart = new Date();
+                thisweekdaystart.addDays(
+                    weekdaysCountConfig[thisweekdaystart.getDay()][0]
+                );
+                let thisweekdaystartreturnobj = {};
+                thisweekdaystartreturnobj = vm.dateFormat(thisweekdaystart);
+                let thisweekdayend = new Date();
+                thisweekdayend.addDays(
+                    weekdaysCountConfig[thisweekdayend.getDay()][1]
+                );
+                let thisweekdayendreturnobj = {};
+                thisweekdayendreturnobj = vm.dateFormat(thisweekdayend);
+
+                const todayDate_start =
+                    thisweekdaystartreturnobj.year +
                     "-" +
-                    (now.getMonth() + 1) +
+                    thisweekdaystartreturnobj.month +
                     "-" +
-                    now.getDate();
-                var todayDate_end =
-                    now.getFullYear() +
+                    thisweekdaystartreturnobj.day;
+                const todayDate_end =
+                    thisweekdayendreturnobj.year +
                     "-" +
-                    (now.getMonth() + 1) +
+                    thisweekdayendreturnobj.month +
                     "-" +
-                    now.getDate();
+                    thisweekdayendreturnobj.day;
+
                 vm.startoption.placeholder = todayDate_start;
                 vm.startTime.time = todayDate_start;
                 vm.endoption.placeholder = todayDate_end;
@@ -348,9 +385,36 @@ export default {
                 vm.QueryDataFunction();
             }
         },
+        dateFormat(time) {
+            let vm = this;
+            let weekdays = [
+                "星期日",
+                "星期一",
+                "星期二",
+                "星期三",
+                "星期四",
+                "星期五",
+                "星期六",
+            ];
+            let thisDay = time.getDate();
+            if (thisDay < 10) thisDay = "0" + thisDay;
+            let thisMonth = time.getMonth() + 1;
+            if (thisMonth < 10) thisMonth = "0" + thisMonth;
+            return {
+                year: time.getFullYear(),
+                month: thisMonth,
+                day: thisDay,
+                weekday: weekdays[time.getDay()],
+            };
+        },
         //查詢按鈕
-        QueryData() {
+        QueryData(event) {
+            console.log(event);
             var vm = this;
+            //抓取是否是點擊查詢btn的查詢，若是將commonquery init設為false
+            if (typeof event != "undefined") {
+                vm.setisInit(false);
+            }
             if (!vm.notsettingtime) {
                 if (vm.startTime.time == "" || vm.endTime.time == "") {
                     if (vm.queryResponse == "時間尚未選擇") {
@@ -361,7 +425,7 @@ export default {
                     return;
                 }
             }
-            vm.DateFormat(vm.selected);
+            vm.DefaultDate(vm.selected);
         },
         //data reset
         reset(keep) {

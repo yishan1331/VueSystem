@@ -94,7 +94,7 @@
                                     ref="file"
                                     :file-name-formatter="formatNames"
                                     @change="fileChange"
-                                    accept="image/*,.pdf,.zip"
+                                    accept="image/*, .pdf, .zip"
                                 ></b-form-file>
                             </b-col>
                         </b-row>
@@ -323,7 +323,7 @@
                                 ref="file"
                                 :file-name-formatter="formatNames"
                                 @change="fileChange"
-                                accept="image/*,.pdf,.zip"
+                                accept="image/*, .pdf, .zip"
                             ></b-form-file>
                         </b-col>
                     </b-row>
@@ -671,17 +671,27 @@ export default {
                 console.log(typeof thiscontent);
                 console.log(thiscontent);
                 let formData = new FormData();
-                formData.append("content", thiscontent);
-                vm.setalertMsg("請稍候...");
-                vm.togglealertModal(true);
+                console.log(this.form.files);
                 for (var i = 0; i < this.form.files.length; i++) {
                     let file = this.form.files[i];
+                    console.log(file);
+                    //檢察檔案大小是否大於10MB(1024*1024*10)，若大於就不傳到後端
+                    if (file.size > 1024 * 1024 * 10) {
+                        vm.setalertMsg("檔名:" + file.name + "檔案太大");
+                        vm.settimeoutalertModal(1200);
+                        return;
+                    }
                     formData.append("fileToUpload[" + i + "]", file);
                 }
+
+                formData.append("content", thiscontent);
                 formData.append("title", vm.form.title.value);
                 formData.append("category", vm.form.category);
                 formData.append("filename", vm.form.filename);
                 formData.append("account", vm.loginData.account);
+
+                vm.setalertMsg("請稍候...");
+                vm.togglealertModal(true);
                 let config = {
                     headers: {
                         "Content-Type": "multipart/form-data",
@@ -698,7 +708,6 @@ export default {
                     )
                     .then(
                         function (response) {
-                            vm.togglealertModal(false);
                             const result = response.data;
                             vm.setalertMsg(result);
                             var altertime = 0;
@@ -715,6 +724,21 @@ export default {
                     )
                     .catch(function (err) {
                         console.log(err);
+                        console.log(err.response.status);
+                        if (err.response.status === 413) {
+                            vm.setalertMsg(
+                                "Error 413: Request entity too large，檔案太大"
+                            );
+                        } else {
+                            vm.setalertMsg(err);
+                        }
+                        vm.settimeoutalertModal();
+                    })
+                    .finally(() => {
+                        console.log("done");
+                        setTimeout(() => {
+                            vm.togglealertModal(false);
+                        }, 1200);
                     });
             }
         },
@@ -917,6 +941,12 @@ export default {
                 let formData = new FormData();
                 for (var i = 0; i < this.modmodalcontent.files.length; i++) {
                     let file = this.modmodalcontent.files[i];
+                    //檢察檔案大小是否大於10MB(1024*1024*10)，若大於就不傳到後端
+                    if (file.size > 1024 * 1024 * 10) {
+                        vm.setalertMsg("檔名:" + file.name + "檔案太大");
+                        vm.settimeoutalertModal(1200);
+                        return;
+                    }
                     formData.append("fileToUpload[" + i + "]", file);
                 }
                 console.log(Object.keys(vm.modmodalcontent.boardannex));
@@ -969,12 +999,21 @@ export default {
                     )
                     .catch(function (err) {
                         console.log(err);
+                        console.log(err.response.status);
+                        if (err.response.status === 413) {
+                            vm.setalertMsg(
+                                "Error 413: Request entity too large，檔案太大"
+                            );
+                        } else {
+                            vm.setalertMsg(err);
+                        }
+                        vm.settimeoutalertModal();
                     })
                     .finally(() => {
                         console.log("done");
                         setTimeout(() => {
                             vm.queryAgain();
-                        }, 500);
+                        }, 1200);
                     });
             }
         },

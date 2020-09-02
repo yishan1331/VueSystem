@@ -1,5 +1,6 @@
 const state = {
     queryResponse: null,
+    thisQueryTimeInterval: null,
     tableBusy: false,
     queryAgain: false,
     inputData: {
@@ -19,6 +20,9 @@ const state = {
 const getters = {
     get_queryResponse: state => {
         return state.queryResponse;
+    },
+    get_thisQueryTimeInterval: state => {
+        return state.thisQueryTimeInterval;
     },
     get_tableBusy: state => {
         return state.tableBusy;
@@ -43,6 +47,9 @@ const actions = {
     set_queryResponse(context, data) {
         context.commit("SET_QUERYRESPONSE", data);
     },
+    set_thisQueryTimeInterval(context, data) {
+        context.commit("SET_THISQUERYTIMEINTERVAL", data);
+    },
     change_tableBusy(context) {
         context.commit("CHANGE_TABLEBUSY");
     },
@@ -66,6 +73,9 @@ const actions = {
 const mutations = {
     SET_QUERYRESPONSE(state, data) {
         state.queryResponse = data;
+    },
+    SET_THISQUERYTIMEINTERVAL(state, data) {
+        state.thisQueryTimeInterval = data;
     },
     CHANGE_TABLEBUSY(state) {
         state.tableBusy = !state.tableBusy;

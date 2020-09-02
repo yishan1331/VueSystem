@@ -23,16 +23,16 @@ if (count($_FILES) != 0) {
             array_push($msg, "新增失敗");
             $filecanupload = false;
         }
-        // Check file size
-        if ($_FILES["fileToUpload"]["size"][$i] > 1000000) {
-            array_push($msg, "檔名:'" . basename($_FILES["fileToUpload"]["name"][$i]) . "' 檔案太大");
-            array_push($msg, "新增失敗");
-            $filecanupload = false;
-        }
+        // // Check file size
+        // if ($_FILES["fileToUpload"]["size"][$i] > 1000000) {
+        //     array_push($msg, "檔名:'" . basename($_FILES["fileToUpload"]["name"][$i]) . "' 檔案太大");
+        //     array_push($msg, "新增失敗");
+        //     $filecanupload = false;
+        // }
     }
     if (!$filecanupload) {
         echo json_encode($msg);
-        exit;
+        return;
     }
 } else {
     $nofileupload = true;
@@ -71,7 +71,7 @@ foreach ($Arr as $key => $value) {
         if ($nofileupload) {
             array_push($msg, "資料新增成功");
             echo json_encode($msg);
-            exit;
+            return;
         }
         $fileCount = count($_FILES['fileToUpload']['name']);
         for ($i = 0; $i < $fileCount; $i++) {
@@ -86,9 +86,9 @@ foreach ($Arr as $key => $value) {
             array_push($msg, "資料、檔案上傳成功");
         }
         echo json_encode($msg);
-        exit;
+        return;
     } else if ($key == 'Response' && $value != 'ok') {
         echo json_encode($Arr);
-        exit;
+        return;
     }
 }

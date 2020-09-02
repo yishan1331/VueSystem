@@ -7,7 +7,7 @@ const state = {
         headStyles: {},
         exportfilename: "",
         exportfiletype: "PDF",
-        text:"",
+        text:[],
     },
     ttfStatus: true
 }

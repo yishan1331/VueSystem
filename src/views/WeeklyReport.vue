@@ -8,7 +8,7 @@
             <b-col sm="3">
                 <h5 style="margin-top:5px">{{now}}</h5>
             </b-col>
-            <b-col sm="9" class="text-right">
+            <b-col sm="9" class="text-right" v-show="tabIndex == 0">
                 <b-button pill v-b-toggle.collapse-1 variant="light">選擇條件</b-button>
                 <b-collapse id="collapse-1" v-model="selectDepCollapseShow" class="mt-2">
                     <commonQuery />
@@ -21,7 +21,7 @@
                     pill
                     class="ml-2"
                     variant="success"
-                    @click="addTaskModalShow = !addTaskModalShow"
+                    @click="addTaskModalShow = !addTaskModalShow;addTaskWhich = tabIndex"
                 >
                     ✚
                     <span style="font-weight:bold">add</span>
@@ -90,7 +90,14 @@
                         <p style="color:green">{{row.item.Progress}}%</p>
                     </div>
                     <div :class="{hide:activeItemsSeq != row.item.seq}">
-                        <b-form-input class="input-text" type="number" v-model="row.item.Progress"></b-form-input>
+                        <b-form-input
+                            class="input-text"
+                            type="number"
+                            v-model="row.item.Progress"
+                            min="0"
+                            max="100"
+                            step="20"
+                        ></b-form-input>
                     </div>
                 </template>
                 <template v-slot:cell(Action)="row">
@@ -108,6 +115,18 @@
                     <div :class="{hide:activeItemsSeq == row.item.seq}">{{row.item.Remark}}</div>
                     <div :class="{hide:activeItemsSeq != row.item.seq}">
                         <b-form-input class="input-text" type="text" v-model="row.item.Remark"></b-form-input>
+                    </div>
+                </template>
+                <template v-slot:cell(Priority)="row">
+                    <div :class="{hide:activeItemsSeq == row.item.seq}">{{row.item.Priority}}</div>
+                    <div :class="{hide:activeItemsSeq != row.item.seq}">
+                        <b-form-input
+                            class="input-text"
+                            type="number"
+                            v-model="row.item.Priority"
+                            min="0"
+                            max="100"
+                        ></b-form-input>
                     </div>
                 </template>
                 <template v-slot:cell(Owner)="row">
@@ -172,25 +191,10 @@
             no-close-on-esc
         >
             <template v-slot:modal-header>
-                <h5 v-if="addTaskWhich == null">新增事項</h5>
-                <h5 v-else-if="addTaskWhich == 'weeklyReport'">新增本週事項</h5>
-                <h5 v-else-if="addTaskWhich == 'workedKey'">新增下週重點事項</h5>
+                <h5 v-if="tabIndex == 0">新增本週事項</h5>
+                <h5 v-else-if="tabIndex == 1">新增下週重點事項</h5>
             </template>
             <template v-slot:default>
-                <div class="text-center" v-if="addTaskWhich == null">
-                    <b-button
-                        pill
-                        class="ml-2"
-                        variant="info"
-                        @click="addTaskWhich='weeklyReport'"
-                    >本週</b-button>
-                    <b-button
-                        pill
-                        class="ml-2"
-                        variant="primary"
-                        @click="addTaskWhich='workedKey'"
-                    >下週</b-button>
-                </div>
                 <b-form v-if="addTaskWhich != null" @submit="addTask">
                     <b-row class="my-4" v-for="(item,index,key) in addTaskDetail" :key="key">
                         <!-- <b-row class="my-4" v-for="(item,index,key) in $v.addTaskDetail" :key="key"> -->
@@ -203,11 +207,13 @@
                                 :class="{ 'form-group--error': $v.addTaskDetail[index].value.$error }"
                             >
                                 <b-form-input
-                                    v-if="index == 'Progress'"
+                                    v-if="index == 'Progress' || index == 'Priority'"
                                     :id="'input-'+index"
-                                    v-model.trim="$v.addTaskDetail.Progress.$model.value"
+                                    v-model.trim="$v.addTaskDetail[index].$model.value"
                                     class="input-title"
                                     type="number"
+                                    min="0"
+                                    max="100"
                                 ></b-form-input>
                                 <b-form-select
                                     :id="'input-'+index"
@@ -254,6 +260,12 @@
                                     v-if="check_required($v.addTaskDetail[index].value.required,$v.addTaskDetail[index].$model)"
                                 >
                                     <div class="error">Is required</div>
+                                </template>
+                                <template v-else-if="index == 'Progress' || index == 'Priority'">
+                                    <div
+                                        class="jsonerror"
+                                        v-if="check_positivenumvalid($v.addTaskDetail[index].value.positivenumvalidator,$v.addTaskDetail[index].$model)"
+                                    >必須是正整數</div>
                                 </template>
                             </b-col>
                         </template>
@@ -443,6 +455,15 @@ import exportFile from "@/components/exportFile.vue";
 import { validationMixin } from "vuelidate"; // 表單驗證
 import { required, minLength, between } from "vuelidate/lib/validators";
 import { mapGetters, mapActions } from "vuex";
+//設置Positive Number validator
+const positivenumvalidator = (num) => {
+    console.log(num);
+    let isPositiveNum = (val) => {
+        return /^[0-9]+$/.test(val);
+    };
+    console.log(isPositiveNum(num));
+    return isPositiveNum(num);
+};
 export default {
     name: "WeeklyReport",
     data() {
@@ -459,11 +480,13 @@ export default {
                 { key: "Progress", sortable: true },
                 { key: "Action", sortable: false },
                 { key: "Remark", sortable: false },
+                { key: "Priority", sortable: true },
                 { key: "Owner", sortable: true },
                 { key: "Dep", sortable: true },
                 { key: "Edit", sortable: false },
             ],
             items: [],
+            tempData: [],
             nextWeekData: [],
             activeItemsSeq: null,
             tempThisOldItem: {},
@@ -533,6 +556,11 @@ export default {
                 },
                 Action: "",
                 Remark: "",
+                Priority: {
+                    key: "Priority",
+                    value: null,
+                    invalid: false,
+                },
                 Owner: {
                     key: "Owner",
                     value: [],
@@ -566,6 +594,104 @@ export default {
                 Data: "",
                 which: "",
             },
+
+            tempNext: [
+                {
+                    seq: 31,
+                    lastUpdateTime: "2020-09-01 09:38:11",
+                    detail: "ss",
+                    createTime: "2020-09-01 09:38:11",
+                    item: "ccc",
+                    creatorID: 2493,
+                    date: "2020-08-31",
+                    depID: 1003,
+                    groupID: "ccc",
+                },
+                {
+                    seq: 32,
+                    lastUpdateTime: "2020-09-01 09:38:42",
+                    detail: "q",
+                    createTime: "2020-09-01 09:38:42",
+                    item: "test",
+                    creatorID: 2493,
+                    date: "2020-08-31",
+                    depID: 1003,
+                    groupID: "test",
+                },
+            ],
+            tempThis: [
+                {
+                    status: "sss",
+                    remark: "",
+                    seq: 54,
+                    lastUpdateTime: "2020-09-01 09:37:50",
+                    item: "ccc",
+                    owner: 2493,
+                    createTime: "2020-09-01 09:37:50",
+                    date: "2020-09-01",
+                    creatorID: 2493,
+                    progress: 22,
+                    action: 11,
+                    depID: 1003,
+                    groupID: "ccc",
+                },
+                {
+                    status: "ww",
+                    remark: "ww",
+                    seq: 53,
+                    lastUpdateTime: "2020-09-01 09:37:35",
+                    item: "test",
+                    owner: 2493,
+                    createTime: "2020-09-01 09:37:35",
+                    date: "2020-09-01",
+                    creatorID: 2493,
+                    progress: 33,
+                    action: "ww",
+                    depID: 1003,
+                    groupID: "test",
+                },
+                {
+                    status: "qq",
+                    remark: "qq",
+                    seq: 52,
+                    lastUpdateTime: "2020-09-01 09:37:17",
+                    item: "test",
+                    owner: 2493,
+                    createTime: "2020-09-01 09:37:17",
+                    date: "2020-09-01",
+                    creatorID: 2493,
+                    progress: 11,
+                    action: "qq",
+                    depID: 1003,
+                    groupID: "test",
+                },
+            ],
+            tempMember: [
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1003,
+                    uID: 2493,
+                    uName: "蔡宜珊",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1003,
+                    uID: 2521,
+                    uName: "洪誌宏",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1003,
+                    uID: 2522,
+                    uName: "吳俊輝",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1003,
+                    uID: 2581,
+                    uName: "曾冠力",
+                },
+            ],
         };
     },
     // 表單驗證引入
@@ -587,6 +713,13 @@ export default {
                 Progress: {
                     value: {
                         required,
+                        positivenumvalidator,
+                    },
+                },
+                Priority: {
+                    value: {
+                        required,
+                        positivenumvalidator,
                     },
                 },
                 Owner: {
@@ -602,12 +735,13 @@ export default {
             },
         };
         console.log(this.addTaskWhich);
-        if (this.addTaskWhich == "workedKey") {
+        if (this.addTaskWhich == 1) {
             delete setvalid.addTaskDetail.Progress;
             delete setvalid.addTaskDetail.Owner;
+            delete setvalid.addTaskDetail.Priority;
             console.log(setvalid);
             return setvalid;
-        } else if (this.addTaskWhich == "weeklyReport") {
+        } else if (this.addTaskWhich == 0) {
             delete setvalid.addTaskDetail.Dep;
             return setvalid;
         } else {
@@ -626,13 +760,16 @@ export default {
             axiosResult: "commonaxios/get_axiosResult",
             pageAccess: "getlogin/get_pageAccess",
             queryResponse: "commonquery/get_queryResponse",
+            thisQueryTimeInterval: "commonquery/get_thisQueryTimeInterval",
             inputData: "commonquery/get_inputData",
             ttfStatus: "exportfile/get_ttfStatus",
+            isInit: "commonquery/get_isInit",
         }),
     },
     created: function () {
         let vm = this;
         vm.getNow();
+        // vm.getTaskList();
         if (vm.pageAccess.weeklyreport.remark != "ALL") {
             vm.setalertMsg("請稍候....");
             vm.togglealertModal(true);
@@ -643,13 +780,13 @@ export default {
         vm.getBelongDepStaff();
     },
     mounted: function () {
-        this.fields.splice(8, 1);
+        this.fields.splice(9, 1);
     },
     watch: {
         tabIndex: {
             handler(value) {
                 var vm = this;
-                vm.reset([
+                let saveData = [
                     "tabIndex",
                     "getStaffOptions",
                     "staffConfig",
@@ -659,10 +796,24 @@ export default {
                     "nowFormat",
                     "thisweekday",
                     "selectDepCollapseShow",
-                ]);
+                    "exportModalShow",
+                ];
+                // if (vm.isInit) {
+                saveData.push("items", "tempData");
+                // }
+                vm.reset(saveData);
+
+                // if (vm.isInit) {
+                console.log("..........");
+                let temp1 = vm.items.slice();
+                let temp2 = vm.tempData.slice();
+                vm.tempData = temp1;
+                vm.items = temp2;
+                // }
+
                 let commonApiParams = {};
                 if (vm.tabIndex == 0) {
-                    commonApiParams = {
+                    vm.setapiParams({
                         table: "weeklyReport",
                         attr: "depID",
                         timeattr: "date",
@@ -674,10 +825,10 @@ export default {
                                 ],
                             ],
                         },
-                    };
-                    vm.fields.splice(8, 1);
+                    });
+                    vm.fields.splice(9, 1);
                 } else {
-                    commonApiParams = {
+                    vm.setapiParams({
                         table: "workedKey",
                         attr: "depID",
                         timeattr: "date",
@@ -689,17 +840,24 @@ export default {
                                 ],
                             ],
                         },
-                    };
+                    });
                     vm.fields.splice(2, 1);
-                    vm.fields.splice(3, 4);
+                    vm.fields.splice(3, 5);
+
+                    if (vm.items.length == 0) {
+                        console.log("@@@@@@@@@");
+                        vm.queryAgain();
+                    }
                 }
-                vm.setapiParams(commonApiParams);
             },
         },
         queryResponse: {
             handler() {
                 var vm = this;
-                vm.reset([
+                console.log("////////////////////////////");
+                console.log(vm.items);
+                console.log(vm.tempData);
+                let saveData = [
                     "fields",
                     "tabIndex",
                     "getStaffOptions",
@@ -710,7 +868,12 @@ export default {
                     "nowFormat",
                     "thisweekday",
                     "selectDepCollapseShow",
-                ]);
+                    "exportModalShow",
+                ];
+                if (vm.tabIndex == 1) {
+                    saveData.push("tempData");
+                }
+                vm.reset(saveData);
                 // vm.changetableBusy();
                 if (
                     vm.queryResponse == "查無資料" ||
@@ -729,14 +892,15 @@ export default {
             handler() {
                 var vm = this;
                 console.log(vm.addTaskWhich);
-                if (vm.addTaskWhich == "workedKey") {
+                if (vm.addTaskWhich == 1) {
                     console.log(vm.addTaskDetail);
                     delete vm.addTaskDetail.Date;
                     delete vm.addTaskDetail.Progress;
                     delete vm.addTaskDetail.Action;
                     delete vm.addTaskDetail.Remark;
+                    delete vm.addTaskDetail.Priority;
                     delete vm.addTaskDetail.Owner;
-                } else if (vm.addTaskWhich == "weeklyReport") {
+                } else if (vm.addTaskWhich == 0) {
                     delete vm.addTaskDetail.Dep;
                     vm.addTaskDetail.Date.time = vm.nowFormat;
                 }
@@ -914,6 +1078,7 @@ export default {
             vm.setalertMsg("請稍候....");
             vm.togglealertModal(true);
             vm.selectDepCollapseShow = false;
+            let itemsobj = {};
             vm.queryResponse.forEach((element) => {
                 if (
                     !vm.getDataListFromDBTable.Group[element.depID].includes(
@@ -949,7 +1114,6 @@ export default {
                             element.item
                         );
                 }
-                let itemsobj = {};
                 if (vm.tabIndex == 0) {
                     itemsobj = {
                         seq: element.seq,
@@ -957,10 +1121,17 @@ export default {
                         Group: element.groupID,
                         Item: element.item,
                         Date: { time: element.date },
-                        Status: vm.replaceContentData(element.status, false),
+                        Status: vm.replaceContentData(
+                            String(element.status),
+                            false
+                        ),
                         Progress: element.progress,
-                        Action: vm.replaceContentData(element.action, false),
+                        Action: vm.replaceContentData(
+                            String(element.action),
+                            false
+                        ),
                         Remark: element.remark,
+                        Priority: element.priority,
                         Owner: String(element.owner),
                     };
                 } else {
@@ -972,6 +1143,7 @@ export default {
                         Status: element.detail,
                     };
                 }
+                console.log(itemsobj);
                 vm.items.push(itemsobj);
             });
             console.log("*************");
@@ -1069,7 +1241,7 @@ export default {
                     vm.editActionItems.Data = row.item.Owner.split(",");
                 } else {
                     vm.editActionItems.Data = vm.replaceContentData(
-                        row.item[which],
+                        String(row.item[which]),
                         false
                     );
                 }
@@ -1080,7 +1252,10 @@ export default {
                         if (Array.isArray(thisdata)) {
                             thisdata = thisdata.join(",");
                         } else {
-                            thisdata = vm.replaceContentData(thisdata, true);
+                            thisdata = vm.replaceContentData(
+                                String(thisdata),
+                                true
+                            );
                             console.log(thisdata);
                         }
                         element[vm.editActionItems.which] = thisdata;
@@ -1094,8 +1269,8 @@ export default {
             let vm = this;
             let status = true;
             console.log(vm.addTaskWhich);
-            let checkvalid = ["Group", "Item", "Progress", "Owner"];
-            if (vm.addTaskWhich == "workedKey") checkvalid = ["Group", "Item"];
+            let checkvalid = ["Group", "Item", "Progress", "Priority", "Owner"];
+            if (vm.tabIndex == 1) checkvalid = ["Group", "Item", "Dep"];
             console.log(checkvalid);
             checkvalid.forEach((element) => {
                 console.log(element);
@@ -1106,7 +1281,7 @@ export default {
             console.log(vm.addTaskDetail);
             if (status) {
                 let params = {};
-                if (vm.addTaskWhich == "workedKey") {
+                if (vm.tabIndex == 1) {
                     params = {
                         methods: "POST",
                         whichFunction: "CommonRegister",
@@ -1121,7 +1296,7 @@ export default {
                             creatorID: [vm.loginData.account],
                         },
                     };
-                } else if (vm.addTaskWhich == "weeklyReport") {
+                } else if (vm.tabIndex == 0) {
                     params = {
                         methods: "POST",
                         whichFunction: "CommonRegister",
@@ -1138,20 +1313,19 @@ export default {
                             date: [vm.addTaskDetail.Date.time],
                             status: [
                                 vm.replaceContentData(
-                                    vm.addTaskDetail.Status,
+                                    String(vm.addTaskDetail.Status),
                                     true
                                 ),
                             ],
-                            // status: [vm.addTaskDetail.Status],
                             progress: [vm.addTaskDetail.Progress.value],
                             action: [
                                 vm.replaceContentData(
-                                    vm.addTaskDetail.Action,
+                                    String(vm.addTaskDetail.Action),
                                     true
                                 ),
                             ],
-                            // action: [vm.addTaskDetail.Action],
                             remark: [vm.addTaskDetail.Remark],
+                            priority: [vm.addTaskDetail.Priority.value],
                             owner: [vm.addTaskDetail.Owner.value.join(",")],
                             creatorID: [vm.loginData.account],
                         },
@@ -1203,12 +1377,27 @@ export default {
             let params = {};
             let checkvalid = [];
             if (vm.tabIndex == 0) {
-                checkvalid = ["Group", "Item", "Progress", "Owner"];
+                checkvalid = ["Group", "Item", "Progress", "Priority", "Owner"];
                 for (let i = 0; i < checkvalid.length; i++) {
                     if (items[checkvalid[i]] == "") {
                         vm.setalertMsg("尚有未輸入的值");
                         vm.settimeoutalertModal();
                         return;
+                    }
+                    if (
+                        checkvalid[i] == "Progress" ||
+                        checkvalid[i] == "Priority"
+                    ) {
+                        if (!positivenumvalidator(items[checkvalid[i]])) {
+                            vm.setalertMsg("數字必須為正整數");
+                            vm.settimeoutalertModal();
+                            return;
+                        }
+                        if (items[checkvalid[i]] > 100) {
+                            vm.setalertMsg("數字必須小於100");
+                            vm.settimeoutalertModal();
+                            return;
+                        }
                     }
                 }
                 params = {
@@ -1221,15 +1410,20 @@ export default {
                         groupID: [items.Group],
                         item: [items.Item],
                         date: [items.Date.time],
-                        status: [vm.replaceContentData(items.Status, true)],
+                        status: [
+                            vm.replaceContentData(String(items.Status), true),
+                        ],
                         progress: [items.Progress],
-                        action: [vm.replaceContentData(items.Action, true)],
+                        action: [
+                            vm.replaceContentData(String(items.Action), true),
+                        ],
                         remark: [items.Remark],
+                        priority: [items.Priority],
                         owner: [String(items.Owner)],
                     },
                 };
             } else {
-                checkvalid = ["Group", "Item"];
+                checkvalid = ["Group", "Item", "Dep"];
                 for (let i = 0; i < checkvalid.length; i++) {
                     if (items[checkvalid[i]] == "") {
                         vm.setalertMsg("尚有未輸入的值");
@@ -1316,6 +1510,8 @@ export default {
                     console.log("done");
                     vm.settimeoutalertModal();
                     setTimeout(function () {
+                        //先清空以防連續查無資料的bug
+                        vm.items = [];
                         vm.queryAgain();
                     }, 1200);
                     vm.delTaskModalShow = !vm.delTaskModalShow;
@@ -1342,6 +1538,12 @@ export default {
             model.invalid = required;
             return !required;
         },
+        check_positivenumvalid(positivenumvalid, model) {
+            console.log(positivenumvalid);
+            console.log(model);
+            model.positivenumvalid = positivenumvalid;
+            return !positivenumvalid;
+        },
         //validation表單reset
         formReset() {
             let vm = this;
@@ -1366,6 +1568,11 @@ export default {
                 },
                 Action: "",
                 Remark: "",
+                Priority: {
+                    key: "Priority",
+                    value: null,
+                    invalid: false,
+                },
                 Owner: {
                     key: "Owner",
                     value: [],
@@ -1400,21 +1607,32 @@ export default {
         checkExportFileLegal() {
             let vm = this;
             console.log(vm.tabIndex);
-            if (vm.tabIndex != 0) {
-                vm.setalertMsg("必須查詢本週的報表資料才可進行匯出");
-                vm.settimeoutalertModal(1500);
-                vm.tabIndex = 0;
-                vm.selectDepCollapseShow = true;
+            console.log(vm.items);
+            if (vm.items.length == 0) {
+                vm.setalertMsg("無資料可匯出");
+                vm.settimeoutalertModal();
                 return;
             }
-            vm.exportModalShow = true;
+            if (vm.tabIndex == 0) {
+                vm.setalertMsg("系統將自動查詢該時間區段的『下週重點』資料");
+                vm.settimeoutalertModal();
+                setTimeout(() => {
+                    vm.tabIndex = 1;
+                    vm.exportModalShow = true;
+                }, 1000);
+                // return;
+            } else {
+                vm.exportModalShow = true;
+            }
         },
-        getNextWeekData() {
+        getNextWeekData(flag) {
             let vm = this;
-            //清空
-            vm.nextWeekData = [];
-            vm.setalertMsg("請稍候....");
-            vm.togglealertModal(true);
+            if (!flag) {
+                //清空
+                vm.nextWeekData = [];
+                vm.setalertMsg("請稍候....");
+                vm.togglealertModal(true);
+            }
             //抓下週工作重點
             var params = {};
             params["methods"] = "POST";
@@ -1448,12 +1666,23 @@ export default {
                             if (result["QueryTableData"].length != 0) {
                                 result["QueryTableData"].forEach((element) => {
                                     let itemsobj = {};
-                                    itemsobj = {
-                                        Group: element.groupID,
-                                        Item: element.item,
-                                        Status: element.detail,
-                                    };
-                                    vm.nextWeekData.push(itemsobj);
+                                    if (!flag) {
+                                        itemsobj = {
+                                            Group: element.groupID,
+                                            Item: element.item,
+                                            Status: element.detail,
+                                        };
+                                        vm.nextWeekData.push(itemsobj);
+                                    } else {
+                                        itemsobj = {
+                                            seq: element.seq,
+                                            depID: element.depID,
+                                            Group: element.groupID,
+                                            Item: element.item,
+                                            Status: element.detail,
+                                        };
+                                        vm.tempData.push(itemsobj);
+                                    }
                                 });
                             }
                         } else {
@@ -1481,204 +1710,218 @@ export default {
         },
         exportfile(filetype) {
             let vm = this;
-            console.log(vm.items);
-            if (vm.items.length == 0) {
-                vm.setalertMsg("無資料可匯出");
-                vm.settimeoutalertModal();
-                return;
-            }
-            vm.getNextWeekData().then(() => {
-                let thisweekexportdata = JSON.parse(JSON.stringify(vm.items));
-                thisweekexportdata.map(function (item) {
-                    delete item.seq;
-                    delete item.depID;
-                    item.Date = item.Date.time;
-                    // item.depID = vm.depConfig[item.depID];
-                    console.log(item.Owner);
-                    let thisOwner = item.Owner.split(",");
-                    for (let i = 0; i < thisOwner.length; i++) {
-                        thisOwner[i] = vm.staffConfig[thisOwner[i]];
-                        if (i == thisOwner.length - 1) {
-                            item.Owner = thisOwner.join(",");
-                        }
+            // vm.getNextWeekData(false).then(() => {
+            let thisweekexportdata = JSON.parse(JSON.stringify(vm.tempData));
+            console.log(thisweekexportdata);
+            thisweekexportdata.map(function (item) {
+                delete item.seq;
+                delete item.depID;
+                item.Date = item.Date.time;
+                // item.depID = vm.depConfig[item.depID];
+                console.log(item.Owner);
+                let thisOwner = item.Owner.split(",");
+                for (let i = 0; i < thisOwner.length; i++) {
+                    thisOwner[i] = vm.staffConfig[thisOwner[i]];
+                    if (i == thisOwner.length - 1) {
+                        item.Owner = thisOwner.join(",");
                     }
-                });
-                console.log(thisweekexportdata);
-                console.log(JSON.stringify(thisweekexportdata));
-
-                let nextWeekData = JSON.parse(JSON.stringify(vm.nextWeekData));
-                console.log(nextWeekData);
-                console.log(JSON.stringify(nextWeekData));
-                let othersOption = [
-                    "人事",
-                    "困難與問題",
-                    "會議",
-                    "拜訪",
-                    "測試",
-                ];
-                let othersOptiontemp = [
-                    "人事",
-                    "困難與問題",
-                    "會議",
-                    "拜訪",
-                    "測試",
-                ];
-                let nextweekexportdata = [];
-                let nextweekothersexportdata = [];
-
-                nextWeekData.filter(function (item) {
-                    if (!othersOption.includes(item.Group)) {
-                        nextweekexportdata.push(item);
-                    } else {
-                        othersOptiontemp.splice(
-                            othersOptiontemp.indexOf(item.Group),
-                            1
-                        );
-                        nextweekothersexportdata.push(item);
-                    }
-                });
-                if (nextweekothersexportdata.length == 0) {
-                    othersOption.forEach((element) => {
-                        let temp = {
-                            Group: element,
-                            Item: "",
-                            Status: "",
-                        };
-                        nextweekothersexportdata.push(temp);
-                    });
-                } else if (nextweekothersexportdata.length < 5) {
-                    othersOptiontemp.forEach((element) => {
-                        let temp = {
-                            Group: element,
-                            Item: "",
-                            Status: "",
-                        };
-                        nextweekothersexportdata.push(temp);
-                    });
                 }
-                console.log(nextweekexportdata);
-                console.log(nextweekothersexportdata);
-
-                let thisdep = "全部門";
-                if (vm.inputData.selected != "ALL") {
-                    thisdep = vm.depConfig[vm.inputData.selected];
-                }
-                console.log(thisdep);
-                const fileName = thisdep + "的WeeklyReport_" + vm.nowFormat;
-
-                if (filetype === "CSV") {
-                    const data = thisweekexportdata.map((itemsdata) =>
-                        Object.values(itemsdata)
-                    );
-                    console.log(data);
-                    //加入空白，匯出Excel不會改變格式
-                    data.forEach((item) => {
-                        item[0] = " " + item[0];
-                    });
-                    //加表頭
-                    data.unshift([
-                        "Group",
-                        "Item",
-                        "Date",
-                        "Status",
-                        "Progress%",
-                        "Action",
-                        "Remark",
-                        "Owner",
-                    ]);
-                    vm.setautoTable({
-                        body: data,
-                        exportfilename: fileName,
-                        exportfiletype: filetype,
-                    });
-                } else {
-                    let mergecells = {};
-                    if (vm.exportPDFselected)
-                        mergecells = { rowSpan: ["Group", "Item"] };
-                    //本週
-                    const thisweekfinalexportdata = vm.adjustExportDataDataFormat(
-                        thisweekexportdata, //欲匯出的data
-                        mergecells, //哪些key需要合併儲存格
-                        {
-                            halign: "left",
-                        }, //欲匯出autoTable data的預設格式
-                        [false], //是否有分隔線
-                        true //是否要填色
-                    );
-                    console.log(thisweekfinalexportdata);
-                    //下週
-                    const nextweekfinalexportdata = vm.adjustExportDataDataFormat(
-                        nextweekexportdata, //欲匯出的data
-                        Object.assign(mergecells, {
-                            colSpan: { Status: 6, Separate: 8 },
-                        }), //哪些key需要合併儲存格
-                        {
-                            halign: "left",
-                        }, //欲匯出autoTable data的預設格式
-                        [true, { Separate: "下週工作重點" }], //是否有分隔線
-                        true //是否要填色
-                    );
-                    console.log(nextweekfinalexportdata);
-                    //Others
-                    const nextweekothersfinalexportdata = vm.adjustExportDataDataFormat(
-                        nextweekothersexportdata, //欲匯出的data
-                        Object.assign(mergecells, {
-                            colSpan: { Status: 6, Separate: 8 },
-                        }), //哪些key需要合併儲存格
-                        {
-                            halign: "left",
-                        }, //欲匯出autoTable data的預設格式
-                        [true, { Separate: "Others" }], //是否有分隔線
-                        false //是否要填色
-                    );
-                    console.log(nextweekothersfinalexportdata);
-                    console.log(
-                        thisweekfinalexportdata
-                            .concat(nextweekfinalexportdata)
-                            .concat(nextweekothersfinalexportdata)
-                    );
-                    vm.setautoTable({
-                        body: thisweekfinalexportdata
-                            .concat(nextweekfinalexportdata)
-                            .concat(nextweekothersfinalexportdata),
-                        columns: [
-                            { header: "Group", dataKey: "Group" },
-                            { header: "Item", dataKey: "Item" },
-                            { header: "Date", dataKey: "Date" },
-                            { header: "Status", dataKey: "Status" },
-                            { header: "Progress%", dataKey: "Progress" },
-                            { header: "Action", dataKey: "Action" },
-                            { header: "Remark", dataKey: "Remark" },
-                            { header: "Owner", dataKey: "Owner" },
-                        ],
-                        columnStyles: {
-                            Group: { font: "msjh" },
-                            Item: { font: "msjh" },
-                            Date: { font: "msjh" },
-                            Status: { font: "msjh" },
-                            Progress: { font: "msjh" },
-                            Action: { font: "msjh" },
-                            Remark: { font: "msjh" },
-                            Owner: { font: "msjh" },
-                        },
-                        headStyles: {
-                            font: "msjh",
-                            fillColor: [160, 215, 255],
-                            valign: "middle",
-                            halign: "center",
-                            textColor: 10,
-                            lineWidth: 1,
-                            cellPadding: 3,
-                            minCellWidth: 50,
-                        },
-                        exportfilename: fileName,
-                        exportfiletype: filetype,
-                    });
-                }
-                setTimeout(() => {
-                    vm.exportModalShow = false;
-                }, 1000);
             });
+            console.log(thisweekexportdata);
+            console.log(JSON.stringify(thisweekexportdata));
+
+            let nextWeekData = JSON.parse(JSON.stringify(vm.items));
+            console.log(nextWeekData);
+            console.log(JSON.stringify(nextWeekData));
+            let othersOption = ["人事", "困難與問題", "會議", "拜訪", "測試"];
+            let othersOptiontemp = [
+                "人事",
+                "困難與問題",
+                "會議",
+                "拜訪",
+                "測試",
+            ];
+            let nextweekexportdata = [];
+            let nextweekothersexportdata = [];
+
+            nextWeekData.map(function (item) {
+                delete item.seq;
+                delete item.depID;
+            });
+
+            nextWeekData.filter(function (item) {
+                if (!othersOption.includes(item.Group)) {
+                    nextweekexportdata.push(item);
+                } else {
+                    othersOptiontemp.splice(
+                        othersOptiontemp.indexOf(item.Group),
+                        1
+                    );
+                    nextweekothersexportdata.push(item);
+                }
+            });
+            if (nextweekothersexportdata.length == 0) {
+                othersOption.forEach((element) => {
+                    let temp = {
+                        Group: element,
+                        Item: "",
+                        Status: "",
+                    };
+                    nextweekothersexportdata.push(temp);
+                });
+            } else if (nextweekothersexportdata.length < 5) {
+                othersOptiontemp.forEach((element) => {
+                    let temp = {
+                        Group: element,
+                        Item: "",
+                        Status: "",
+                    };
+                    nextweekothersexportdata.push(temp);
+                });
+            }
+            console.log(nextweekexportdata);
+            console.log(nextweekothersexportdata);
+
+            let thisdep = "全部門";
+            if (vm.inputData.selected != "ALL") {
+                thisdep = vm.depConfig[vm.inputData.selected];
+            }
+            console.log(thisdep);
+            const fileName = thisdep + "的WeeklyReport_" + vm.nowFormat;
+
+            if (filetype === "CSV") {
+                thisweekexportdata.map(function (item) {
+                    delete item.priority;
+                });
+                const data = thisweekexportdata.map((itemsdata) =>
+                    Object.values(itemsdata)
+                );
+                console.log(data);
+                //加入空白，匯出Excel不會改變格式
+                data.forEach((item) => {
+                    item[0] = " " + item[0];
+                });
+                //加表頭
+                data.unshift([
+                    "Group",
+                    "Item",
+                    "Date",
+                    "Status",
+                    "Progress%",
+                    "Action",
+                    "Remark",
+                    "Owner",
+                ]);
+                vm.setautoTable({
+                    body: data,
+                    exportfilename: fileName,
+                    exportfiletype: filetype,
+                });
+            } else {
+                let mergecells = {};
+                if (vm.exportPDFselected)
+                    mergecells = {
+                        rowSpan: ["Group", "Item"],
+                        rowSpanOrderBy: ["asc", "desc"],
+                    };
+                //本週
+                const thisweekfinalexportdata = vm.adjustExportDataDataFormat(
+                    thisweekexportdata, //欲匯出的data
+                    mergecells, //哪些key需要合併儲存格
+                    {
+                        halign: "left",
+                    }, //欲匯出autoTable data的預設格式
+                    [false], //是否有分隔線
+                    true, //是否要填色
+                    [["Priority", "asc"]] //特殊指定排序欄位
+                );
+                console.log(thisweekfinalexportdata);
+                //下週
+                const nextweekfinalexportdata = vm.adjustExportDataDataFormat(
+                    nextweekexportdata, //欲匯出的data
+                    Object.assign(mergecells, {
+                        colSpan: { Status: 6, Separate: 8 },
+                    }), //哪些key需要合併儲存格
+                    {
+                        halign: "left",
+                    }, //欲匯出autoTable data的預設格式
+                    [true, { Separate: "下週工作重點" }], //是否有分隔線
+                    true //是否要填色
+                );
+                console.log(nextweekfinalexportdata);
+                //Others
+                const nextweekothersfinalexportdata = vm.adjustExportDataDataFormat(
+                    nextweekothersexportdata, //欲匯出的data
+                    Object.assign(mergecells, {
+                        colSpan: { Status: 6, Separate: 8 },
+                    }), //哪些key需要合併儲存格
+                    {
+                        halign: "left",
+                    }, //欲匯出autoTable data的預設格式
+                    [true, { Separate: "Others" }], //是否有分隔線
+                    false //是否要填色
+                );
+                console.log(nextweekothersfinalexportdata);
+                console.log(
+                    thisweekfinalexportdata
+                        .concat(nextweekfinalexportdata)
+                        .concat(nextweekothersfinalexportdata)
+                );
+
+                //抓取此次時間區段
+                let thistimeinterval = "";
+                console.log(vm.thisQueryTimeInterval);
+                if (vm.thisQueryTimeInterval == "DEFAULT") {
+                    thistimeinterval = vm.thisweekday.join(" ~ ");
+                } else if (vm.thisQueryTimeInterval == "ALL") {
+                    thistimeinterval = "資料表內所有資料";
+                } else {
+                    thistimeinterval = vm.thisQueryTimeInterval.join(" ~ ");
+                }
+                console.log(thistimeinterval);
+                vm.setautoTable({
+                    body: thisweekfinalexportdata
+                        .concat(nextweekfinalexportdata)
+                        .concat(nextweekothersfinalexportdata),
+                    columns: [
+                        { header: "Group", dataKey: "Group" },
+                        { header: "Item", dataKey: "Item" },
+                        { header: "Date", dataKey: "Date" },
+                        { header: "Status", dataKey: "Status" },
+                        { header: "Progress%", dataKey: "Progress" },
+                        { header: "Action", dataKey: "Action" },
+                        { header: "Remark", dataKey: "Remark" },
+                        { header: "Owner", dataKey: "Owner" },
+                    ],
+                    columnStyles: {
+                        Group: { font: "msjh" },
+                        Item: { font: "msjh" },
+                        Date: { font: "msjh" },
+                        Status: { font: "msjh" },
+                        Progress: { font: "msjh", fontSize: 12 },
+                        Action: { font: "msjh" },
+                        Remark: { font: "msjh" },
+                        Owner: { font: "msjh" },
+                    },
+                    headStyles: {
+                        font: "msjh",
+                        fillColor: [160, 215, 255],
+                        valign: "middle",
+                        halign: "center",
+                        textColor: 10,
+                        lineWidth: 1,
+                        cellPadding: 3,
+                        minCellWidth: 50,
+                    },
+                    exportfilename: fileName,
+                    exportfiletype: filetype,
+                    text: [thisdep, thistimeinterval],
+                });
+            }
+            setTimeout(() => {
+                vm.exportModalShow = false;
+            }, 1000);
+            // });
         },
 
         adjustExportDataDataFormat(
@@ -1686,7 +1929,8 @@ export default {
             spanKeys,
             autoTableStyle,
             haveSeparate,
-            haveColor
+            haveColor,
+            sortby = []
         ) {
             let vm = this;
             let checkduplicate = {};
@@ -1696,13 +1940,21 @@ export default {
             console.log(spanKeys);
             console.log(data);
             console.log(spanKeys.hasOwnProperty("rowSpan"));
+            console.log(sortby);
             if (spanKeys.hasOwnProperty("rowSpan")) {
-                data = data.sort(
-                    vm.dataSorted([
-                        ["Group", "asc"],
-                        ["Item", "desc"],
+                const thissort = spanKeys.rowSpan
+                    .map((item, index) => [
+                        item,
+                        spanKeys.rowSpanOrderBy[index],
                     ])
-                );
+                    .concat(sortby);
+                console.log(thissort);
+                data = data.sort(vm.dataSorted(thissort));
+                console.log(data);
+                //排序完成後，移除特殊指定排序欄位 -> Priority
+                data.map(function (item) {
+                    delete item.Priority;
+                });
                 console.log(data);
                 let spanKeysrowSpan = spanKeys.rowSpan;
                 for (let q = 0; q < data.length; q++) {
@@ -1774,6 +2026,7 @@ export default {
                 //     });
                 // });
             }
+            if (sortby.length != 0) data = data.sort(vm.dataSorted(sortby));
             if (data.length != 0 && haveSeparate[0]) {
                 data.unshift(haveSeparate[1]);
             }
@@ -1800,6 +2053,7 @@ export default {
                     let thiscolSpan = 0;
                     let thishalign = autoTableStyle.halign;
                     let thisfillColor = [255, 255, 255];
+                    let thistextColor = [0, 0, 0];
                     let thiscontent = data[q][key_];
                     if (
                         spanKeys.hasOwnProperty("colSpan") &&
@@ -1861,6 +2115,7 @@ export default {
                                 rowSpan: thisrowSpan,
                                 content: data[q][key_],
                                 styles: {
+                                    textColor: thistextColor,
                                     valign: "middle",
                                     halign: thishalign,
                                     fillColor: thisfillColor,
@@ -1870,6 +2125,8 @@ export default {
                     } else {
                         //自定義格式
                         if (key_ === "Progress") {
+                            if (Number(thiscontent) >= 100)
+                                thistextColor = [0, 179, 60];
                             thiscontent = thiscontent + "%";
                             thishalign = "center";
                         }
@@ -1881,6 +2138,7 @@ export default {
                             colSpan: thiscolSpan,
                             content: thiscontent,
                             styles: {
+                                textColor: thistextColor,
                                 valign: "middle",
                                 halign: thishalign,
                                 fillColor: thisfillColor,
@@ -1950,6 +2208,7 @@ export default {
 
         replaceContentData(content, status) {
             console.log(content);
+            console.log(typeof content);
             if (status) {
                 return (
                     content // .replace(/\r\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
