@@ -6,6 +6,7 @@ import department from "@/views/Department";
 import account from "@/views/Account";
 import todolist from "@/views/TodoList";
 import weeklyreport from "@/views/WeeklyReport";
+import meetingminutes from "@/views/MeetingMinutes";
 import structure from "@/views/Structure";
 // import pagenotfound from "@/views/PageNotFound";
 
@@ -61,6 +62,13 @@ export const childRouter = [
             {
                 path: "weeklyreport",
                 component: weeklyreport,
+                meta: {
+                    needLogin: true
+                }
+            },
+            {
+                path: "meetingminutes",
+                component: meetingminutes,
                 meta: {
                     needLogin: true
                 }

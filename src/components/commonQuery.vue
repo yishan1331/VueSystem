@@ -180,7 +180,7 @@ export default {
     methods: {
         ...mapActions({
             axiosAction: "commonaxios/axiosAction",
-            setalertMsg: "alertmodal/set_alertMsg",
+            setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             togglealertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             setqueryResponse: "commonquery/set_queryResponse",
@@ -204,13 +204,12 @@ export default {
             var params = {};
             if (vm.selected != "") {
                 if (vm.inputtext == "") {
-                    vm.setalertMsg("尚未輸入條件");
+                    vm.setTimeOutAlertMsg("尚未輸入條件");
                     vm.settimeoutalertModal();
                     vm.changetableBusy();
                     return;
                 }
             }
-            vm.setalertMsg("請稍候...");
             vm.togglealertModal(true);
             //預設今天
             params["timeattr"] = vm.apiParams.timeattr;
@@ -222,6 +221,8 @@ export default {
                 params["whichFunction"] = "IntervalQuery";
                 params["methods"] = "GET";
                 params["table"] = vm.apiParams.table;
+                //設定此次抓取的時間區間
+                vm.setthisQueryTimeInterval("ALL");
             } else {
                 params["methods"] = "POST";
                 params["whichFunction"] = "CommonSqlSyntaxQuery_";
@@ -312,7 +313,7 @@ export default {
                     );
                     if (result["QueryTableData"].length == 0) {
                         if (vm.queryResponse == "查無資料") {
-                            vm.setalertMsg("查無資料");
+                            vm.setTimeOutAlertMsg("查無資料");
                             vm.settimeoutalertModal();
                         }
                         vm.setqueryResponse("查無資料");
@@ -320,7 +321,7 @@ export default {
                         vm.setqueryResponse(result["QueryTableData"]);
                     }
                 } else {
-                    vm.setalertMsg(result["Response"]);
+                    vm.setTimeOutAlertMsg(result["Response"]);
                     vm.settimeoutalertModal();
                 }
             });
@@ -418,7 +419,7 @@ export default {
             if (!vm.notsettingtime) {
                 if (vm.startTime.time == "" || vm.endTime.time == "") {
                     if (vm.queryResponse == "時間尚未選擇") {
-                        vm.setalertMsg("時間尚未選擇");
+                        vm.setTimeOutAlertMsg("時間尚未選擇");
                         vm.settimeoutalertModal();
                     }
                     vm.setqueryResponse("時間尚未選擇");

@@ -412,9 +412,9 @@ export default {
                 dismissible: true, // as true as default
             },
             depConfig: {
-                "1001": "資訊通訊部",
-                "1002": "系統研發部",
-                "1003": "雲端AI(智慧)平台部",
+                1001: "資訊通訊部",
+                1002: "系統研發部",
+                1003: "雲端AI(智慧)平台部",
             },
             priorityOptions: [
                 { value: "low", text: "低" },
@@ -497,13 +497,16 @@ export default {
             thisQueryTimeInterval: "commonquery/get_thisQueryTimeInterval",
             inputData: "commonquery/get_inputData",
             ttfStatus: "exportfile/get_ttfStatus",
+            getDate: "getdate/get_Date",
         }),
     },
     created: function () {
         let vm = this;
-        vm.getNow();
+        vm.now = vm.getDate.now;
+        vm.nowFormat = vm.getDate.nowFormat;
+        vm.thisweekday = vm.getDate.thisweekday;
+        // vm.getNow();
         if (vm.pageAccess.todolist.remark != "ALL") {
-            vm.setalertMsg("請稍候....");
             vm.togglealertModal(true);
         } else {
             vm.selectDepCollapseShow = true;
@@ -530,7 +533,7 @@ export default {
                     vm.queryResponse == "查無資料" ||
                     vm.queryResponse == "時間尚未選擇"
                 ) {
-                    vm.setalertMsg(vm.queryResponse);
+                    vm.setTimeOutAlertMsg(vm.queryResponse);
                     vm.settimeoutalertModal();
                     return;
                 }
@@ -542,7 +545,7 @@ export default {
     methods: {
         ...mapActions({
             axiosAction: "commonaxios/axiosAction",
-            setalertMsg: "alertmodal/set_alertMsg",
+            setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             togglealertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             showalertMsgProgress: "alertmodal/show_alertMsgProgress",
@@ -678,7 +681,6 @@ export default {
         },
         getTodoList() {
             let vm = this;
-            vm.setalertMsg("請稍候....");
             vm.togglealertModal(true);
             vm.selectDepCollapseShow = false;
             vm.queryResponse.forEach((element) => {
@@ -734,7 +736,7 @@ export default {
                     console.log(JSON.stringify(result["QueryTableData"]));
                     if (result["Response"] == "ok") {
                         if (result["QueryTableData"].length == 0) {
-                            vm.setalertMsg("查無資料");
+                            vm.setTimeOutAlertMsg("查無資料");
                             anyerror = true;
                         } else {
                             //抓todoList
@@ -759,13 +761,13 @@ export default {
                             vm.depStaffRelation = itemsobj2;
                         }
                     } else {
-                        vm.setalertMsg(result["Response"]);
+                        vm.setTimeOutAlertMsg(result["Response"]);
                         anyerror = true;
                     }
                 })
                 .catch(function (err) {
                     console.log(err);
-                    vm.setalertMsg(err);
+                    vm.setTimeOutAlertMsg(err);
                     anyerror = true;
                 })
                 .finally(() => {
@@ -849,7 +851,6 @@ export default {
             console.log(status);
             console.log(vm.addTaskDetail);
             if (status) {
-                // vm.setalertMsg("請稍候...");
                 // vm.togglealertModal(true);
                 var params = {
                     methods: "POST",
@@ -879,14 +880,14 @@ export default {
                         var result = vm.axiosResult;
                         console.log(result);
                         if (result["Response"] == "ok") {
-                            vm.setalertMsg("新增成功");
+                            vm.setTimeOutAlertMsg("新增成功");
                         } else {
-                            vm.setalertMsg(result["Response"]);
+                            vm.setTimeOutAlertMsg(result["Response"]);
                         }
                     })
                     .catch(function (err) {
                         console.log(err);
-                        vm.setalertMsg(err);
+                        vm.setTimeOutAlertMsg(err);
                     })
                     .finally(() => {
                         console.log("done");
@@ -907,7 +908,6 @@ export default {
         },
         modTask(items) {
             let vm = this;
-            // vm.setalertMsg("請稍候.....");
             // vm.togglealertModal(true);
             console.log(items);
             let thiscompletedDate = "";
@@ -917,7 +917,7 @@ export default {
             let checkvalid = ["taskInfo"];
             for (let i = 0; i < checkvalid.length; i++) {
                 if (items[checkvalid[i]] == "") {
-                    vm.setalertMsg("尚有未輸入的值");
+                    vm.setTimeOutAlertMsg("尚有未輸入的值");
                     vm.settimeoutalertModal();
                     return;
                 }
@@ -944,14 +944,14 @@ export default {
                     var result = vm.axiosResult;
                     console.log(result);
                     if (result["Response"] == "ok") {
-                        vm.setalertMsg("修改成功");
+                        vm.setTimeOutAlertMsg("修改成功");
                     } else {
-                        vm.setalertMsg(result["Response"]);
+                        vm.setTimeOutAlertMsg(result["Response"]);
                     }
                 })
                 .catch(function (err) {
                     console.log(err);
-                    vm.setalertMsg(err);
+                    vm.setTimeOutAlertMsg(err);
                 })
                 .finally(() => {
                     console.log("done");
@@ -978,14 +978,14 @@ export default {
                     var result = vm.axiosResult;
                     console.log(result);
                     if (result["Response"] == "ok") {
-                        vm.setalertMsg("刪除成功");
+                        vm.setTimeOutAlertMsg("刪除成功");
                     } else {
-                        vm.setalertMsg(result["Response"]);
+                        vm.setTimeOutAlertMsg(result["Response"]);
                     }
                 })
                 .catch(function (err) {
                     console.log(err);
-                    vm.setalertMsg(err);
+                    vm.setTimeOutAlertMsg(err);
                 })
                 .finally(() => {
                     console.log("done");
@@ -1057,7 +1057,7 @@ export default {
             let vm = this;
             console.log(vm.items);
             if (vm.items.length == 0) {
-                vm.setalertMsg("無資料可匯出");
+                vm.setTimeOutAlertMsg("無資料可匯出");
                 vm.settimeoutalertModal();
                 return;
             }

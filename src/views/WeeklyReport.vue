@@ -370,7 +370,7 @@
                             <b-button
                                 pill
                                 variant="success"
-                                @click="exportfile('CSV')"
+                                @click="exportFile('CSV')"
                                 style="position: relative;transform: translateY(50%)"
                             >CSV</b-button>
                         </b-col>
@@ -385,7 +385,7 @@
                                 variant="warning"
                                 class="mt-2"
                                 :disabled="ttfStatus"
-                                @click="exportfile('PDF')"
+                                @click="exportFile('PDF')"
                                 v-b-tooltip.hover
                                 title="合併儲存格會因資料長度太長可能出現排版問題(大約50chars、115bytes左右)，此時可以下載不合併的版本或分成多筆資料"
                             >PDF</b-button>
@@ -457,11 +457,11 @@ import { required, minLength, between } from "vuelidate/lib/validators";
 import { mapGetters, mapActions } from "vuex";
 //設置Positive Number validator
 const positivenumvalidator = (num) => {
-    console.log(num);
+    //console.log(num);
     let isPositiveNum = (val) => {
         return /^[0-9]+$/.test(val);
     };
-    console.log(isPositiveNum(num));
+    //console.log(isPositiveNum(num));
     return isPositiveNum(num);
 };
 export default {
@@ -530,9 +530,9 @@ export default {
                 dismissible: true, // as true as default
             },
             depConfig: {
-                "1001": "資訊通訊部",
-                "1002": "系統研發部",
-                "1003": "雲端AI(智慧)平台部",
+                1001: "資訊通訊部",
+                1002: "系統研發部",
+                1003: "雲端AI(智慧)平台部",
             },
             depOptions: [],
             addTaskModalShow: false,
@@ -577,121 +577,57 @@ export default {
             staffConfig: {},
             depStaffRelation: {},
             getDataListFromDBTable: {
-                Group: { "1001": [], "1002": [], "1003": [], ALL: [] },
-                Item: { "1001": [], "1002": [], "1003": [], ALL: [] },
+                Group: { 1001: [], 1002: [], 1003: [], ALL: [] },
+                Item: { 1001: [], 1002: [], 1003: [], ALL: [] },
             },
             delTaskModalShow: false,
             selectDepCollapseShow: false,
+            //about export
             exportModalShow: false,
             exportPDFoptions: [
                 { value: true, text: "合併儲存格" },
                 { value: false, text: "不合併儲存格" },
             ],
             exportPDFselected: true,
+            exportTitle: "",
+            exportDate: "",
+            exportColumns: [
+                { header: "Group", dataKey: "Group" },
+                { header: "Item", dataKey: "Item" },
+                { header: "Date", dataKey: "Date" },
+                { header: "Status", dataKey: "Status" },
+                { header: "Progress%", dataKey: "Progress" },
+                { header: "Action", dataKey: "Action" },
+                { header: "Remark", dataKey: "Remark" },
+                { header: "Owner", dataKey: "Owner" },
+            ],
+            exportColumnStyles: {
+                Group: { font: "msjh" },
+                Item: { font: "msjh" },
+                Date: { font: "msjh" },
+                Status: { font: "msjh" },
+                Progress: { font: "msjh", fontSize: 12 },
+                Action: { font: "msjh" },
+                Remark: { font: "msjh" },
+                Owner: { font: "msjh" },
+            },
+            exportHeadStyles: {
+                font: "msjh",
+                fillColor: [160, 215, 255],
+                valign: "middle",
+                halign: "center",
+                textColor: 10,
+                lineWidth: 1,
+                cellPadding: 3,
+                minCellWidth: 50,
+            },
+            //about export end
             editActionModalShow: false,
             editActionItems: {
                 seq: null,
                 Data: "",
                 which: "",
             },
-
-            tempNext: [
-                {
-                    seq: 31,
-                    lastUpdateTime: "2020-09-01 09:38:11",
-                    detail: "ss",
-                    createTime: "2020-09-01 09:38:11",
-                    item: "ccc",
-                    creatorID: 2493,
-                    date: "2020-08-31",
-                    depID: 1003,
-                    groupID: "ccc",
-                },
-                {
-                    seq: 32,
-                    lastUpdateTime: "2020-09-01 09:38:42",
-                    detail: "q",
-                    createTime: "2020-09-01 09:38:42",
-                    item: "test",
-                    creatorID: 2493,
-                    date: "2020-08-31",
-                    depID: 1003,
-                    groupID: "test",
-                },
-            ],
-            tempThis: [
-                {
-                    status: "sss",
-                    remark: "",
-                    seq: 54,
-                    lastUpdateTime: "2020-09-01 09:37:50",
-                    item: "ccc",
-                    owner: 2493,
-                    createTime: "2020-09-01 09:37:50",
-                    date: "2020-09-01",
-                    creatorID: 2493,
-                    progress: 22,
-                    action: 11,
-                    depID: 1003,
-                    groupID: "ccc",
-                },
-                {
-                    status: "ww",
-                    remark: "ww",
-                    seq: 53,
-                    lastUpdateTime: "2020-09-01 09:37:35",
-                    item: "test",
-                    owner: 2493,
-                    createTime: "2020-09-01 09:37:35",
-                    date: "2020-09-01",
-                    creatorID: 2493,
-                    progress: 33,
-                    action: "ww",
-                    depID: 1003,
-                    groupID: "test",
-                },
-                {
-                    status: "qq",
-                    remark: "qq",
-                    seq: 52,
-                    lastUpdateTime: "2020-09-01 09:37:17",
-                    item: "test",
-                    owner: 2493,
-                    createTime: "2020-09-01 09:37:17",
-                    date: "2020-09-01",
-                    creatorID: 2493,
-                    progress: 11,
-                    action: "qq",
-                    depID: 1003,
-                    groupID: "test",
-                },
-            ],
-            tempMember: [
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1003,
-                    uID: 2493,
-                    uName: "蔡宜珊",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1003,
-                    uID: 2521,
-                    uName: "洪誌宏",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1003,
-                    uID: 2522,
-                    uName: "吳俊輝",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1003,
-                    uID: 2581,
-                    uName: "曾冠力",
-                },
-            ],
         };
     },
     // 表單驗證引入
@@ -734,12 +670,12 @@ export default {
                 },
             },
         };
-        console.log(this.addTaskWhich);
+        //console.log(this.addTaskWhich);
         if (this.addTaskWhich == 1) {
             delete setvalid.addTaskDetail.Progress;
             delete setvalid.addTaskDetail.Owner;
             delete setvalid.addTaskDetail.Priority;
-            console.log(setvalid);
+            //console.log(setvalid);
             return setvalid;
         } else if (this.addTaskWhich == 0) {
             delete setvalid.addTaskDetail.Dep;
@@ -763,15 +699,17 @@ export default {
             thisQueryTimeInterval: "commonquery/get_thisQueryTimeInterval",
             inputData: "commonquery/get_inputData",
             ttfStatus: "exportfile/get_ttfStatus",
+            errorFormat: "exportfile/get_errorFormat",
             isInit: "commonquery/get_isInit",
+            getDate: "getdate/get_Date",
         }),
     },
     created: function () {
         let vm = this;
-        vm.getNow();
-        // vm.getTaskList();
+        vm.now = vm.getDate.now;
+        vm.nowFormat = vm.getDate.nowFormat;
+        vm.thisweekday = vm.getDate.thisweekday;
         if (vm.pageAccess.weeklyreport.remark != "ALL") {
-            vm.setalertMsg("請稍候....");
             vm.togglealertModal(true);
         } else {
             vm.selectDepCollapseShow = true;
@@ -780,7 +718,8 @@ export default {
         vm.getBelongDepStaff();
     },
     mounted: function () {
-        this.fields.splice(9, 1);
+        let vm = this;
+        vm.fields.splice(9, 1);
     },
     watch: {
         tabIndex: {
@@ -798,18 +737,14 @@ export default {
                     "selectDepCollapseShow",
                     "exportModalShow",
                 ];
-                // if (vm.isInit) {
                 saveData.push("items", "tempData");
-                // }
                 vm.reset(saveData);
 
-                // if (vm.isInit) {
-                console.log("..........");
+                //console.log("..........");
                 let temp1 = vm.items.slice();
                 let temp2 = vm.tempData.slice();
                 vm.tempData = temp1;
                 vm.items = temp2;
-                // }
 
                 let commonApiParams = {};
                 if (vm.tabIndex == 0) {
@@ -845,7 +780,7 @@ export default {
                     vm.fields.splice(3, 5);
 
                     if (vm.items.length == 0) {
-                        console.log("@@@@@@@@@");
+                        //console.log("@@@@@@@@@");
                         vm.queryAgain();
                     }
                 }
@@ -854,9 +789,9 @@ export default {
         queryResponse: {
             handler() {
                 var vm = this;
-                console.log("////////////////////////////");
-                console.log(vm.items);
-                console.log(vm.tempData);
+                //console.log("////////////////////////////");
+                //console.log(vm.items);
+                //console.log(vm.tempData);
                 let saveData = [
                     "fields",
                     "tabIndex",
@@ -879,21 +814,21 @@ export default {
                     vm.queryResponse == "查無資料" ||
                     vm.queryResponse == "時間尚未選擇"
                 ) {
-                    vm.setalertMsg(vm.queryResponse);
+                    vm.setTimeOutAlertMsg(vm.queryResponse);
                     vm.settimeoutalertModal();
                     return;
                 }
-                console.log(vm.queryResponse);
-                console.log(JSON.stringify(vm.queryResponse));
+                //console.log(vm.queryResponse);
+                //console.log(JSON.stringify(vm.queryResponse));
                 vm.getTaskList();
             },
         },
         addTaskWhich: {
             handler() {
                 var vm = this;
-                console.log(vm.addTaskWhich);
+                //console.log(vm.addTaskWhich);
                 if (vm.addTaskWhich == 1) {
-                    console.log(vm.addTaskDetail);
+                    //console.log(vm.addTaskDetail);
                     delete vm.addTaskDetail.Date;
                     delete vm.addTaskDetail.Progress;
                     delete vm.addTaskDetail.Action;
@@ -904,14 +839,15 @@ export default {
                     delete vm.addTaskDetail.Dep;
                     vm.addTaskDetail.Date.time = vm.nowFormat;
                 }
-                console.log(vm.addTaskDetail);
+                //console.log(vm.addTaskDetail);
             },
         },
     },
     methods: {
         ...mapActions({
             axiosAction: "commonaxios/axiosAction",
-            setalertMsg: "alertmodal/set_alertMsg",
+            setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
+            setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             togglealertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             showalertMsgProgress: "alertmodal/show_alertMsgProgress",
@@ -921,7 +857,10 @@ export default {
             setapiParams: "commonquery/set_apiParams",
             queryAgain: "commonquery/do_queryAgain",
             setautoTable: "exportfile/set_autoTable",
+            seterrorFormat: "exportfile/set_errorFormat",
+            setautoTableStatus: "exportfile/set_autoTableStatus",
         }),
+
         dataSorted(sortKey) {
             let config = {
                 asc: { greater: 1, less: -1 },
@@ -939,6 +878,7 @@ export default {
                 }
             };
         },
+
         SetCommonQueryData() {
             var vm = this;
             var todolistqueryoptions = [];
@@ -989,93 +929,12 @@ export default {
                     ],
                 },
             };
-            console.log(commonApiParams);
+            //console.log(commonApiParams);
             vm.setapiParams(commonApiParams);
         },
-        getNow() {
-            let vm = this;
-            let weekdaysCountConfig = [
-                [Number(-6), Number(0)],
-                [Number(0), Number(6)],
-                [Number(-1), Number(5)],
-                [Number(-2), Number(4)],
-                [Number(-3), Number(3)],
-                [Number(-4), Number(2)],
-                [Number(-5), Number(1)],
-            ];
-            let nowDate = new Date();
-            let returnobj = {};
-            returnobj = vm.dateFormat(nowDate);
-            console.log(returnobj);
-            vm.now =
-                returnobj.weekday +
-                ", " +
-                returnobj.month +
-                "月 " +
-                returnobj.day +
-                ", " +
-                returnobj.year;
 
-            vm.nowFormat =
-                returnobj.year + "-" + returnobj.month + "-" + returnobj.day;
-            console.log(vm.nowFormat);
-
-            Date.prototype.addDays = function (days) {
-                this.setDate(this.getDate() + days);
-                return this;
-            };
-
-            let thisweekdaystart = new Date();
-            thisweekdaystart.addDays(
-                weekdaysCountConfig[thisweekdaystart.getDay()][0]
-            );
-            let thisweekdaystartreturnobj = {};
-            thisweekdaystartreturnobj = vm.dateFormat(thisweekdaystart);
-            let thisweekdayend = new Date();
-            thisweekdayend.addDays(
-                weekdaysCountConfig[thisweekdayend.getDay()][1]
-            );
-            let thisweekdayendreturnobj = {};
-            thisweekdayendreturnobj = vm.dateFormat(thisweekdayend);
-            vm.thisweekday = [
-                thisweekdaystartreturnobj.year +
-                    "-" +
-                    thisweekdaystartreturnobj.month +
-                    "-" +
-                    thisweekdaystartreturnobj.day,
-                thisweekdayendreturnobj.year +
-                    "-" +
-                    thisweekdayendreturnobj.month +
-                    "-" +
-                    thisweekdayendreturnobj.day,
-            ];
-            console.log(vm.thisweekday);
-        },
-        dateFormat(time) {
-            let vm = this;
-            let weekdays = [
-                "星期日",
-                "星期一",
-                "星期二",
-                "星期三",
-                "星期四",
-                "星期五",
-                "星期六",
-            ];
-            let thisDay = time.getDate();
-            if (thisDay < 10) thisDay = "0" + thisDay;
-            let thisMonth = time.getMonth() + 1;
-            if (thisMonth < 10) thisMonth = "0" + thisMonth;
-            return {
-                year: time.getFullYear(),
-                month: thisMonth,
-                day: thisDay,
-                weekday: weekdays[time.getDay()],
-            };
-        },
         getTaskList() {
             let vm = this;
-            vm.setalertMsg("請稍候....");
             vm.togglealertModal(true);
             vm.selectDepCollapseShow = false;
             let itemsobj = {};
@@ -1143,12 +1002,12 @@ export default {
                         Status: element.detail,
                     };
                 }
-                console.log(itemsobj);
                 vm.items.push(itemsobj);
             });
-            console.log("*************");
+            //console.log("*************");
             vm.togglealertModal(false);
         },
+
         getBelongDepStaff() {
             let vm = this;
             var params = {};
@@ -1173,16 +1032,16 @@ export default {
                     symbols: { noumenonID: thissymbols },
                 },
             };
-            console.log(params);
+            //console.log(params);
             let anyerror = false;
             vm.axiosAction(params)
                 .then(() => {
                     var result = vm.axiosResult;
-                    console.log(result);
-                    console.log(JSON.stringify(result["QueryTableData"]));
+                    //console.log(result);
+                    //console.log(JSON.stringify(result["QueryTableData"]));
                     if (result["Response"] == "ok") {
                         if (result["QueryTableData"].length == 0) {
-                            vm.setalertMsg("查無資料");
+                            vm.setTimeOutAlertMsg("查無資料");
                             anyerror = true;
                         } else {
                             //抓todoList
@@ -1206,22 +1065,23 @@ export default {
                             vm.depStaffRelation = itemsobj2;
                         }
                     } else {
-                        vm.setalertMsg(result["Response"]);
+                        vm.setTimeOutAlertMsg(result["Response"]);
                         anyerror = true;
                     }
                 })
                 .catch(function (err) {
-                    console.log(err);
-                    vm.setalertMsg(err);
+                    //console.log(err);
+                    vm.setTimeOutAlertMsg(err);
                     anyerror = true;
                 })
                 .finally(() => {
-                    console.log("done");
+                    //console.log("done");
                     if (anyerror) vm.settimeoutalertModal();
                     if (vm.pageAccess.weeklyreport.remark === "ALL")
                         vm.togglealertModal(false);
                 });
         },
+
         //紀錄舊的temp item data,若取消編輯可恢復資料
         tempOldItemAction(status, item) {
             let vm = this;
@@ -1231,9 +1091,10 @@ export default {
                 Object.assign(item, vm.tempThisOldItem);
             }
         },
+
         editLongData(row, which, status) {
             let vm = this;
-            console.log(row);
+            //console.log(row);
             if (status) {
                 vm.editActionItems.seq = row.item.seq;
                 vm.editActionItems.which = which;
@@ -1256,7 +1117,7 @@ export default {
                                 String(thisdata),
                                 true
                             );
-                            console.log(thisdata);
+                            //console.log(thisdata);
                         }
                         element[vm.editActionItems.which] = thisdata;
                     }
@@ -1264,21 +1125,22 @@ export default {
             }
             vm.editActionModalShow = !vm.editActionModalShow;
         },
+
         addTask(evt) {
             evt.preventDefault();
             let vm = this;
             let status = true;
-            console.log(vm.addTaskWhich);
+            //console.log(vm.addTaskWhich);
             let checkvalid = ["Group", "Item", "Progress", "Priority", "Owner"];
             if (vm.tabIndex == 1) checkvalid = ["Group", "Item", "Dep"];
-            console.log(checkvalid);
+            //console.log(checkvalid);
             checkvalid.forEach((element) => {
-                console.log(element);
-                console.log(vm.addTaskDetail[element]);
+                //console.log(element);
+                //console.log(vm.addTaskDetail[element]);
                 if (!vm.addTaskDetail[element].invalid) status = false;
             });
-            console.log(status);
-            console.log(vm.addTaskDetail);
+            //console.log(status);
+            //console.log(vm.addTaskDetail);
             if (status) {
                 let params = {};
                 if (vm.tabIndex == 1) {
@@ -1331,23 +1193,23 @@ export default {
                         },
                     };
                 }
-                console.log(params);
+                //console.log(params);
                 vm.axiosAction(params)
                     .then(() => {
                         var result = vm.axiosResult;
-                        console.log(result);
+                        //console.log(result);
                         if (result["Response"] == "ok") {
-                            vm.setalertMsg("新增成功");
+                            vm.setTimeOutAlertMsg("新增成功");
                         } else {
-                            vm.setalertMsg(result["Response"]);
+                            vm.setTimeOutAlertMsg(result["Response"]);
                         }
                     })
                     .catch(function (err) {
-                        console.log(err);
-                        vm.setalertMsg(err);
+                        //console.log(err);
+                        vm.setTimeOutAlertMsg(err);
                     })
                     .finally(() => {
-                        console.log("done");
+                        //console.log("done");
                         vm.settimeoutalertModal();
                         vm.formReset();
                         setTimeout(function () {
@@ -1358,6 +1220,7 @@ export default {
                     });
             }
         },
+
         addTaskClose() {
             var vm = this;
             vm.addTaskDetail = this.$options.data().addTaskDetail;
@@ -1365,22 +1228,22 @@ export default {
             vm.addTaskModalShow = !vm.addTaskModalShow;
             vm.addTaskWhich = null;
         },
+
         modTask(items) {
             let vm = this;
-            // vm.setalertMsg("請稍候.....");
             // vm.togglealertModal(true);
-            console.log(items);
+            //console.log(items);
             let thiscompletedDate = "";
             if (items.status) thiscompletedDate = vm.nowFormat;
-            console.log(vm.nowFormat);
-            console.log(items);
+            //console.log(vm.nowFormat);
+            //console.log(items);
             let params = {};
             let checkvalid = [];
             if (vm.tabIndex == 0) {
                 checkvalid = ["Group", "Item", "Progress", "Priority", "Owner"];
                 for (let i = 0; i < checkvalid.length; i++) {
                     if (items[checkvalid[i]] == "") {
-                        vm.setalertMsg("尚有未輸入的值");
+                        vm.setTimeOutAlertMsg("尚有未輸入的值");
                         vm.settimeoutalertModal();
                         return;
                     }
@@ -1389,12 +1252,12 @@ export default {
                         checkvalid[i] == "Priority"
                     ) {
                         if (!positivenumvalidator(items[checkvalid[i]])) {
-                            vm.setalertMsg("數字必須為正整數");
+                            vm.setTimeOutAlertMsg("數字必須為正整數");
                             vm.settimeoutalertModal();
                             return;
                         }
                         if (items[checkvalid[i]] > 100) {
-                            vm.setalertMsg("數字必須小於100");
+                            vm.setTimeOutAlertMsg("數字必須小於100");
                             vm.settimeoutalertModal();
                             return;
                         }
@@ -1426,7 +1289,7 @@ export default {
                 checkvalid = ["Group", "Item", "Dep"];
                 for (let i = 0; i < checkvalid.length; i++) {
                     if (items[checkvalid[i]] == "") {
-                        vm.setalertMsg("尚有未輸入的值");
+                        vm.setTimeOutAlertMsg("尚有未輸入的值");
                         vm.settimeoutalertModal();
                         return;
                     }
@@ -1445,32 +1308,33 @@ export default {
                 };
             }
             vm.activeItemsSeq = null;
-            console.log(params);
+            //console.log(params);
             vm.axiosAction(params)
                 .then(() => {
                     var result = vm.axiosResult;
-                    console.log(result);
+                    //console.log(result);
                     if (result["Response"] == "ok") {
-                        vm.setalertMsg("修改成功");
+                        vm.setTimeOutAlertMsg("修改成功");
                     } else {
-                        vm.setalertMsg(result["Response"]);
+                        vm.setTimeOutAlertMsg(result["Response"]);
                     }
                 })
                 .catch(function (err) {
-                    console.log(err);
-                    vm.setalertMsg(err);
+                    //console.log(err);
+                    vm.setTimeOutAlertMsg(err);
                 })
                 .finally(() => {
-                    console.log("done");
+                    //console.log("done");
                     vm.settimeoutalertModal();
                     setTimeout(function () {
                         vm.queryAgain();
                     }, 1200);
                 });
         },
+
         delTask() {
             let vm = this;
-            console.log(vm.delItemSeq);
+            //console.log(vm.delItemSeq);
             let params = {};
             if (vm.tabIndex == 0) {
                 params = {
@@ -1491,23 +1355,23 @@ export default {
                     },
                 };
             }
-            console.log(params);
+            //console.log(params);
             vm.axiosAction(params)
                 .then(() => {
                     var result = vm.axiosResult;
-                    console.log(result);
+                    //console.log(result);
                     if (result["Response"] == "ok") {
-                        vm.setalertMsg("刪除成功");
+                        vm.setTimeOutAlertMsg("刪除成功");
                     } else {
-                        vm.setalertMsg(result["Response"]);
+                        vm.setTimeOutAlertMsg(result["Response"]);
                     }
                 })
                 .catch(function (err) {
-                    console.log(err);
-                    vm.setalertMsg(err);
+                    //console.log(err);
+                    vm.setTimeOutAlertMsg(err);
                 })
                 .finally(() => {
-                    console.log("done");
+                    //console.log("done");
                     vm.settimeoutalertModal();
                     setTimeout(function () {
                         //先清空以防連續查無資料的bug
@@ -1517,6 +1381,7 @@ export default {
                     vm.delTaskModalShow = !vm.delTaskModalShow;
                 });
         },
+
         dateDisabled(ymd, date) {
             // Disable weekends (Sunday = `0`, Saturday = `6`) and
             // disable days that fall on the 13th of the month
@@ -1525,25 +1390,23 @@ export default {
             // Return `true` if the date should be disabled
             return weekday === 0 || weekday === 6;
         },
+
         rowClass(item, type) {
-            // console.log(item);
-            // console.log(type);
             if (!item || type !== "row") return;
             if (item.status)
                 return { style: "background-color:rgba(0, 0, 0, 0.144)" };
         },
+
         check_required(required, model) {
-            // console.log(required);
-            // console.log(model);
             model.invalid = required;
             return !required;
         },
+
         check_positivenumvalid(positivenumvalid, model) {
-            console.log(positivenumvalid);
-            console.log(model);
             model.positivenumvalid = positivenumvalid;
             return !positivenumvalid;
         },
+
         //validation表單reset
         formReset() {
             let vm = this;
@@ -1584,12 +1447,13 @@ export default {
                     invalid: false,
                 },
             };
-            console.log(vm.addTaskDetail);
+            //console.log(vm.addTaskDetail);
             vm.$nextTick(() => {
-                console.log("%%%%%%%%%%");
+                //console.log("%%%%%%%%%%");
                 vm.$v.$reset();
             });
         },
+
         //資料reset
         reset(keep) {
             var def = this.$options.data();
@@ -1599,332 +1463,265 @@ export default {
             Object.assign(this.$data, def);
             //https://codepen.io/karimcossutti/pen/ObXyKq
         },
+
         //亂數sort func
         shuffle(a, b) {
             var num = Math.random() > 0.5 ? -1 : 1;
             return num;
         },
+
         checkExportFileLegal() {
             let vm = this;
-            console.log(vm.tabIndex);
-            console.log(vm.items);
+            //console.log(vm.tabIndex);
+            //console.log(vm.items);
             if (vm.items.length == 0) {
-                vm.setalertMsg("無資料可匯出");
+                vm.setTimeOutAlertMsg("無資料可匯出");
                 vm.settimeoutalertModal();
                 return;
             }
             if (vm.tabIndex == 0) {
-                vm.setalertMsg("系統將自動查詢該時間區段的『下週重點』資料");
+                vm.setTimeOutAlertMsg(
+                    "系統將自動查詢該時間區段的『下週重點』資料"
+                );
                 vm.settimeoutalertModal();
+                vm.tabIndex = 1;
                 setTimeout(() => {
-                    vm.tabIndex = 1;
                     vm.exportModalShow = true;
-                }, 1000);
-                // return;
+                }, 200);
             } else {
                 vm.exportModalShow = true;
             }
         },
-        getNextWeekData(flag) {
+
+        exportFile(filetype) {
             let vm = this;
-            if (!flag) {
-                //清空
-                vm.nextWeekData = [];
-                vm.setalertMsg("請稍候....");
-                vm.togglealertModal(true);
-            }
-            //抓下週工作重點
-            var params = {};
-            params["methods"] = "POST";
-            params["whichFunction"] = "CommonSqlSyntaxQuery_";
-            let thiswhere = [];
-            let thissymbols = [];
-            if (vm.inputData.selected === "ALL") {
-                thiswhere = Object.keys(vm.depConfig);
-                thissymbols = ["equal", "equal", "equal"];
-            } else {
-                thiswhere.push(vm.inputData.selected);
-                thissymbols = ["equal"];
-            }
-            params["condition"] = {
-                condition_1: {
-                    table: "workedKey",
-                    where: { depID: thiswhere, date: [vm.thisweekday[0]] },
-                    limit: ["ALL"],
-                    symbols: { depID: thissymbols, date: ["equal"] },
-                },
-            };
-            console.log(params);
-            let anyerror = false;
-            return new Promise((resolve, reject) => {
-                vm.axiosAction(params)
-                    .then(() => {
-                        var result = vm.axiosResult;
-                        console.log(result);
-                        console.log(JSON.stringify(result["QueryTableData"]));
-                        if (result["Response"] == "ok") {
-                            if (result["QueryTableData"].length != 0) {
-                                result["QueryTableData"].forEach((element) => {
-                                    let itemsobj = {};
-                                    if (!flag) {
-                                        itemsobj = {
-                                            Group: element.groupID,
-                                            Item: element.item,
-                                            Status: element.detail,
-                                        };
-                                        vm.nextWeekData.push(itemsobj);
-                                    } else {
-                                        itemsobj = {
-                                            seq: element.seq,
-                                            depID: element.depID,
-                                            Group: element.groupID,
-                                            Item: element.item,
-                                            Status: element.detail,
-                                        };
-                                        vm.tempData.push(itemsobj);
-                                    }
-                                });
-                            }
-                        } else {
-                            vm.setalertMsg(result["Response"]);
-                            anyerror = true;
-                        }
-                    })
-                    .catch(function (err) {
-                        console.log(err);
-                        vm.setalertMsg(err);
-                        anyerror = true;
-                    })
-                    .finally(() => {
-                        console.log("done");
-                        console.log(anyerror);
-                        if (anyerror) {
-                            vm.settimeoutalertModal();
-                            reject();
-                        } else {
-                            resolve();
-                        }
-                        return anyerror;
-                    });
-            });
-        },
-        exportfile(filetype) {
-            let vm = this;
-            // vm.getNextWeekData(false).then(() => {
-            let thisweekexportdata = JSON.parse(JSON.stringify(vm.tempData));
-            console.log(thisweekexportdata);
-            thisweekexportdata.map(function (item) {
-                delete item.seq;
-                delete item.depID;
-                item.Date = item.Date.time;
-                // item.depID = vm.depConfig[item.depID];
-                console.log(item.Owner);
-                let thisOwner = item.Owner.split(",");
-                for (let i = 0; i < thisOwner.length; i++) {
-                    thisOwner[i] = vm.staffConfig[thisOwner[i]];
-                    if (i == thisOwner.length - 1) {
-                        item.Owner = thisOwner.join(",");
-                    }
-                }
-            });
-            console.log(thisweekexportdata);
-            console.log(JSON.stringify(thisweekexportdata));
-
-            let nextWeekData = JSON.parse(JSON.stringify(vm.items));
-            console.log(nextWeekData);
-            console.log(JSON.stringify(nextWeekData));
-            let othersOption = ["人事", "困難與問題", "會議", "拜訪", "測試"];
-            let othersOptiontemp = [
-                "人事",
-                "困難與問題",
-                "會議",
-                "拜訪",
-                "測試",
-            ];
-            let nextweekexportdata = [];
-            let nextweekothersexportdata = [];
-
-            nextWeekData.map(function (item) {
-                delete item.seq;
-                delete item.depID;
-            });
-
-            nextWeekData.filter(function (item) {
-                if (!othersOption.includes(item.Group)) {
-                    nextweekexportdata.push(item);
-                } else {
-                    othersOptiontemp.splice(
-                        othersOptiontemp.indexOf(item.Group),
-                        1
-                    );
-                    nextweekothersexportdata.push(item);
-                }
-            });
-            if (nextweekothersexportdata.length == 0) {
-                othersOption.forEach((element) => {
-                    let temp = {
-                        Group: element,
-                        Item: "",
-                        Status: "",
-                    };
-                    nextweekothersexportdata.push(temp);
-                });
-            } else if (nextweekothersexportdata.length < 5) {
-                othersOptiontemp.forEach((element) => {
-                    let temp = {
-                        Group: element,
-                        Item: "",
-                        Status: "",
-                    };
-                    nextweekothersexportdata.push(temp);
-                });
-            }
-            console.log(nextweekexportdata);
-            console.log(nextweekothersexportdata);
-
-            let thisdep = "全部門";
-            if (vm.inputData.selected != "ALL") {
-                thisdep = vm.depConfig[vm.inputData.selected];
-            }
-            console.log(thisdep);
-            const fileName = thisdep + "的WeeklyReport_" + vm.nowFormat;
-
-            if (filetype === "CSV") {
-                thisweekexportdata.map(function (item) {
-                    delete item.priority;
-                });
-                const data = thisweekexportdata.map((itemsdata) =>
-                    Object.values(itemsdata)
-                );
-                console.log(data);
-                //加入空白，匯出Excel不會改變格式
-                data.forEach((item) => {
-                    item[0] = " " + item[0];
-                });
-                //加表頭
-                data.unshift([
-                    "Group",
-                    "Item",
-                    "Date",
-                    "Status",
-                    "Progress%",
-                    "Action",
-                    "Remark",
-                    "Owner",
-                ]);
-                vm.setautoTable({
-                    body: data,
-                    exportfilename: fileName,
-                    exportfiletype: filetype,
-                });
-            } else {
-                let mergecells = {};
-                if (vm.exportPDFselected)
-                    mergecells = {
-                        rowSpan: ["Group", "Item"],
-                        rowSpanOrderBy: ["asc", "desc"],
-                    };
-                //本週
-                const thisweekfinalexportdata = vm.adjustExportDataDataFormat(
-                    thisweekexportdata, //欲匯出的data
-                    mergecells, //哪些key需要合併儲存格
-                    {
-                        halign: "left",
-                    }, //欲匯出autoTable data的預設格式
-                    [false], //是否有分隔線
-                    true, //是否要填色
-                    [["Priority", "asc"]] //特殊指定排序欄位
-                );
-                console.log(thisweekfinalexportdata);
-                //下週
-                const nextweekfinalexportdata = vm.adjustExportDataDataFormat(
-                    nextweekexportdata, //欲匯出的data
-                    Object.assign(mergecells, {
-                        colSpan: { Status: 6, Separate: 8 },
-                    }), //哪些key需要合併儲存格
-                    {
-                        halign: "left",
-                    }, //欲匯出autoTable data的預設格式
-                    [true, { Separate: "下週工作重點" }], //是否有分隔線
-                    true //是否要填色
-                );
-                console.log(nextweekfinalexportdata);
-                //Others
-                const nextweekothersfinalexportdata = vm.adjustExportDataDataFormat(
-                    nextweekothersexportdata, //欲匯出的data
-                    Object.assign(mergecells, {
-                        colSpan: { Status: 6, Separate: 8 },
-                    }), //哪些key需要合併儲存格
-                    {
-                        halign: "left",
-                    }, //欲匯出autoTable data的預設格式
-                    [true, { Separate: "Others" }], //是否有分隔線
-                    false //是否要填色
-                );
-                console.log(nextweekothersfinalexportdata);
-                console.log(
-                    thisweekfinalexportdata
-                        .concat(nextweekfinalexportdata)
-                        .concat(nextweekothersfinalexportdata)
-                );
-
-                //抓取此次時間區段
-                let thistimeinterval = "";
-                console.log(vm.thisQueryTimeInterval);
-                if (vm.thisQueryTimeInterval == "DEFAULT") {
-                    thistimeinterval = vm.thisweekday.join(" ~ ");
-                } else if (vm.thisQueryTimeInterval == "ALL") {
-                    thistimeinterval = "資料表內所有資料";
-                } else {
-                    thistimeinterval = vm.thisQueryTimeInterval.join(" ~ ");
-                }
-                console.log(thistimeinterval);
-                vm.setautoTable({
-                    body: thisweekfinalexportdata
-                        .concat(nextweekfinalexportdata)
-                        .concat(nextweekothersfinalexportdata),
-                    columns: [
-                        { header: "Group", dataKey: "Group" },
-                        { header: "Item", dataKey: "Item" },
-                        { header: "Date", dataKey: "Date" },
-                        { header: "Status", dataKey: "Status" },
-                        { header: "Progress%", dataKey: "Progress" },
-                        { header: "Action", dataKey: "Action" },
-                        { header: "Remark", dataKey: "Remark" },
-                        { header: "Owner", dataKey: "Owner" },
-                    ],
-                    columnStyles: {
-                        Group: { font: "msjh" },
-                        Item: { font: "msjh" },
-                        Date: { font: "msjh" },
-                        Status: { font: "msjh" },
-                        Progress: { font: "msjh", fontSize: 12 },
-                        Action: { font: "msjh" },
-                        Remark: { font: "msjh" },
-                        Owner: { font: "msjh" },
-                    },
-                    headStyles: {
-                        font: "msjh",
-                        fillColor: [160, 215, 255],
-                        valign: "middle",
-                        halign: "center",
-                        textColor: 10,
-                        lineWidth: 1,
-                        cellPadding: 3,
-                        minCellWidth: 50,
-                    },
-                    exportfilename: fileName,
-                    exportfiletype: filetype,
-                    text: [thisdep, thistimeinterval],
-                });
-            }
+            vm.togglealertModal(true);
             setTimeout(() => {
+                let thisweekexportdata = JSON.parse(
+                    JSON.stringify(vm.tempData)
+                );
+                // //console.log(thisweekexportdata);
+                thisweekexportdata.map(function (item) {
+                    delete item.seq;
+                    delete item.depID;
+                    item.Date = item.Date.time;
+                    // item.depID = vm.depConfig[item.depID];
+                    // //console.log(item.Owner);
+                    let thisOwner = item.Owner.split(",");
+                    for (let i = 0; i < thisOwner.length; i++) {
+                        thisOwner[i] = vm.staffConfig[thisOwner[i]];
+                        if (i == thisOwner.length - 1) {
+                            item.Owner = thisOwner.join(",");
+                        }
+                    }
+                });
+                // //console.log(thisweekexportdata);
+                // //console.log(JSON.stringify(thisweekexportdata));
+
+                let nextWeekData = JSON.parse(JSON.stringify(vm.items));
+                // //console.log(nextWeekData);
+                // //console.log(JSON.stringify(nextWeekData));
+                let othersOption = [
+                    "人事",
+                    "困難與問題",
+                    "會議",
+                    "拜訪",
+                    "測試",
+                ];
+                let othersOptiontemp = [
+                    "人事",
+                    "困難與問題",
+                    "會議",
+                    "拜訪",
+                    "測試",
+                ];
+                let nextweekexportdata = [];
+                let nextweekothersexportdata = [];
+
+                nextWeekData.map(function (item) {
+                    delete item.seq;
+                    delete item.depID;
+                });
+
+                nextWeekData.filter(function (item) {
+                    if (!othersOption.includes(item.Group)) {
+                        nextweekexportdata.push(item);
+                    } else {
+                        othersOptiontemp.splice(
+                            othersOptiontemp.indexOf(item.Group),
+                            1
+                        );
+                        nextweekothersexportdata.push(item);
+                    }
+                });
+                if (nextweekothersexportdata.length == 0) {
+                    othersOption.forEach((element) => {
+                        let temp = {
+                            Group: element,
+                            Item: "",
+                            Status: "",
+                        };
+                        nextweekothersexportdata.push(temp);
+                    });
+                } else if (nextweekothersexportdata.length < 5) {
+                    othersOptiontemp.forEach((element) => {
+                        let temp = {
+                            Group: element,
+                            Item: "",
+                            Status: "",
+                        };
+                        nextweekothersexportdata.push(temp);
+                    });
+                }
+                //console.log(nextweekexportdata);
+                //console.log(nextweekothersexportdata);
+
+                let thisdep = "全部門";
+                if (vm.inputData.selected != "ALL") {
+                    thisdep = vm.depConfig[vm.inputData.selected];
+                }
+                //console.log(thisdep);
+                const fileName = thisdep + "的WeeklyReport_" + vm.nowFormat;
+                vm.exportTitle = thisdep;
+
+                if (filetype === "CSV") {
+                    thisweekexportdata.map(function (item) {
+                        delete item.priority;
+                    });
+                    const data = thisweekexportdata.map((itemsdata) =>
+                        Object.values(itemsdata)
+                    );
+                    //console.log(data);
+                    //加入空白，匯出Excel不會改變格式
+                    data.forEach((item) => {
+                        item[0] = " " + item[0];
+                    });
+                    //加表頭
+                    data.unshift([
+                        "Group",
+                        "Item",
+                        "Date",
+                        "Status",
+                        "Progress%",
+                        "Action",
+                        "Remark",
+                        "Owner",
+                    ]);
+                    vm.setautoTable({
+                        body: data,
+                        exportfilename: fileName,
+                        exportfiletype: filetype,
+                    });
+                } else {
+                    //抓取此次時間區段
+                    let thistimeinterval = "";
+                    //console.log(vm.thisQueryTimeInterval);
+                    if (vm.thisQueryTimeInterval == "DEFAULT") {
+                        thistimeinterval = vm.thisweekday.join(" ~ ");
+                    } else if (vm.thisQueryTimeInterval == "ALL") {
+                        thistimeinterval = "資料表內所有資料";
+                    } else {
+                        thistimeinterval = vm.thisQueryTimeInterval.join(" ~ ");
+                    }
+                    //console.log(thistimeinterval);
+                    vm.exportDate = thistimeinterval;
+
+                    let mergecells = {};
+                    if (vm.exportPDFselected)
+                        mergecells = {
+                            // rowSpan: ["Group", "Item"],
+                            // rowSpanOrderBy: ["asc", "desc"],
+                            rowSpan: ["Group"],
+                            rowSpanOrderBy: ["asc"],
+                        };
+
+                    console.log(new Date());
+                    //https://wcc723.github.io/javascript/2017/12/30/javascript-async-await/
+                    const getThreePartData = async () => {
+                        //本週
+                        let thisweekfinalexportdata = await vm.adjustExportDataFormat(
+                            thisweekexportdata, //欲匯出的data
+                            mergecells, //哪些key需要合併儲存格
+                            {
+                                halign: "left",
+                            }, //欲匯出autoTable data的預設格式
+                            [false], //是否有分隔線
+                            true, //是否要填色
+                            [
+                                ["Item", "desc"],
+                                ["Priority", "asc"],
+                            ] //特殊指定排序欄位
+                        );
+                        //console.log(
+                        //     "thisweekfinalexportdata :>> ",
+                        //     thisweekfinalexportdata
+                        // );
+                        console.log(new Date());
+                        //下週
+                        let nextweekfinalexportdata = await vm.adjustExportDataFormat(
+                            nextweekexportdata, //欲匯出的data
+                            Object.assign(mergecells, {
+                                colSpan: { Status: 6, Separate: 8 },
+                            }), //哪些key需要合併儲存格
+                            {
+                                halign: "left",
+                            }, //欲匯出autoTable data的預設格式
+                            [true, { Separate: "下週工作重點" }], //是否有分隔線
+                            true,
+                            [["Item", "desc"]] //是否要填色 //特殊指定排序欄位
+                        );
+                        //console.log(
+                        //     "nextweekfinalexportdata :>> ",
+                        //     nextweekfinalexportdata
+                        // );
+                        console.log(new Date());
+                        //Others
+                        let nextweekothersfinalexportdata = await vm.adjustExportDataFormat(
+                            nextweekothersexportdata, //欲匯出的data
+                            Object.assign(mergecells, {
+                                colSpan: { Status: 6, Separate: 8 },
+                            }), //哪些key需要合併儲存格
+                            {
+                                halign: "left",
+                            }, //欲匯出autoTable data的預設格式
+                            [true, { Separate: "Others" }], //是否有分隔線
+                            false,
+                            [["Item", "desc"]] //是否要填色 //特殊指定排序欄位
+                        );
+                        //console.log(
+                        //     "nextweekothersfinalexportdata :>> ",
+                        //     nextweekothersfinalexportdata
+                        // );
+                        console.log(new Date());
+                        return thisweekfinalexportdata
+                            .concat(nextweekfinalexportdata)
+                            .concat(nextweekothersfinalexportdata);
+                    };
+
+                    getThreePartData()
+                        .then((value) => {
+                            //console.log(value);
+                            vm.setautoTableStatus(true); //true為正式匯出
+                            vm.setautoTable({
+                                body: value,
+                                columns: vm.exportColumns,
+                                columnStyles: vm.exportColumnStyles,
+                                headStyles: vm.exportHeadStyles,
+                                exportfilename: fileName,
+                                exportfiletype: "PDF",
+                                text: [vm.exportTitle, vm.exportDate],
+                            });
+                        })
+                        .catch((response) => {
+                            //console.log(response);
+                        });
+                }
+                //console.log("!!!!!!!!!!!!!!!!!!");
                 vm.exportModalShow = false;
-            }, 1000);
-            // });
+            }, 100);
         },
 
-        adjustExportDataDataFormat(
+        adjustExportDataFormat(
             data,
             spanKeys,
             autoTableStyle,
@@ -1932,15 +1729,14 @@ export default {
             haveColor,
             sortby = []
         ) {
+            /* 
+            1.排序要匯出的資料(看spanKeys丟入的是什麼來排序，目前系統以'Group'->'Item'->'Priority')
+            2.整理有相同的指定key個數(在表格中要來rowsapn的數量，目前系統只以'Group'來合併儲存格)
+            */
             let vm = this;
             let checkduplicate = {};
-            let checkduplicate1 = {};
             let checkduplicatefinalNum = {};
-            let checkduplicatefinalNum1 = {};
-            console.log(spanKeys);
-            console.log(data);
-            console.log(spanKeys.hasOwnProperty("rowSpan"));
-            console.log(sortby);
+            //console.log(vm.errorFormat);
             if (spanKeys.hasOwnProperty("rowSpan")) {
                 const thissort = spanKeys.rowSpan
                     .map((item, index) => [
@@ -1948,14 +1744,14 @@ export default {
                         spanKeys.rowSpanOrderBy[index],
                     ])
                     .concat(sortby);
-                console.log(thissort);
+                //console.log(thissort);
                 data = data.sort(vm.dataSorted(thissort));
-                console.log(data);
+                //console.log(data);
                 //排序完成後，移除特殊指定排序欄位 -> Priority
                 data.map(function (item) {
                     delete item.Priority;
                 });
-                console.log(data);
+                // //console.log(data);
                 let spanKeysrowSpan = spanKeys.rowSpan;
                 for (let q = 0; q < data.length; q++) {
                     for (let i = 0; i < spanKeysrowSpan.length; i++) {
@@ -1967,153 +1763,161 @@ export default {
                         if (haveSeparate[0]) {
                             thisq += 1;
                         }
-                        if (checkduplicate[spanKeysrowSpan[i]]) {
-                            if (
-                                !checkduplicate[spanKeysrowSpan[i]][
-                                    data[q][spanKeysrowSpan[i]]
-                                ]
-                            ) {
-                                checkduplicate[spanKeysrowSpan[i]][
-                                    data[q][spanKeysrowSpan[i]]
-                                ] = {};
-                                checkduplicate[spanKeysrowSpan[i]][
-                                    data[q][spanKeysrowSpan[i]]
-                                ]["COUNT"] = 1;
-                            } else {
-                                checkduplicate[spanKeysrowSpan[i]][
-                                    data[q][spanKeysrowSpan[i]]
-                                ]["COUNT"] += 1;
-                            }
-                            if (
-                                typeof checkduplicate[spanKeysrowSpan[i]][
-                                    data[q][spanKeysrowSpan[i]]
-                                ]["INDEX"] == "undefined"
-                            ) {
-                                checkduplicate[spanKeysrowSpan[i]][
-                                    data[q][spanKeysrowSpan[i]]
-                                ]["INDEX"] = thisq;
-                            }
-                        } else {
-                            checkduplicate = vm.checkduplicateFunc(
-                                data[q],
-                                spanKeysrowSpan[i],
-                                spanKeysrowSpan,
-                                checkduplicate,
-                                thisq
-                            );
-                            console.log(checkduplicate);
-                        }
+                        checkduplicate = vm.adjustCheckDuplicateObj(
+                            data[q],
+                            spanKeysrowSpan[i],
+                            spanKeysrowSpan,
+                            checkduplicate,
+                            thisq
+                        );
                     }
                 }
-
-                // spanKeys.rowSpan.forEach((key) => {
-                //     if (!checkduplicate1[key]) {
-                //         checkduplicate1[key] = {};
-                //         checkduplicatefinalNum1[key] = {};
-                //     }
-                //     data.map(function (item, index) {
-                //         if (!checkduplicate1[key][item[key]]) {
-                //             checkduplicate1[key][item[key]] = 1;
-                //             if (haveSeparate[0]) {
-                //                 checkduplicatefinalNum1[key][item[key]] =
-                //                     index + 1;
-                //             } else {
-                //                 checkduplicatefinalNum1[key][item[key]] = index;
-                //             }
-                //         } else {
-                //             checkduplicate1[key][item[key]] += 1;
-                //         }
-                //     });
-                // });
+            } else {
+                if (sortby.length != 0) data = data.sort(vm.dataSorted(sortby));
             }
-            if (sortby.length != 0) data = data.sort(vm.dataSorted(sortby));
             if (data.length != 0 && haveSeparate[0]) {
                 data.unshift(haveSeparate[1]);
             }
-            console.log(data);
-            console.log(checkduplicate);
-            //亂數10種顏色供Group換色
-            let tempColor = [
-                [238, 174, 145],
-                [221, 160, 221],
-                [244, 164, 96],
-                [222, 184, 135],
-                [144, 238, 144],
-                [240, 230, 140],
-                [210, 180, 140],
-                [255, 182, 193],
-                [255, 222, 173],
-                [143, 188, 143],
-            ];
-            // tempColor = tempColor.sort(vm.shuffle);
-            var body = [];
-            for (let q = 0; q < data.length; q++) {
-                let row = [];
-                for (let key_ in data[q]) {
-                    let thiscolSpan = 0;
-                    let thishalign = autoTableStyle.halign;
-                    let thisfillColor = [255, 255, 255];
-                    let thistextColor = [0, 0, 0];
-                    let thiscontent = data[q][key_];
-                    if (
-                        spanKeys.hasOwnProperty("colSpan") &&
-                        spanKeys.colSpan.hasOwnProperty(key_)
-                    )
-                        thiscolSpan = spanKeys.colSpan[key_];
-                    if (
-                        spanKeys.hasOwnProperty("rowSpan") &&
-                        spanKeys.rowSpan.includes(key_)
-                    ) {
-                        let thisINDEX = 0;
-                        let thisrowSpan = 0;
-                        if (checkduplicate[key_]) {
-                            thisINDEX =
-                                checkduplicate[key_][thiscontent]["INDEX"];
-                            thisrowSpan =
-                                checkduplicate[key_][thiscontent]["COUNT"];
+            //console.log(data);
+            //console.log(checkduplicate);
+            //console.log(JSON.stringify(checkduplicate));
 
-                            let totalGroup = Object.keys(checkduplicate[key_]);
-                            console.log(totalGroup);
+            //當動作完畢丟入adjustPDFbody，整理匯出符合jsPDF-autoTable的最後格式
+            return new Promise((resolve, reject) => {
+                vm.adjustPDFbody(
+                    data,
+                    autoTableStyle,
+                    spanKeys,
+                    checkduplicate,
+                    haveColor
+                ).then((response) => {
+                    //console.log(response);
+                    resolve(response);
+                });
+            });
+        },
+
+        adjustPDFbody(
+            data,
+            autoTableStyle,
+            spanKeys,
+            checkduplicate,
+            haveColor
+        ) {
+            /* 
+            1.將要匯出的資料整理成符合jsPDF-autoTable需要的格式
+            2.每一段資料都丟入測試格式是否會有問題(跨頁合併儲存格)
+            3.若有問題就再重新整理一次，直到沒問題才回傳整理好的資料(body)
+            */
+            console.log(new Date());
+            return new Promise((resolve, reject) => {
+                let vm = this;
+                //複製一份checkduplicate
+                let checkduplicateCopy = JSON.parse(
+                    JSON.stringify(checkduplicate)
+                );
+                //亂數10種顏色供Group換色
+                let tempColor = [
+                    [238, 174, 145],
+                    [221, 160, 221],
+                    [244, 164, 96],
+                    [222, 184, 135],
+                    [144, 238, 144],
+                    [240, 230, 140],
+                    [210, 180, 140],
+                    [255, 182, 193],
+                    [255, 222, 173],
+                    [143, 188, 143],
+                ];
+                // tempColor = tempColor.sort(vm.shuffle);
+                var body = [];
+                for (let q = 0; q < data.length; q++) {
+                    let row = [];
+                    for (let key_ in data[q]) {
+                        let thiscolSpan = 0;
+                        let thishalign = autoTableStyle.halign;
+                        let thisfillColor = [255, 255, 255];
+                        let thistextColor = [0, 0, 0];
+                        let thiscontent = data[q][key_];
+                        if (
+                            spanKeys.hasOwnProperty("colSpan") &&
+                            spanKeys.colSpan.hasOwnProperty(key_)
+                        )
+                            thiscolSpan = spanKeys.colSpan[key_];
+                        if (
+                            spanKeys.hasOwnProperty("rowSpan") &&
+                            spanKeys.rowSpan.includes(key_)
+                        ) {
+                            let thisINDEX = 0;
+                            let thisrowSpan = 0;
+                            let thischeckduplicate = checkduplicate;
+                            if (!checkduplicate[key_]) {
+                                let temp = spanKeys.rowSpan.slice();
+                                temp.splice(
+                                    temp.indexOf(key_),
+                                    temp.length - temp.indexOf(key_)
+                                );
+                                for (let i = 0; i < temp.length; i++) {
+                                    thischeckduplicate = vm.catchFather(
+                                        data[q],
+                                        temp[i],
+                                        thischeckduplicate
+                                    );
+                                }
+                            }
+
+                            let tempIndex =
+                                thischeckduplicate[key_][thiscontent]["INDEX"];
+                            let tempCount =
+                                thischeckduplicate[key_][thiscontent]["COUNT"];
+                            thisINDEX = tempIndex[0];
+                            thisrowSpan = tempCount[0];
+                            if (q == thisINDEX) {
+                                tempCount.splice(0, 1);
+                                tempIndex.splice(0, 1);
+                            }
+
                             //自定義格式
                             if (haveColor && key_ === "Group") {
-                                console.log(totalGroup.indexOf(thiscontent));
-                                console.log(
-                                    totalGroup.indexOf(thiscontent) % 10
+                                let totalGroup = Object.keys(
+                                    checkduplicate[key_]
                                 );
                                 thisfillColor =
                                     tempColor[
                                         totalGroup.indexOf(thiscontent) % 10
                                     ];
                             }
-                        } else {
-                            let temp = spanKeys.rowSpan.slice();
-                            temp.splice(
-                                temp.indexOf(key_),
-                                temp.length - temp.indexOf(key_)
-                            );
-                            let thischeckduplicate = {};
-                            for (let i = 0; i < temp.length; i++) {
-                                if (i == 0) {
-                                    thischeckduplicate = checkduplicate;
-                                }
-                                thischeckduplicate = vm.catchFather(
-                                    data[q],
-                                    temp[i],
-                                    thischeckduplicate
-                                );
+
+                            if (q == thisINDEX) {
+                                thishalign = "center";
+                                // if (thiscontent == "") thisrowSpan = 0;
+                                row.push({
+                                    colSpan: thiscolSpan,
+                                    rowSpan: thisrowSpan,
+                                    content: data[q][key_],
+                                    styles: {
+                                        textColor: thistextColor,
+                                        valign: "middle",
+                                        halign: thishalign,
+                                        fillColor: thisfillColor,
+                                    },
+                                });
                             }
-                            thisINDEX =
-                                thischeckduplicate[key_][thiscontent]["INDEX"];
-                            thisrowSpan =
-                                thischeckduplicate[key_][thiscontent]["COUNT"];
-                        }
-                        if (q == thisINDEX) {
-                            thishalign = "center";
-                            // if (thiscontent == "") thisrowSpan = 0;
+                        } else {
+                            //自定義格式
+                            if (key_ === "Progress") {
+                                if (Number(thiscontent) >= 100)
+                                    thistextColor = [0, 179, 60];
+                                thiscontent = thiscontent + "%";
+                                thishalign = "center";
+                            }
+                            if (key_ === "Separate") {
+                                thisfillColor = [211, 211, 211];
+                                thishalign = "center";
+                            }
                             row.push({
                                 colSpan: thiscolSpan,
-                                rowSpan: thisrowSpan,
-                                content: data[q][key_],
+                                content: thiscontent,
                                 styles: {
                                     textColor: thistextColor,
                                     valign: "middle",
@@ -2122,38 +1926,105 @@ export default {
                                 },
                             });
                         }
-                    } else {
-                        //自定義格式
-                        if (key_ === "Progress") {
-                            if (Number(thiscontent) >= 100)
-                                thistextColor = [0, 179, 60];
-                            thiscontent = thiscontent + "%";
-                            thishalign = "center";
-                        }
-                        if (key_ === "Separate") {
-                            thisfillColor = [211, 211, 211];
-                            thishalign = "center";
-                        }
-                        row.push({
-                            colSpan: thiscolSpan,
-                            content: thiscontent,
-                            styles: {
-                                textColor: thistextColor,
-                                valign: "middle",
-                                halign: thishalign,
-                                fillColor: thisfillColor,
-                            },
-                        });
                     }
+                    body.push(row);
                 }
-                body.push(row);
-            }
+
+                //Yishan 09082020
+                //丟去製作pdf測試格式是否有問題，目前jsPDF-autoTable遇到跨頁rowSpan會格式跑掉
+                //sol:每一段data都丟去jsPDF-autoTable的js做內容高度與頁內最大高度判斷
+                //    若內容高度會大於頁內最大高度，將取Math.celi(內容高度/頁內最大高度)無條件進入當成縮小倍數，將rowSpan縮小
+                //    將內容高度控制在頁內最大高度，可避免跨頁rowSpan
+                //console.log("body :>> ", body);
+                let params = {
+                    body: body,
+                    columns: vm.exportColumns,
+                    columnStyles: vm.exportColumnStyles,
+                    headStyles: vm.exportHeadStyles,
+                    exportfiletype: "PDF",
+                    text: [vm.exportTitle, vm.exportDate],
+                };
+                vm.setautoTableStatus(false); //false為測試格式
+                vm.setautoTable(params)
+                    .then(() => {
+                        //console.log("errorFormat :>> ", vm.errorFormat);
+                        //格式沒問題
+                        if (vm.errorFormat.length == 0) {
+                            resolve(body);
+                        } else {
+                            //console.log(checkduplicateCopy);
+                            //console.log(data);
+                            vm.errorFormat.forEach((element) => {
+                                //console.log(element.index);
+                                //console.log(element.division);
+                                //目前只有Group會合併儲存格所以先寫死抓Group
+                                //console.log(data[element.index].Group);
+                                //console.log(
+                                //     checkduplicateCopy.Group[
+                                //         data[element.index].Group
+                                //     ]
+                                // );
+                                const divideNum = vm.getDivideNumber(
+                                    checkduplicateCopy.Group[
+                                        data[element.index].Group
+                                    ]["COUNT"][0],
+                                    element.division,
+                                    element.index
+                                );
+                                //console.log("divideNum :>> ", divideNum);
+                                checkduplicateCopy.Group[
+                                    data[element.index].Group
+                                ]["COUNT"] = divideNum[1];
+                                checkduplicateCopy.Group[
+                                    data[element.index].Group
+                                ]["INDEX"] = divideNum[0];
+                                //console.log(checkduplicateCopy);
+                            });
+                            //再重新跑一次整理func
+                            vm.adjustPDFbody(
+                                data,
+                                autoTableStyle,
+                                spanKeys,
+                                checkduplicateCopy,
+                                haveColor
+                            ).then((response) => {
+                                //console.log(response);
+                                resolve(response);
+                            });
+                        }
+                    })
+                    .catch(function (err) {
+                        //console.log(err);
+                    });
+            });
             return body;
         },
+
+        getDivideNumber(number, division, index) {
+            let numberCOUNTAry = [];
+            let numberINDEXAry = [];
+            let childNum = Math.ceil(number / division);
+            for (let i = 0; i < division; i++) {
+                numberINDEXAry.push(index + childNum * i);
+                //如果餘數為0表示整除
+                if (number % division == 0) {
+                    numberCOUNTAry.push(childNum);
+                } else {
+                    if (i == division - 1) {
+                        numberCOUNTAry.push(number - childNum * i);
+                    } else {
+                        numberCOUNTAry.push(childNum);
+                    }
+                }
+            }
+            return [numberINDEXAry, numberCOUNTAry];
+        },
+
         catchFather(data, thiskey, thischeckduplicate) {
             return thischeckduplicate[thiskey][data[thiskey]];
         },
-        checkduplicateFunc(
+
+        adjustCheckDuplicateObj(
             data,
             thiskey,
             spanKeysrowSpan,
@@ -2166,49 +2037,46 @@ export default {
                 temp.indexOf(thiskey),
                 temp.length - temp.indexOf(thiskey)
             );
-            let thischeckduplicate = {};
-            for (let i = 0; i < temp.length; i++) {
-                if (i == 0) {
-                    thischeckduplicate = checkduplicate;
-                }
-                thischeckduplicate = vm.catchFather(
-                    data,
-                    temp[i],
-                    thischeckduplicate
-                );
-                if (i == temp.length - 1) {
-                    thischeckduplicate = vm.adjust(
-                        thischeckduplicate,
-                        thiskey,
+            //因為沒有deep copy所以小孩改變爸爸也會一起改變
+            let thischeckduplicate = checkduplicate;
+            if (temp.length != 0) {
+                for (let i = 0; i < temp.length; i++) {
+                    thischeckduplicate = vm.catchFather(
                         data,
-                        thisq
+                        temp[i],
+                        thischeckduplicate
                     );
                 }
             }
+            thischeckduplicate = vm.adjustCheckDuplicateObj2(
+                thischeckduplicate,
+                thiskey,
+                data,
+                thisq
+            );
             return checkduplicate;
         },
-        adjust(thischeckduplicate, thiskey, data, thisq) {
+
+        adjustCheckDuplicateObj2(thischeckduplicate, thiskey, data, thisq) {
             if (!thischeckduplicate[thiskey]) {
                 thischeckduplicate[thiskey] = {};
             }
             if (!thischeckduplicate[thiskey][data[thiskey]]) {
                 thischeckduplicate[thiskey][data[thiskey]] = {};
-                thischeckduplicate[thiskey][data[thiskey]]["COUNT"] = 1;
+                thischeckduplicate[thiskey][data[thiskey]]["COUNT"] = [1];
             } else {
-                thischeckduplicate[thiskey][data[thiskey]]["COUNT"] += 1;
+                thischeckduplicate[thiskey][data[thiskey]]["COUNT"][0] += 1;
             }
             if (
                 typeof thischeckduplicate[thiskey][data[thiskey]]["INDEX"] ==
                 "undefined"
             ) {
-                thischeckduplicate[thiskey][data[thiskey]]["INDEX"] = thisq;
+                thischeckduplicate[thiskey][data[thiskey]]["INDEX"] = [thisq];
             }
             return thischeckduplicate;
         },
 
         replaceContentData(content, status) {
-            console.log(content);
-            console.log(typeof content);
             if (status) {
                 return (
                     content // .replace(/\r\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
@@ -2222,28 +2090,6 @@ export default {
                     .replace(/<br\s*[\/]?>/g, "\n")
                     .replace(/&nbsp;/g, "");
             }
-        },
-
-        //達到可以同時多key sort //https://www.sitepoint.com/sort-an-array-of-objects-in-javascript/
-        compareValues(key, order = "asc") {
-            return function innerSort(a, b) {
-                if (!a.hasOwnProperty(key) || !b.hasOwnProperty(key)) {
-                    return 0;
-                }
-
-                const varA =
-                    typeof a[key] === "string" ? a[key].toUpperCase() : a[key];
-                const varB =
-                    typeof b[key] === "string" ? b[key].toUpperCase() : b[key];
-
-                let comparison = 0;
-                if (varA > varB) {
-                    comparison = -1;
-                } else if (varA < varB) {
-                    comparison = 1;
-                }
-                return order === "desc" ? comparison * -1 : comparison;
-            };
         },
     },
 };

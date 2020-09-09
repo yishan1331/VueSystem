@@ -11,6 +11,7 @@ const state = {
         structure: { "status": false }, //系統架構-架構圖
         todolist: { "status": false, "remark": null }, //報告-待辦事項
         weeklyreport: { "status": false, "remark": null }, //報告-週報表
+        meetingminutes: { "status": false }, //報告-會議記錄
     },
     pageAccessCH: {
         misbulletinboard: "MIS公告區",
@@ -20,6 +21,7 @@ const state = {
         structure: "架構圖",
         todolist: "待辦事項",
         weeklyreport: "Weekly Report",
+        meetingminutes: "會議記錄",
     },
 };
 const getters = {

@@ -72,7 +72,7 @@ export default {
     methods: {
         ...mapActions({
             axiosAction: "commonaxios/axiosAction",
-            setalertMsg: "alertmodal/set_alertMsg",
+            setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             togglealertModal: "alertmodal/toggle_alertModal",
             change_loginData: "getlogin/change_loginData",
@@ -82,11 +82,10 @@ export default {
         checkUser(e) {
             var vm = this;
             if (vm.user.uID === "") {
-                vm.setalertMsg("帳號尚未輸入");
+                vm.setTimeOutAlertMsg("帳號尚未輸入");
                 vm.settimeoutalertModal();
                 return;
             }
-            vm.setalertMsg("請稍候...");
             vm.togglealertModal(true);
             var params = {};
             params["methods"] = "GET";
@@ -99,16 +98,16 @@ export default {
                 console.log(result["QueryTableData"][0].accessList);
                 console.log(JSON.stringify(result));
                 if (result["Response"] != "ok") {
-                    vm.setalertMsg(result["Response"]);
+                    vm.setTimeOutAlertMsg(result["Response"]);
                     vm.settimeoutalertModal();
                 } else {
                     if (result["QueryTableData"].length === 0) {
-                        vm.setalertMsg("查無此帳號");
+                        vm.setTimeOutAlertMsg("查無此帳號");
                         vm.settimeoutalertModal();
                         return;
                     }
                     if (vm.user.pwd === result["QueryTableData"][0].pwd) {
-                        vm.setalertMsg("登入成功");
+                        vm.setTimeOutAlertMsg("登入成功");
                         vm.settimeoutalertModal();
                         var obj = {};
                         obj.account = vm.user.uID;
@@ -136,7 +135,7 @@ export default {
                             vm.$router.push("/index");
                         }, 900);
                     } else {
-                        vm.setalertMsg("帳號或密碼錯誤");
+                        vm.setTimeOutAlertMsg("帳號或密碼錯誤");
                         vm.settimeoutalertModal();
                     }
                 }
@@ -154,6 +153,7 @@ export default {
             //     structure: { status: true },
             //     todolist: { status: true, remark: "ALL" },
             //     weeklyreport: { status: true, remark: "1003" },
+            //     meetingminutes: { status: true },
             // };
             // vm.change_loginData(obj);
             // vm.change_pageAccess(obj.accesslist);

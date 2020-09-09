@@ -68,6 +68,11 @@
                                 v-show="pageAccess.weeklyreport.status"
                                 :to="'weeklyreport'"
                             >Weekly Report</router-link>
+                            <router-link
+                                class="nav-link"
+                                v-show="pageAccess.meetingminutes.status"
+                                :to="'meetingminutes'"
+                            >會議記錄</router-link>
                         </div>
                     </li>
                     <li class="nav-item dropdown">
@@ -225,6 +230,10 @@ export default {
             pageAccess: "getlogin/get_pageAccess",
         }),
     },
+    created: function () {
+        this.getNow();
+        console.log(this.pageAccess);
+    },
     components: {
         modal,
         alertModal,
@@ -234,9 +243,92 @@ export default {
             axiosAction: "commonaxios/axiosAction",
             change_loginData: "getlogin/change_loginData",
             togglecommonModal: "usemodal/toggle_commonModal",
-            setalertMsg: "alertmodal/set_alertMsg",
+            setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
+            settimeoutalertModal: "alertmodal/settimeout_alertModal",
+            setDate: "getdate/set_Date",
         }),
+        getNow() {
+            let vm = this;
+            let weekdaysCountConfig = [
+                [Number(-6), Number(0)],
+                [Number(0), Number(6)],
+                [Number(-1), Number(5)],
+                [Number(-2), Number(4)],
+                [Number(-3), Number(3)],
+                [Number(-4), Number(2)],
+                [Number(-5), Number(1)],
+            ];
+            let nowDate = new Date();
+            let returnobj = {};
+            returnobj = vm.dateFormat(nowDate);
+            console.log(returnobj);
+            let obj = {};
+            obj.now =
+                returnobj.weekday +
+                ", " +
+                returnobj.month +
+                "月 " +
+                returnobj.day +
+                ", " +
+                returnobj.year;
+
+            obj.nowFormat =
+                returnobj.year + "-" + returnobj.month + "-" + returnobj.day;
+
+            Date.prototype.addDays = function (days) {
+                this.setDate(this.getDate() + days);
+                return this;
+            };
+
+            let thisweekdaystart = new Date();
+            thisweekdaystart.addDays(
+                weekdaysCountConfig[thisweekdaystart.getDay()][0]
+            );
+            let thisweekdaystartreturnobj = {};
+            thisweekdaystartreturnobj = vm.dateFormat(thisweekdaystart);
+            let thisweekdayend = new Date();
+            thisweekdayend.addDays(
+                weekdaysCountConfig[thisweekdayend.getDay()][1]
+            );
+            let thisweekdayendreturnobj = {};
+            thisweekdayendreturnobj = vm.dateFormat(thisweekdayend);
+            obj.thisweekday = [
+                thisweekdaystartreturnobj.year +
+                    "-" +
+                    thisweekdaystartreturnobj.month +
+                    "-" +
+                    thisweekdaystartreturnobj.day,
+                thisweekdayendreturnobj.year +
+                    "-" +
+                    thisweekdayendreturnobj.month +
+                    "-" +
+                    thisweekdayendreturnobj.day,
+            ];
+            vm.setDate(obj);
+        },
+        dateFormat(time) {
+            let vm = this;
+            let weekdays = [
+                "星期日",
+                "星期一",
+                "星期二",
+                "星期三",
+                "星期四",
+                "星期五",
+                "星期六",
+            ];
+            let thisDay = time.getDate();
+            if (thisDay < 10) thisDay = "0" + thisDay;
+            let thisMonth = time.getMonth() + 1;
+            if (thisMonth < 10) thisMonth = "0" + thisMonth;
+            return {
+                year: time.getFullYear(),
+                month: thisMonth,
+                day: thisDay,
+                weekday: weekdays[time.getDay()],
+            };
+        },
         logout() {
             var vm = this;
             var obj = {};
@@ -258,12 +350,12 @@ export default {
                 vm.ChangePwdmodal.change_newpwd === "" ||
                 vm.ChangePwdmodal.change_newpwd2 === ""
             ) {
-                vm.setalertMsg("不能為空");
+                vm.setTimeOutAlertMsg("不能為空");
                 vm.settimeoutalertModal();
                 return;
             }
             if (vm.ChangePwdmodal.old_pwd === vm.ChangePwdmodal.change_newpwd) {
-                vm.setalertMsg("新密碼不能與舊密碼相同");
+                vm.setTimeOutAlertMsg("新密碼不能與舊密碼相同");
                 vm.settimeoutalertModal();
                 vm.ChangePwdmodal.change_newpwd = "";
                 vm.ChangePwdmodal.wrongStatus.oldisWrong = true;
@@ -275,7 +367,7 @@ export default {
                 vm.ChangePwdmodal.change_newpwd !=
                 vm.ChangePwdmodal.change_newpwd2
             ) {
-                vm.setalertMsg("兩次密碼輸入不相符");
+                vm.setTimeOutAlertMsg("兩次密碼輸入不相符");
                 vm.settimeoutalertModal();
                 vm.ChangePwdmodal.change_newpwd = "";
                 vm.ChangePwdmodal.change_newpwd2 = "";
@@ -291,7 +383,7 @@ export default {
             vm.axiosAction(params).then(() => {
                 var result = vm.axiosResult;
                 if (result["Response"] != "ok") {
-                    vm.setalertMsg(result["Response"]);
+                    vm.setTimeOutAlertMsg(result["Response"]);
                     vm.settimeoutalertModal();
                 } else {
                     if (
@@ -319,10 +411,10 @@ export default {
                         vm.axiosAction(params).then(() => {
                             var result = vm.axiosResult;
                             if (result["Response"] != "ok") {
-                                vm.setalertMsg(result["Response"]);
+                                vm.setTimeOutAlertMsg(result["Response"]);
                                 vm.settimeoutalertModal();
                             } else {
-                                vm.setalertMsg("修改成功請重新登入");
+                                vm.setTimeOutAlertMsg("修改成功請重新登入");
                                 vm.settimeoutalertModal();
                                 var obj = {};
                                 obj.account = null;
@@ -340,7 +432,7 @@ export default {
                     } else {
                         vm.ChangePwdmodal.old_pwd = "";
                         vm.ChangePwdmodal.wrongStatus.oldisWrong = true;
-                        vm.setalertMsg("舊密碼不符合");
+                        vm.setTimeOutAlertMsg("舊密碼不符合");
                         vm.settimeoutalertModal();
                     }
                 }

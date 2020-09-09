@@ -1,117 +1,56 @@
 <template>
-    <div class="MISBulletinManage container">
+    <div class="MeetingMinutes container">
         <commonQuery v-if="tabIndex != 0" />
         <b-card no-body>
             <b-tabs card v-model="tabIndex">
                 <b-tab title="上傳" active>
-                    <b-form @submit="uploadFormSubmit" v-if="tabIndex == 0">
-                        <b-row class="my-4">
-                            <b-col sm="2">
-                                <label for="input-default">類別:</label>
-                            </b-col>
-                            <b-col sm="5">
-                                <b-form-select
-                                    id="input-category"
-                                    v-model="form.category"
-                                    :options="categoryoptions"
-                                    style="display:inline-block"
-                                ></b-form-select>
-                            </b-col>
-                        </b-row>
-                        <b-row class="my-4">
-                            <b-col sm="2">
-                                <label for="input-default">公告標題:</label>
-                            </b-col>
-                            <b-col
-                                sm="5"
-                                :class="{ 'form-group--error': $v.form.title.value.$error }"
-                            >
-                                <b-form-input
-                                    v-model.trim="$v.form.title.$model.value"
-                                    class="input-title"
-                                    type="text"
-                                ></b-form-input>
-                                <template
-                                    v-if="check_required($v.form.title.value.required,$v.form.title.$model)"
-                                >
-                                    <div class="error">Is required</div>
-                                </template>
-                            </b-col>
-                        </b-row>
-                        <b-row class="my-4">
-                            <b-col sm="2">
-                                <label for="textarea-large">公告內容:</label>
-                                <b-form-checkbox
-                                    v-model="formcontentusetable"
-                                    style="margin-bottom:5px"
-                                    v-b-tooltip="{ trigger:'hover',title: usetableTooltipExample, html:true, placement: 'right', variant: 'info'}"
-                                >自定義文字格式或使用表格(若兩者都勾選以此優先)</b-form-checkbox>
-                                <b-form-checkbox
-                                    v-model="formcontentusepre"
-                                    v-b-tooltip="{ trigger:'hover',title: usepreTooltipExample, html:true, placement: 'bottom', variant: 'info'}"
-                                >自定義格式內容(&lt;pre&gt;)</b-form-checkbox>
-                            </b-col>
-                            <b-col
-                                sm="10"
-                                :class="{ 'form-group--error': seterrorclass($v.form.content.value,tabIndex)}"
-                            >
-                                <b-form-textarea
-                                    id="textarea-default"
-                                    size="lg"
-                                    no-resize
-                                    rows="8"
-                                    v-model.trim="$v.form.content.$model.value"
-                                >
-                                    <br />
-                                </b-form-textarea>
-                                <template
-                                    v-if="check_required($v.form.content.value.required,$v.form.content.$model)"
-                                >
-                                    <div class="error">Is required</div>
-                                </template>
-                                <template v-else-if="formcontentusetable">
-                                    <div
-                                        class="jsonerror"
-                                        v-if="check_jsonvalid($v.form.content.value.jsonvalidator,$v.form.content.$model)"
-                                    >不是正確的JSON格式，字串須加雙引號，陣列要以[ ]包起來，物件要以{ }包起來</div>
-                                </template>
-                            </b-col>
-                        </b-row>
-
-                        <b-row class="my-4">
-                            <b-col sm="2">
-                                <label for="textarea-large">
-                                    附件:
-                                    <br />(小於10MB)
-                                </label>
-                            </b-col>
-                            <b-col sm="10">
-                                <b-form-file
-                                    v-model="form.files"
-                                    multiple
-                                    class="mb-2"
-                                    type="file"
-                                    ref="file"
-                                    :file-name-formatter="formatNames"
-                                    @change="fileChange"
-                                    accept="image/*, .pdf, .zip"
-                                ></b-form-file>
-                            </b-col>
-                        </b-row>
-
-                        <b-row>
-                            <b-col lg="12" class="pb-2">
-                                <div class="text-center">
-                                    <b-button
-                                        type="submit"
-                                        variant="primary"
-                                        @click="$v.form.$touch"
-                                    >上傳</b-button>
-                                    <!-- @click.prevent="onSubmit()" -->
-                                </div>
-                            </b-col>
-                        </b-row>
-                    </b-form>
+                    <b-row class="my-4">
+                        <b-col sm="2">
+                            <label for="input-default">會議日期:</label>
+                        </b-col>
+                        <b-col sm="5">
+                            <datepicker :date="form.date" :option="datepickerOptions"></datepicker>
+                        </b-col>
+                    </b-row>
+                    <b-row class="my-4">
+                        <b-col sm="2">
+                            <label for="input-default">會議標題:</label>
+                        </b-col>
+                        <b-col sm="10">
+                            <b-form-input v-model.trim="form.title" type="text"></b-form-input>
+                        </b-col>
+                    </b-row>
+                    <b-row class="my-4">
+                        <b-col sm="2">
+                            <label for="textarea-large">
+                                附件:
+                                <br />(小於10MB)
+                            </label>
+                        </b-col>
+                        <b-col sm="10">
+                            <b-form-file
+                                v-model="form.files"
+                                multiple
+                                class="mb-2"
+                                type="file"
+                                ref="file"
+                                :file-name-formatter="formatNames"
+                                @change="fileChange"
+                                accept="image/*, .pdf, .zip"
+                            ></b-form-file>
+                        </b-col>
+                    </b-row>
+                    <b-row>
+                        <b-col lg="12" class="pb-2">
+                            <div class="text-center">
+                                <b-button
+                                    type="submit"
+                                    variant="primary"
+                                    @click.prevent="uploadFormSubmit()"
+                                >上傳</b-button>
+                            </div>
+                        </b-col>
+                    </b-row>
                 </b-tab>
                 <b-tab title="修改">
                     <h5 class="card-title" v-if="items.length == 0">選擇查詢條件</h5>
@@ -353,44 +292,30 @@
                 </b-form>
             </template>
         </b-modal>
+        {{getDate}}
+        <br>
+        <br>
+        <br>
+        {{depStaffRelation}}
     </div>
 </template>
 
 <script>
 import axios from "axios";
+import datepicker from "vue-datepicker/vue-datepicker-es6.vue";
 import commonQuery from "@/components/commonQuery.vue";
-import { validationMixin } from "vuelidate"; // 表單驗證
-import { required, minLength, between } from "vuelidate/lib/validators";
 import { mapGetters, mapActions } from "vuex";
-//設置json validator
-const jsonvalidator = (jsonData) => {
-    let status = true;
-    try {
-        JSON.parse(jsonData);
-    } catch (e) {
-        //console.log('Error data', e);
-        status = false;
-    }
-    console.log(status);
-    return status;
-};
 export default {
-    name: "MISBulletinManage",
+    name: "MeetingMinutes",
     data() {
         return {
+            now: "",
+            nowFormat: "",
+            thisweekday: [],
             tabIndex: 0,
             form: {
-                title: {
-                    key: "title",
-                    value: "",
-                    invalid: false,
-                },
-                content: {
-                    key: "content",
-                    value: "",
-                    invalid: false,
-                },
-                category: "system",
+                date: { time: "" },
+                title: "",
                 filename: [],
                 files: [],
             },
@@ -400,27 +325,71 @@ export default {
             formcontentusepre: false,
             fields: [
                 {
-                    key: "category",
-                    label: "類別",
+                    key: "depID",
+                    label: "部門",
                     sortable: true,
                 },
                 {
                     key: "title",
-                    label: "標題",
+                    label: "會議標題",
                     sortable: true,
                 },
                 {
-                    key: "releasedate",
-                    label: "發布日期",
+                    key: "date",
+                    label: "會議日期",
                     sortable: true,
                 },
                 {
-                    key: "showhide",
-                    label: "顯示/隱藏",
+                    key: "filename",
+                    label: "檔案列表",
                     sortable: true,
                 },
             ],
             items: [],
+            datepickerOptions: {
+                type: "day",
+                week: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
+                month: [
+                    "January",
+                    "February",
+                    "March",
+                    "April",
+                    "May",
+                    "June",
+                    "July",
+                    "August",
+                    "September",
+                    "October",
+                    "November",
+                    "December",
+                ],
+                format: "YYYY-MM-DD",
+                placeholder: "",
+                inputStyle: {
+                    display: "inline-block",
+                    padding: "5px",
+                    "line-height": "22px",
+                    "font-size": "16px",
+                    "text-align": "center",
+                    border: "2px solid #fff",
+                    "box-shadow": "0 1px 3px 0 rgba(0, 0, 0, 0.2)",
+                    "border-radius": "2px",
+                    color: "#5F5F5F",
+                    width: "150px",
+                },
+                color: {
+                    header: "#ccc",
+                    headerText: "#f00",
+                },
+                overlayOpacity: 0.5, // 0.5 as default
+                dismissible: true, // as true as default
+            },
+            depConfig: {
+                1001: "資訊通訊部",
+                1002: "系統研發部",
+                1003: "雲端AI(智慧)平台部",
+            },
+            depStaffRelation: {},
             categoryoptions: [
                 { value: "system", text: "系統" },
                 { value: "PC", text: "個人電腦" },
@@ -457,64 +426,18 @@ export default {
             delBulletinModalShow: false,
         };
     },
-    // 表單驗證引入
-    mixins: [validationMixin],
-    //驗證欄位參數
-    validations() {
-        let setvalid = {
-            form: {
-                title: {
-                    value: {
-                        required,
-                    },
-                },
-                content: {
-                    value: {
-                        required,
-                        jsonvalidator,
-                    },
-                },
-            },
-            modmodalcontent: {
-                title: {
-                    value: {
-                        required,
-                    },
-                },
-                content: {
-                    value: {
-                        required,
-                        jsonvalidator,
-                    },
-                },
-            },
-        };
-        console.log(setvalid);
-        console.log(this.tabIndex);
-        if (this.tabIndex == 0) {
-            // delete setvalid.modmodalcontent;
-            console.log(setvalid);
-            if (!this.formcontentusetable) {
-                delete setvalid.form.content.value.jsonvalidator;
-                return setvalid;
-            }
-            return setvalid;
-        } else if (this.tabIndex == 1) {
-            console.log(setvalid);
-            // delete setvalid.form;
-            if (!this.modmodalcontentusetable) {
-                delete setvalid.modmodalcontent.content.value.jsonvalidator;
-                return setvalid;
-            }
-            return setvalid;
-        } else {
-            return {};
-        }
-    },
     created: function () {
-        this.SetCommonQueryData();
+        let vm = this;
+        vm.now = vm.getDate.now;
+        vm.nowFormat = vm.getDate.nowFormat;
+        vm.thisweekday = vm.getDate.thisweekday;
+        vm.form.date.time = vm.getDate.nowFormat;
+        vm.SetCommonQueryData();
+        vm.getBelongDepStaff();
     },
+    mounted: function () {},
     components: {
+        datepicker,
         commonQuery,
     },
     computed: {
@@ -523,6 +446,7 @@ export default {
             loginData: "getlogin/get_loginData",
             queryResponse: "commonquery/get_queryResponse",
             tableBusy: "commonquery/get_tableBusy",
+            getDate: "getdate/get_Date",
         }),
     },
     watch: {
@@ -609,6 +533,7 @@ export default {
     },
     methods: {
         ...mapActions({
+            axiosAction: "commonaxios/axiosAction",
             setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             togglealertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
@@ -618,128 +543,333 @@ export default {
         }),
         SetCommonQueryData() {
             var vm = this;
-            var misbulletinqueryselected = "ALL";
-            var misbulletinqueryoptions = [
-                { value: "system", text: "系統" },
-                { value: "PC", text: "個人電腦" },
-                { value: "network", text: "網路" },
-                { value: "ALL", text: "全選" },
+            var meetingminutesqueryselected = "ALL";
+            var meetingminutesqueryoptions = [
+                { text: "雲端AI(智慧)平台部", value: "1003" },
+                { text: "系統研發部", value: "1002" },
+                { text: "資訊通訊部", value: "1001" },
+                { text: "全選", value: "ALL" },
             ];
             var obj = {
-                options: misbulletinqueryoptions,
-                selected: misbulletinqueryselected,
+                options: meetingminutesqueryoptions,
+                selected: meetingminutesqueryselected,
                 inputtext: "",
             };
             vm.setinputData(obj);
             let commonApiParams = {
-                table: "misBulletin",
-                attr: "category",
-                timeattr: "lastUpdateTime",
-                intervaltime: {},
+                table: "meetingMinutes",
+                attr: "depID",
+                timeattr: "date",
+                intervaltime: {
+                    date: [
+                        [
+                            vm.thisweekday[0] + " 00:00:00",
+                            vm.thisweekday[1] + " 23:59:59",
+                        ],
+                    ],
+                },
             };
+            console.log(commonApiParams);
             vm.setapiParams(commonApiParams);
             vm.setinputData(obj);
         },
-        //公告上傳
-        uploadFormSubmit(evt) {
-            evt.preventDefault();
-            let checkvalid = ["title", "content"];
+        getBelongDepStaff() {
             let vm = this;
-            let status = true;
-            console.log(checkvalid);
-            checkvalid.forEach((element) => {
-                console.log(element);
-                console.log(vm.form[element]);
-                if (!vm.form[element].invalid) {
-                    status = false;
-                } else {
-                    if (
-                        element === "content" &&
-                        vm.form["content"].hasOwnProperty("jsonvalid")
-                    ) {
-                        if (!vm.form["content"].jsonvalid) status = false;
-                    }
-                }
+            var params = {};
+            params["methods"] = "POST";
+            params["whichFunction"] = "CommonSqlSyntaxQuery_";
+            let thiswhere = Object.keys(vm.depConfig);
+            let thissymbols = ["equal", "equal", "equal"];
+            params["condition"] = {
+                condition_1: {
+                    table: "user",
+                    fields: ["uID", "uName", "noumenonID", "noumenonType"],
+                    where: { noumenonID: thiswhere },
+                    orderby: ["desc", "lastUpdateTime"],
+                    limit: ["ALL"],
+                    symbols: { noumenonID: thissymbols },
+                },
+            };
+            console.log(params);
+            console.log(JSON.stringify(params["condition"]));
+            let anyerror = false;
+
+            let temp = [
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1002,
+                    uID: 2587,
+                    uName: "王亦薇",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1002,
+                    uID: 2596,
+                    uName: "林建忠",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1002,
+                    uID: 2593,
+                    uName: "黃均珮",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1002,
+                    uID: 2583,
+                    uName: "詹竣傑",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1002,
+                    uID: 2584,
+                    uName: "龔承德",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1003,
+                    uID: 2493,
+                    uName: "蔡宜珊",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1002,
+                    uID: 2586,
+                    uName: "蔡令仕",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1001,
+                    uID: 2594,
+                    uName: "韓仁智",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1001,
+                    uID: 2580,
+                    uName: "劉哲良",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1003,
+                    uID: 2521,
+                    uName: "洪誌宏",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1003,
+                    uID: 2522,
+                    uName: "吳俊輝",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1003,
+                    uID: 2581,
+                    uName: "曾冠力",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1002,
+                    uID: 2406,
+                    uName: "吳炯德",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1001,
+                    uID: 2475,
+                    uName: "王嘉帷",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1001,
+                    uID: 2494,
+                    uName: "蔡靜宜",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1001,
+                    uID: 2500,
+                    uName: "張書瑋",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1002,
+                    uID: 2510,
+                    uName: "吳宗穎",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1001,
+                    uID: 2534,
+                    uName: "羅寶明",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1002,
+                    uID: 2547,
+                    uName: "吳文瑞",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1001,
+                    uID: 2549,
+                    uName: "劉騏輔",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1002,
+                    uID: 2554,
+                    uName: "龍姿伃",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1002,
+                    uID: 2559,
+                    uName: "蔡蕙如",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1002,
+                    uID: 2560,
+                    uName: "高秀蘋",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1002,
+                    uID: 2565,
+                    uName: "李芳伶",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1002,
+                    uID: 2574,
+                    uName: "黃國龍",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1002,
+                    uID: 2577,
+                    uName: "劉景裕",
+                },
+                {
+                    noumenonType: "dep",
+                    noumenonID: 1002,
+                    uID: 2588,
+                    uName: "林孟萱",
+                },
+            ];
+
+            let itemsobj = {};
+            temp.forEach((element) => {
+                itemsobj[element.uID] = String(element.noumenonID);
             });
-            console.log(status);
-            if (status) {
-                console.log("call api");
-                let thiscontent;
-                thiscontent = vm.adjustContentData(vm.form.content);
-                if (!thiscontent) return;
-                console.log(thiscontent);
-                console.log(typeof thiscontent);
-                console.log(thiscontent);
-                let formData = new FormData();
-                console.log(this.form.files);
-                for (var i = 0; i < this.form.files.length; i++) {
-                    let file = this.form.files[i];
-                    console.log(file);
-                    //檢察檔案大小是否大於10MB(1024*1024*10)，若大於就不傳到後端
-                    if (file.size > 1024 * 1024 * 10) {
-                        vm.setTimeOutAlertMsg("檔名:" + file.name + "檔案太大");
-                        vm.settimeoutalertModal(1200);
-                        return;
-                    }
-                    formData.append("fileToUpload[" + i + "]", file);
+            vm.depStaffRelation = itemsobj;
+            // vm.axiosAction(params)
+            //     .then(() => {
+            //         var result = vm.axiosResult;
+            //         console.log(result);
+            //         console.log(JSON.stringify(result["QueryTableData"]));
+            //         if (result["Response"] == "ok") {
+            //             if (result["QueryTableData"].length == 0) {
+            //                 vm.setTimeOutAlertMsg("查無資料");
+            //                 anyerror = true;
+            //             } else {
+            //                 let itemsobj = {};
+            //                 result["QueryTableData"].forEach((element) => {
+            //                     itemsobj[element.uID] = String(
+            //                         element.noumenonID
+            //                     );
+            //                 });
+            //                 vm.depStaffRelation = itemsobj;
+            //             }
+            //         } else {
+            //             vm.setTimeOutAlertMsg(result["Response"]);
+            //             anyerror = true;
+            //         }
+            //     })
+            //     .catch(function (err) {
+            //         console.log(err);
+            //         vm.setTimeOutAlertMsg(err);
+            //         anyerror = true;
+            //     })
+            //     .finally(() => {
+            //         console.log("done");
+            //         if (anyerror) vm.settimeoutalertModal();
+            //     });
+        },
+        //公告上傳
+        uploadFormSubmit() {
+            let vm = this;
+            console.log("call api");
+            let formData = new FormData();
+            console.log(this.form.files);
+            for (var i = 0; i < this.form.files.length; i++) {
+                let file = this.form.files[i];
+                console.log(file);
+                //檢察檔案大小是否大於10MB(1024*1024*10)，若大於就不傳到後端
+                if (file.size > 1024 * 1024 * 10) {
+                    vm.setTimeOutAlertMsg("檔名:" + file.name + "檔案太大");
+                    vm.settimeoutalertModal(1200);
+                    return;
                 }
-
-                formData.append("content", thiscontent);
-                formData.append("title", vm.form.title.value);
-                formData.append("category", vm.form.category);
-                formData.append("filename", vm.form.filename);
-                formData.append("account", vm.loginData.account);
-
-                vm.togglealertModal(true);
-                let config = {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                };
-                const instance = axios.create({
-                    withCredentials: true,
-                });
-                instance
-                    .post(
-                        "/php/views/misbulletin/misBulletinAdd.php",
-                        formData,
-                        config
-                    )
-                    .then(
-                        function (response) {
-                            const result = response.data;
-                            vm.setTimeOutAlertMsg(result);
-                            var altertime = 0;
-                            if (result.length == 1) {
-                                altertime = 1200;
-                            } else if (result.length < 4) {
-                                altertime = 1500;
-                            } else {
-                                altertime = 2500;
-                            }
-                            vm.settimeoutalertModal(altertime);
-                            vm.formReset();
-                        }.bind(this)
-                    )
-                    .catch(function (err) {
-                        console.log(err);
-                        console.log(err.response.status);
-                        if (err.response.status === 413) {
-                            vm.setTimeOutAlertMsg(
-                                "Error 413: Request entity too large，檔案太大"
-                            );
-                        } else {
-                            vm.setTimeOutAlertMsg(err);
-                        }
-                        vm.settimeoutalertModal();
-                    })
-                    .finally(() => {
-                        console.log("done");
-                        setTimeout(() => {
-                            vm.togglealertModal(false);
-                        }, 1200);
-                    });
+                formData.append("fileToUpload[" + i + "]", file);
             }
+
+            formData.append("title", vm.form.title);
+            formData.append("date", vm.form.date.time);
+            formData.append("filename", vm.form.filename);
+            formData.append("depID", vm.depStaffRelation[vm.loginData.account]);
+            formData.append("account", vm.loginData.account);
+
+            vm.togglealertModal(true);
+            let config = {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            };
+            const instance = axios.create({
+                withCredentials: true,
+            });
+            instance
+                .post(
+                    "/php/views/meetingminutes/meetingMinutesAdd.php",
+                    formData,
+                    config
+                )
+                .then(
+                    function (response) {
+                        const result = response.data;
+                        vm.setTimeOutAlertMsg(result);
+                        // var altertime = 0;
+                        // if (result.length == 1) {
+                        //     altertime = 1200;
+                        // } else if (result.length < 4) {
+                        //     altertime = 1500;
+                        // } else {
+                        //     altertime = 2500;
+                        // }
+                        // vm.settimeoutalertModal(altertime);
+                        // vm.formReset();
+                    }.bind(this)
+                )
+                .catch(function (err) {
+                    console.log(err);
+                    console.log(err.response.status);
+                    if (err.response.status === 413) {
+                        vm.setTimeOutAlertMsg(
+                            "Error 413: Request entity too large，檔案太大"
+                        );
+                    } else {
+                        vm.setTimeOutAlertMsg(err);
+                    }
+                    vm.settimeoutalertModal();
+                })
+                .finally(() => {
+                    console.log("done");
+                    setTimeout(() => {
+                        vm.togglealertModal(false);
+                    }, 1200);
+                });
         },
         //set表單驗證error class
         seterrorclass(val, tabindex) {
@@ -749,17 +879,6 @@ export default {
             if (tabindex == 1 && this.modmodalcontentusetable)
                 return val.$error;
             return false;
-        },
-        //檢查資料欄位->是否有值＆JSON格式合法
-        check_required(required, model) {
-            model.invalid = required;
-            return !required;
-        },
-        check_jsonvalid(jsonvalid, model) {
-            console.log(jsonvalid);
-            console.log(model);
-            model.jsonvalid = jsonvalid;
-            return !jsonvalid;
         },
         //檔名格式化
         formatNames(files) {

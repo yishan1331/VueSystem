@@ -6,6 +6,7 @@ import commonaxios from './commonAxios'
 import commonquery from './commonQuery'
 import systemform from './systemForm'
 import exportfile from './exportFile'
+import getdate from './getDate'
 
 export default {
     getlogin,
@@ -15,5 +16,6 @@ export default {
     commonaxios,
     commonquery,
     systemform,
-    exportfile
+    exportfile,
+    getdate
 }

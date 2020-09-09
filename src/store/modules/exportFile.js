@@ -7,9 +7,11 @@ const state = {
         headStyles: {},
         exportfilename: "",
         exportfiletype: "PDF",
-        text:[],
+        text: [],
     },
-    ttfStatus: true
+    ttfStatus: true,
+    errorFormat: [],
+    autoTableStatus:false,//true為正式匯出，false為測試格式
 }
 const getters = {
     get_autoTable: state => {
@@ -18,7 +20,13 @@ const getters = {
     },
     get_ttfStatus: state => {
         return state.ttfStatus
-    }
+    },
+    get_errorFormat: state => {
+        return state.errorFormat
+    },
+    get_autoTableStatus: state => {
+        return state.autoTableStatus
+    },
 }
 const actions = {
     set_autoTable(context, obj) {
@@ -26,6 +34,12 @@ const actions = {
     },
     set_ttfStatus(context, status) {
         context.commit('SET_TTFSTATUS', status);
+    },
+    set_errorFormat(context, data) {
+        context.commit('SET_ERRORFORMAT', data);
+    },
+    set_autoTableStatus(context, status) {
+        context.commit('SET_AUTOTABLESTATUS', status);
     }
 }
 const mutations = {
@@ -40,6 +54,16 @@ const mutations = {
             state.ttfStatus = false;
         }
         console.log(state.ttfStatus);
+    },
+    SET_ERRORFORMAT(state, data) {
+        state.errorFormat = data;
+    },
+    SET_AUTOTABLESTATUS(state, status) {
+        if (status){
+            state.autoTableStatus = true;
+        }else{
+            state.autoTableStatus = false;
+        }
     }
 }
 

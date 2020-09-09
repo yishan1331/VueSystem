@@ -183,7 +183,7 @@ export default {
                     vm.queryResponse == "查無資料" ||
                     vm.queryResponse == "時間尚未選擇"
                 ) {
-                    vm.setalertMsg(vm.queryResponse);
+                    vm.setTimeOutAlertMsg(vm.queryResponse);
                     vm.settimeoutalertModal();
                     return;
                 }
@@ -215,7 +215,7 @@ export default {
     methods: {
         ...mapActions({
             axiosAction: "commonaxios/axiosAction",
-            setalertMsg: "alertmodal/set_alertMsg",
+            setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             togglealertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             changetableBusy: "commonquery/change_tableBusy",
@@ -249,7 +249,6 @@ export default {
         //查詢最新五筆
         LatestBulletinDataQuery() {
             var vm = this;
-            vm.setalertMsg("請稍候...");
             vm.togglealertModal(true);
             vm.changetableBusy();
             var params = {};
@@ -271,7 +270,7 @@ export default {
                     vm.togglealertModal(false);
                     if (result["Response"] == "ok") {
                         if (result["QueryTableData"].length == 0) {
-                            vm.setalertMsg("查無資料");
+                            vm.setTimeOutAlertMsg("查無資料");
                             vm.settimeoutalertModal();
                         } else {
                             var itemsarray = [];
@@ -309,14 +308,14 @@ export default {
                             vm.totalRows = itemsarray.length;
                         }
                     } else {
-                        vm.setalertMsg(result["Response"]);
+                        vm.setTimeOutAlertMsg(result["Response"]);
                         vm.settimeoutalertModal();
                     }
                     vm.changetableBusy();
                 })
                 .catch(function (err) {
                     console.log(err);
-                    vm.setalertMsg(err);
+                    vm.setTimeOutAlertMsg(err);
                     vm.settimeoutalertModal();
                 });
         },
@@ -349,8 +348,8 @@ export default {
                 fileLink.href = fileURL;
                 fileLink.setAttribute("download", filename);
                 document.body.appendChild(fileLink);
-
                 fileLink.click();
+                document.body.removeChild(fileLink);
             });
         },
         //檔案預覽開啟頁面

@@ -206,7 +206,7 @@ export default {
                     vm.queryResponse == "查無資料" ||
                     vm.queryResponse == "時間尚未選擇"
                 ) {
-                    vm.setalertMsg(vm.queryResponse);
+                    vm.setTimeOutAlertMsg(vm.queryResponse);
                     vm.settimeoutalertModal();
                     return;
                 }
@@ -278,7 +278,7 @@ export default {
                     }
                     console.log(msg);
                     if (msg.length != 0) {
-                        vm.setalertMsg(msg);
+                        vm.setTimeOutAlertMsg(msg);
                         vm.settimeoutalertModal(1200);
                         vm.setSystemFormCompletedData({});
                         return;
@@ -296,7 +296,7 @@ export default {
     methods: {
         ...mapActions({
             axiosAction: "commonaxios/axiosAction",
-            setalertMsg: "alertmodal/set_alertMsg",
+            setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             setinputData: "commonquery/set_inputData",
             setapiParams: "commonquery/set_apiParams",
@@ -369,7 +369,7 @@ export default {
                     vm.depDetail = depDetail;
                     vm.setdepDetail(depDetail);
                 } else {
-                    vm.setalertMsg(result["Response"]);
+                    vm.setTimeOutAlertMsg(result["Response"]);
                     vm.settimeoutalertModal();
                 }
             });
@@ -464,7 +464,7 @@ export default {
                 } else {
                     msg = result["Response"];
                 }
-                vm.setalertMsg(msg);
+                vm.setTimeOutAlertMsg(msg);
                 vm.settimeoutalertModal();
                 vm.modAccountModalShow = false;
             });
@@ -505,7 +505,7 @@ export default {
                 } else {
                     msg = result["Response"];
                 }
-                vm.setalertMsg(msg);
+                vm.setTimeOutAlertMsg(msg);
                 vm.settimeoutalertModal();
             });
         },
@@ -525,7 +525,7 @@ export default {
                     msg = result["Response"];
                 }
                 vm.delAccountModalShow = false;
-                vm.setalertMsg(msg);
+                vm.setTimeOutAlertMsg(msg);
                 vm.settimeoutalertModal();
                 setTimeout(function () {
                     vm.queryAgain();
