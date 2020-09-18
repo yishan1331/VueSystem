@@ -80,6 +80,34 @@ function CommonSqlSyntaxQuery_($params, $returnData)
     return $returnData;
 }
 
+function CommonJoinMultiTable_($params, $returnData)
+{
+    $postdata = new stdClass();
+    foreach ($params->condition as $key => $value) {
+        $postdata->$key = new stdClass();
+        (!property_exists($value, 'tables')) ? $tables = "" : $tables = $value->tables;
+        (!property_exists($value, 'fields')) ? $fields = "" : $fields = $value->fields;
+        (!property_exists($value, 'orderby')) ? $orderby = "" : $orderby = $value->orderby;
+        (!property_exists($value, 'limit')) ? $limit = "" : $limit = $value->limit;
+        (!property_exists($value, 'where')) ? $where = "" : $where = $value->where;
+        (!property_exists($value, 'symbols')) ? $symbols = "" : $symbols = $value->symbols;
+        (!property_exists($value, 'join')) ? $join = "" : $join = $value->join;
+        (!property_exists($value, 'jointype')) ? $jointype = "" : $jointype = $value->jointype;
+        $postdata->$key->tables = $tables;
+        $postdata->$key->fields = $fields;
+        $postdata->$key->orderby = $orderby;
+        $postdata->$key->limit = $limit;
+        $postdata->$key->where = $where;
+        $postdata->$key->symbols = $symbols;
+        $postdata->$key->join = $join;
+        $postdata->$key->jointype = $jointype;
+    }
+    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/SqlSyntax/JoinMultiTable_?uid=@sapido@PaaS&getSqlSyntax=yes";
+    $returnData[0] = $url;
+    $returnData[1] = $postdata;
+    return $returnData;
+}
+
 function CommonRegister($params, $returnData)
 {
     $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/" . $params->table . "?uid=@sapido@PaaS";

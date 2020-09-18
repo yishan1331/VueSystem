@@ -8,13 +8,15 @@ import todolist from "@/views/TodoList";
 import weeklyreport from "@/views/WeeklyReport";
 import meetingminutes from "@/views/MeetingMinutes";
 import structure from "@/views/Structure";
+import server from "@/views/Server";
+import storage from "@/views/Storage";
 // import pagenotfound from "@/views/PageNotFound";
 
 export const childRouter = [
     {
         path: "/index",
         // redirect: '/index/home',
-        redirect: "/index/misbulletinboard",
+        redirect: "/index/MISBulletinBoard",
         component: index,
         children: [
             {
@@ -79,7 +81,21 @@ export const childRouter = [
                 meta: {
                     needLogin: true
                 }
-            }
+            },
+            {
+                path: "server",
+                component: server,
+                meta: {
+                    needLogin: true
+                }
+            },
+            {
+                path: "storage",
+                component: storage,
+                meta: {
+                    needLogin: true
+                }
+            },
         ]
     },
     //   {

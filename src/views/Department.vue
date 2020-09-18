@@ -188,6 +188,8 @@ export default {
             pageAccess: "getlogin/get_pageAccess",
             commonQueryResponse: "commonquery/get_queryResponse",
             tableBusy: "commonquery/get_tableBusy",
+            DEFAULT_inputData: "commonquery/get_DEFAULT_inputData",
+            DEFAULT_apiParams: "commonquery/get_DEFAULT_apiParams",
             systemFormCompletedData: "systemform/get_completedData",
         }),
     },
@@ -294,6 +296,7 @@ export default {
             vforData["depName"] = ["text", "部門名稱"];
             vforData["depInfo"] = ["text", "部門介紹"];
             vforData["accessList"] = ["accesscheckbox", "部門權限"];
+            vforData["textclass"] = true;
             if (this.tabIndex == 0) {
                 vforData["button"] = ["Add", "新增"];
             } else if (this.tabIndex == 1) {
@@ -318,18 +321,16 @@ export default {
                 { value: "depName", text: "部門名稱" },
                 { value: "ALL", text: "全選" },
             ];
-            var obj = {
-                options: departmentqueryoptions,
-                selected: departmentqueryselected,
-                inputtext: "text",
-            };
+            let obj = JSON.parse(JSON.stringify(vm.DEFAULT_inputData));
+            obj.options = departmentqueryoptions;
+            obj.selected = departmentqueryselected;
+            obj.inputtext = "text";
             vm.setinputData(obj);
-            let commonApiParams = {
-                table: "department",
-                timeattr: "lastUpdateTime",
-                attr: "",
-                intervaltime: {},
-            };
+
+            let commonApiParams = JSON.parse(
+                JSON.stringify(vm.DEFAULT_apiParams)
+            );
+            commonApiParams.normal.table = "department";
             vm.setapiParams(commonApiParams);
         },
         SetDepDetail() {

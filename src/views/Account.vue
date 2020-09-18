@@ -194,6 +194,8 @@ export default {
             pageAccess: "getlogin/get_pageAccess",
             queryResponse: "commonquery/get_queryResponse",
             tableBusy: "commonquery/get_tableBusy",
+            DEFAULT_inputData: "commonquery/get_DEFAULT_inputData",
+            DEFAULT_apiParams: "commonquery/get_DEFAULT_apiParams",
             systemFormCompletedData: "systemform/get_completedData",
         }),
     },
@@ -315,6 +317,7 @@ export default {
             vforData["uInfo"] = ["text", "介紹"];
             vforData["noumenonID"] = ["depselect", "部門"];
             vforData["accessList"] = ["accesscheckbox", "使用者權限"];
+            vforData["textclass"] = true;
             if (this.tabIndex == 0) {
                 vforData["button"] = ["Add", "新增"];
             } else if (this.tabIndex == 1) {
@@ -384,18 +387,16 @@ export default {
                 { value: "depName", text: "部門名稱" },
                 { value: "ALL", text: "全選" },
             ];
-            var obj = {
-                options: accountqueryoptions,
-                selected: accountqueryselected,
-                inputtext: "text",
-            };
+            let obj = JSON.parse(JSON.stringify(vm.DEFAULT_inputData));
+            obj.options = accountqueryoptions;
+            obj.selected = accountqueryselected;
+            obj.inputtext = "text";
             vm.setinputData(obj);
-            let commonApiParams = {
-                table: "user",
-                timeattr: "lastUpdateTime",
-                attr: "",
-                intervaltime: {},
-            };
+
+            let commonApiParams = JSON.parse(
+                JSON.stringify(vm.DEFAULT_apiParams)
+            );
+            commonApiParams.normal.table = "user";
             vm.setapiParams(commonApiParams);
         },
         onRowClicked(items, index, event) {

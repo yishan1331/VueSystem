@@ -1,6 +1,17 @@
 <template>
     <div class="modal">
-        <b-modal centered v-model="commonModalDetail.ModalShow" no-close-on-backdrop no-close-on-esc :hide-footer="commonModalDetail.HideModalFooter">
+        <b-modal
+            :centered="commonModalConfig.centered"
+            v-model="commonModalShow"
+            no-close-on-backdrop
+            no-close-on-esc
+            :scrollable="commonModalConfig.scrollable"
+            :hide-footer="commonModalConfig.hideModalFooter"
+            :size="commonModalConfig.size"
+            :hide-header="commonModalConfig.hideModalHeader"
+            :hide-header-close="commonModalConfig.hideModalHeaderClose"
+            :modal-class="{'modal-fullscreen':commonModalConfig.modalClassFull}"
+        >
             <template v-slot:modal-header>
                 <slot name="modalheader"></slot>
             </template>
@@ -23,9 +34,10 @@ export default {
     },
     computed: {
         ...mapGetters({
-            commonModalDetail: "usemodal/get_commonModalDetail"
-        })
-    }
+            commonModalShow: "usemodal/get_commonModalShow",
+            commonModalConfig: "usemodal/get_commonModalConfig",
+        }),
+    },
 };
 </script>
 
@@ -74,5 +86,19 @@ textarea {
     width: 280px;
     height: 120px;
     resize: none;
+}
+
+::v-deep .modal-fullscreen .modal-dialog {
+    max-width: 100%;
+    margin: 0;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100vh;
+    display: flex;
+    position: fixed;
+    z-index: 100000;
+    padding: 10px;
 }
 </style>

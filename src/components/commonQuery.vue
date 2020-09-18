@@ -1,31 +1,39 @@
 <template>
-    <div class="commonQuery container">
-        <div>
-            <label>類別:</label>
-            <b-form-select
-                v-model="inputData.selected"
-                :options="inputData.options"
-                @change="onChange($event)"
-            ></b-form-select>
+    <div class="commonQuery container mb-2">
+        <div :class="{'inline-block':!inputData.usetime}">
+            <div>
+                <label>類別:</label>
+                <b-form-select
+                    v-model="inputData.selected"
+                    :options="inputData.options"
+                    @change="onChange($event)"
+                ></b-form-select>
+            </div>
+            <div v-if="selected == '部門名稱'" class="mt-1">
+                <label>{{selected}}:</label>
+                <b-form-select v-model="inputtext" :options="depDetail[0]"></b-form-select>
+            </div>
+            <div v-else-if="selected != ''" class="mt-1">
+                <label>{{selected}}:</label>
+                <b-form-input class="input-title" v-model="inputtext" type="text"></b-form-input>
+            </div>
         </div>
-        <div v-if="selected == '部門名稱'" class="mt10px">
-            <label>{{selected}}:</label>
-            <b-form-select v-model="inputtext" :options="depDetail[0]"></b-form-select>
-        </div>
-        <div v-else-if="selected != ''" class="mt10px">
-            <label>{{selected}}:</label>
-            <b-form-input class="input-title" v-model="inputtext" type="text"></b-form-input>
-        </div>
-        <div class="mt10px">
-            <label>時間:</label>
-            <datepicker :date="startTime" :option="startoption"></datepicker>~
-            <datepicker :date="endTime" :option="endoption" :limit="endoption.limit"></datepicker>
-            <b-button variant="primary" @click="QueryData($event)" class="ml-2">查詢</b-button>
+        <div class="mt-2" :class="{'inline-block':!inputData.usetime}">
+            <div v-if="inputData.usetime" class="inline-block">
+                <label>時間:</label>
+                <datepicker :date="startTime" :option="startoption"></datepicker>~
+                <datepicker :date="endTime" :option="endoption" :limit="endoption.limit"></datepicker>
+            </div>
+            <div class="inline-block">
+                <b-button variant="primary" @click="QueryData($event)" class="ml-2">查詢</b-button>
+            </div>
         </div>
         <b-form-checkbox
-            v-model="notsettingtime"
-            style="display:inline-block;margin-right:10px"
-        >不指定時間</b-form-checkbox>
+            v-if="inputData.usetime"
+            v-model="settingtime"
+            class="inline-block"
+            style="margin-right:10px"
+        >指定時間</b-form-checkbox>
         <br />
     </div>
 </template>
@@ -134,7 +142,7 @@ export default {
                 uID: "帳號",
                 uName: "姓名",
             },
-            notsettingtime: true,
+            settingtime: false,
         };
     },
     created: function () {
@@ -152,6 +160,7 @@ export default {
             apiParams: "commonquery/get_apiParams",
             isInit: "commonquery/get_isInit",
             depDetail: "commonquery/get_depDetail",
+            getDate: "getdate/get_Date",
         }),
     },
     watch: {
@@ -169,6 +178,15 @@ export default {
                 vm.endoption.limit[0].to = "";
             },
             // deep: true
+        },
+        "endTime.time": {
+            handler(value) {
+                var vm = this;
+                // vm.setthisQueryTimeInterval([
+                //     vm.startTime.time,
+                //     vm.endTime.time,
+                // ]);
+            },
         },
         receivequeryAgain: {
             handler() {
@@ -210,94 +228,107 @@ export default {
                     return;
                 }
             }
+            console.log(vm.selected);
             vm.togglealertModal(true);
             //預設今天
-            params["timeattr"] = vm.apiParams.timeattr;
+            params["timeattr"] = vm.apiParams.normal.timeattr;
             params["start_time"] = vm.startTime.time + " 00:00:00";
             params["end_time"] = vm.endTime.time + " 23:59:59";
-            params["settingtime"] = !vm.notsettingtime;
+            params["settingtime"] = vm.settingtime;
 
-            if (vm.inputData.selected == "ALL") {
-                params["whichFunction"] = "IntervalQuery";
-                params["methods"] = "GET";
-                params["table"] = vm.apiParams.table;
-                //設定此次抓取的時間區間
-                vm.setthisQueryTimeInterval("ALL");
-            } else {
-                params["methods"] = "POST";
-                params["whichFunction"] = "CommonSqlSyntaxQuery_";
-                //default params
-                let fieldsparams = "";
-                let orderbyparams = ["desc", "lastUpdateTime"];
-                let limitparams = ["ALL"];
-                let whereparams = {};
-                let symbolsparams = {};
-                let intervaltimeparams = {};
-                if (!vm.notsettingtime) {
-                    intervaltimeparams[vm.apiParams.timeattr] = [
-                        [
-                            vm.startTime.time + " 00:00:00",
-                            vm.endTime.time + " 23:59:59",
-                        ],
-                    ];
+            if (vm.apiParams.type == "normal") {
+                if (vm.inputData.selected == "ALL") {
+                    params["whichFunction"] = "IntervalQuery";
+                    params["methods"] = "GET";
+                    params["table"] = vm.apiParams.normal.table;
                     //設定此次抓取的時間區間
-                    vm.setthisQueryTimeInterval([
-                        vm.startTime.time,
-                        vm.endTime.time,
-                    ]);
+                    vm.setthisQueryTimeInterval("ALL");
                 } else {
-                    //若是第一次查詢才找是否有defaul參數intervaltime
-                    console.log(vm.isInit);
-                    if (
-                        vm.isInit &&
-                        Object.keys(vm.apiParams.intervaltime).length != 0
-                    ) {
-                        intervaltimeparams = vm.apiParams.intervaltime;
-                        // vm.setisInit(false);
-                        //設定此次抓取的時間區間
-                        vm.setthisQueryTimeInterval("DEFAULT");
-                    } else {
-                        intervaltimeparams = "";
-                        //設定此次抓取的時間區間
-                        vm.setthisQueryTimeInterval("ALL");
-                    }
-                    console.log(vm.isInit);
-                }
-                console.log(vm.apiParams);
-                if (vm.apiParams.attr == "") {
-                    if (
-                        vm.apiParams.table == "user" &&
-                        vm.inputData.selected == "depName"
-                    ) {
-                        whereparams["noumenonID"] = [vm.inputtext.trim()];
-                        symbolsparams["noumenonID"] = ["like"];
-                    } else {
-                        whereparams[vm.inputData.selected] = [
-                            vm.inputtext.trim(),
+                    params["methods"] = "POST";
+                    params["whichFunction"] = "CommonSqlSyntaxQuery_";
+                    //default params
+                    let fieldsparams = "";
+                    let orderbyparams = ["desc", "lastUpdateTime"];
+                    let limitparams = ["ALL"];
+                    let whereparams = {};
+                    let symbolsparams = {};
+                    let intervaltimeparams = {};
+                    if (vm.settingtime) {
+                        intervaltimeparams[vm.apiParams.normal.timeattr] = [
+                            [
+                                vm.startTime.time + " 00:00:00",
+                                vm.endTime.time + " 23:59:59",
+                            ],
                         ];
-                        symbolsparams[vm.inputData.selected] = ["like"];
+                        //設定此次抓取的時間區間
+                        vm.setthisQueryTimeInterval([
+                            vm.startTime.time,
+                            vm.endTime.time,
+                        ]);
+                    } else {
+                        //若是第一次查詢才找是否有defaul參數intervaltime
+                        console.log(vm.isInit);
+                        if (
+                            vm.isInit &&
+                            Object.keys(vm.apiParams.normal.intervaltime)
+                                .length != 0
+                        ) {
+                            intervaltimeparams =
+                                vm.apiParams.normal.intervaltime;
+                            // vm.setisInit(false);
+                            //設定此次抓取的時間區間
+                            vm.setthisQueryTimeInterval("DEFAULT");
+                        } else {
+                            intervaltimeparams = "";
+                            //設定此次抓取的時間區間
+                            vm.setthisQueryTimeInterval("ALL");
+                        }
+                        console.log(vm.isInit);
                     }
-                } else {
-                    whereparams[vm.apiParams.attr] = [vm.inputData.selected];
-                    symbolsparams[vm.apiParams.attr] = ["like"];
-                    if (vm.apiParams.table == "todoList") {
-                        orderbyparams = ["asc", "schedDate"];
+                    console.log(vm.apiParams.normal);
+                    if (vm.apiParams.normal.attr == "") {
+                        if (
+                            vm.apiParams.normal.table == "user" &&
+                            vm.inputData.selected == "depName"
+                        ) {
+                            whereparams["noumenonID"] = [vm.inputtext.trim()];
+                            symbolsparams["noumenonID"] = ["like"];
+                        } else {
+                            whereparams[vm.inputData.selected] = [
+                                vm.inputtext.trim(),
+                            ];
+                            symbolsparams[vm.inputData.selected] = ["like"];
+                        }
+                    } else {
+                        whereparams[vm.apiParams.normal.attr] = [
+                            vm.inputData.selected,
+                        ];
+                        symbolsparams[vm.apiParams.normal.attr] = ["like"];
+                        if (vm.apiParams.normal.table == "todoList") {
+                            orderbyparams = ["asc", "schedDate"];
+                        }
+                        if (vm.apiParams.normal.table == "weeklyReport") {
+                            orderbyparams = ["asc", "date"];
+                        }
                     }
-                    if (vm.apiParams.table == "weeklyReport") {
-                        orderbyparams = ["asc", "date"];
-                    }
+                    params["condition"] = {
+                        condition_1: {
+                            table: vm.apiParams.normal.table,
+                            fields: fieldsparams,
+                            orderby: orderbyparams,
+                            limit: limitparams,
+                            where: whereparams,
+                            symbols: symbolsparams,
+                            intervaltime: intervaltimeparams,
+                        },
+                    };
                 }
-                params["condition"] = {
-                    condition_1: {
-                        table: vm.apiParams.table,
-                        fields: fieldsparams,
-                        orderby: orderbyparams,
-                        limit: limitparams,
-                        where: whereparams,
-                        symbols: symbolsparams,
-                        intervaltime: intervaltimeparams,
-                    },
-                };
+            } else if (vm.apiParams.type == "join") {
+                if (vm.inputData.selected == "ALL") {
+                    params["methods"] = "POST";
+                    params["whichFunction"] = "CommonJoinMultiTable_";
+                    params["condition"] = vm.apiParams.customized;
+                }
             }
             console.log(params);
             vm.axiosAction(params).then(() => {
@@ -330,57 +361,19 @@ export default {
         DefaultDate(Default) {
             var vm = this;
             if (Default === "Default") {
-                let weekdaysCountConfig = [
-                    [Number(-6), Number(0)],
-                    [Number(0), Number(6)],
-                    [Number(-1), Number(5)],
-                    [Number(-2), Number(4)],
-                    [Number(-3), Number(3)],
-                    [Number(-4), Number(2)],
-                    [Number(-5), Number(1)],
-                ];
-                Date.prototype.addDays = function (days) {
-                    this.setDate(this.getDate() + days);
-                    return this;
-                };
-
-                let thisweekdaystart = new Date();
-                thisweekdaystart.addDays(
-                    weekdaysCountConfig[thisweekdaystart.getDay()][0]
-                );
-                let thisweekdaystartreturnobj = {};
-                thisweekdaystartreturnobj = vm.dateFormat(thisweekdaystart);
-                let thisweekdayend = new Date();
-                thisweekdayend.addDays(
-                    weekdaysCountConfig[thisweekdayend.getDay()][1]
-                );
-                let thisweekdayendreturnobj = {};
-                thisweekdayendreturnobj = vm.dateFormat(thisweekdayend);
-
-                const todayDate_start =
-                    thisweekdaystartreturnobj.year +
-                    "-" +
-                    thisweekdaystartreturnobj.month +
-                    "-" +
-                    thisweekdaystartreturnobj.day;
-                const todayDate_end =
-                    thisweekdayendreturnobj.year +
-                    "-" +
-                    thisweekdayendreturnobj.month +
-                    "-" +
-                    thisweekdayendreturnobj.day;
-
-                vm.startoption.placeholder = todayDate_start;
-                vm.startTime.time = todayDate_start;
-                vm.endoption.placeholder = todayDate_end;
-                vm.endTime.time = todayDate_end;
+                console.log(vm.getDate);
+                vm.startoption.placeholder = vm.getDate.thisweekday[0];
+                vm.startTime.time = vm.getDate.thisweekday[0];
+                vm.endoption.placeholder = vm.getDate.thisweekday[1];
+                vm.endTime.time = vm.getDate.thisweekday[1];
+                vm.endoption.limit[0].from = vm.getDate.thisweekday[1];
             } else {
                 vm.reset([
                     "startTime",
                     "endTime",
                     "selected",
                     "inputtext",
-                    "notsettingtime",
+                    "settingtime",
                 ]);
                 vm.changetableBusy();
                 vm.QueryDataFunction();
@@ -416,7 +409,7 @@ export default {
             if (typeof event != "undefined") {
                 vm.setisInit(false);
             }
-            if (!vm.notsettingtime) {
+            if (vm.settingtime) {
                 if (vm.startTime.time == "" || vm.endTime.time == "") {
                     if (vm.queryResponse == "時間尚未選擇") {
                         vm.setTimeOutAlertMsg("時間尚未選擇");
@@ -459,5 +452,8 @@ export default {
 }
 .datepicker-overlay {
     z-index: 9999 !important;
+}
+.inline-block {
+    display: inline-block;
 }
 </style>

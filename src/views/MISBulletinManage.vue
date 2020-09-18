@@ -523,6 +523,8 @@ export default {
             loginData: "getlogin/get_loginData",
             queryResponse: "commonquery/get_queryResponse",
             tableBusy: "commonquery/get_tableBusy",
+            DEFAULT_inputData: "commonquery/get_DEFAULT_inputData",
+            DEFAULT_apiParams: "commonquery/get_DEFAULT_apiParams",
         }),
     },
     watch: {
@@ -625,20 +627,18 @@ export default {
                 { value: "network", text: "網路" },
                 { value: "ALL", text: "全選" },
             ];
-            var obj = {
-                options: misbulletinqueryoptions,
-                selected: misbulletinqueryselected,
-                inputtext: "",
-            };
+            let obj = JSON.parse(JSON.stringify(vm.DEFAULT_inputData));
+            obj.options = misbulletinqueryoptions;
+            obj.selected = misbulletinqueryselected;
             vm.setinputData(obj);
-            let commonApiParams = {
-                table: "misBulletin",
-                attr: "category",
-                timeattr: "lastUpdateTime",
-                intervaltime: {},
-            };
+
+            let commonApiParams = JSON.parse(
+                JSON.stringify(vm.DEFAULT_apiParams)
+            );
+            commonApiParams.normal.table = "misBulletin";
+            commonApiParams.normal.attr = "category";
+            commonApiParams.normal.timeattr = "lastUpdateTime";
             vm.setapiParams(commonApiParams);
-            vm.setinputData(obj);
         },
         //公告上傳
         uploadFormSubmit(evt) {

@@ -698,6 +698,8 @@ export default {
             queryResponse: "commonquery/get_queryResponse",
             thisQueryTimeInterval: "commonquery/get_thisQueryTimeInterval",
             inputData: "commonquery/get_inputData",
+            DEFAULT_inputData: "commonquery/get_DEFAULT_inputData",
+            DEFAULT_apiParams: "commonquery/get_DEFAULT_apiParams",
             ttfStatus: "exportfile/get_ttfStatus",
             errorFormat: "exportfile/get_errorFormat",
             isInit: "commonquery/get_isInit",
@@ -746,36 +748,36 @@ export default {
                 vm.tempData = temp1;
                 vm.items = temp2;
 
-                let commonApiParams = {};
+                let commonApiParams = JSON.parse(
+                    JSON.stringify(vm.DEFAULT_apiParams)
+                );
                 if (vm.tabIndex == 0) {
-                    vm.setapiParams({
-                        table: "weeklyReport",
-                        attr: "depID",
-                        timeattr: "date",
-                        intervaltime: {
-                            date: [
-                                [
-                                    vm.thisweekday[0] + " 00:00:00",
-                                    vm.thisweekday[1] + " 23:59:59",
-                                ],
+                    commonApiParams.normal.table = "weeklyReport";
+                    commonApiParams.normal.attr = "depID";
+                    commonApiParams.normal.timeattr = "date";
+                    commonApiParams.normal.intervaltime = {
+                        date: [
+                            [
+                                vm.thisweekday[0] + " 00:00:00",
+                                vm.thisweekday[1] + " 23:59:59",
                             ],
-                        },
-                    });
+                        ],
+                    };
+                    vm.setapiParams(commonApiParams);
                     vm.fields.splice(9, 1);
                 } else {
-                    vm.setapiParams({
-                        table: "workedKey",
-                        attr: "depID",
-                        timeattr: "date",
-                        intervaltime: {
-                            date: [
-                                [
-                                    vm.thisweekday[0] + " 00:00:00",
-                                    vm.thisweekday[1] + " 23:59:59",
-                                ],
+                    commonApiParams.normal.table = "workedKey";
+                    commonApiParams.normal.attr = "depID";
+                    commonApiParams.normal.timeattr = "date";
+                    commonApiParams.normal.intervaltime = {
+                        date: [
+                            [
+                                vm.thisweekday[0] + " 00:00:00",
+                                vm.thisweekday[1] + " 23:59:59",
                             ],
-                        },
-                    });
+                        ],
+                    };
+                    vm.setapiParams(commonApiParams);
                     vm.fields.splice(2, 1);
                     vm.fields.splice(3, 5);
 
@@ -881,10 +883,10 @@ export default {
 
         SetCommonQueryData() {
             var vm = this;
-            var todolistqueryoptions = [];
-            var todolistqueryselected = "ALL";
+            var weeklyreportqueryoptions = [];
+            var weeklyreportqueryselected = "ALL";
             if (vm.pageAccess.weeklyreport.remark == "ALL") {
-                todolistqueryoptions = [
+                weeklyreportqueryoptions = [
                     { text: "雲端AI(智慧)平台部", value: "1003" },
                     { text: "系統研發部", value: "1002" },
                     { text: "資訊通訊部", value: "1001" },
@@ -896,13 +898,13 @@ export default {
                     { text: "資訊通訊部", value: "1001" },
                 ];
             } else {
-                todolistqueryoptions = [
+                weeklyreportqueryoptions = [
                     {
                         text: vm.depConfig[vm.pageAccess.weeklyreport.remark],
                         value: String(vm.pageAccess.weeklyreport.remark),
                     },
                 ];
-                todolistqueryselected = vm.pageAccess.weeklyreport.remark;
+                weeklyreportqueryselected = vm.pageAccess.weeklyreport.remark;
                 vm.depOptions = [
                     {
                         text: vm.depConfig[vm.pageAccess.weeklyreport.remark],
@@ -910,26 +912,25 @@ export default {
                     },
                 ];
             }
-            var obj = {
-                options: todolistqueryoptions,
-                selected: todolistqueryselected,
-                inputtext: "",
-            };
+            let obj = JSON.parse(JSON.stringify(vm.DEFAULT_inputData));
+            obj.options = weeklyreportqueryoptions;
+            obj.selected = weeklyreportqueryselected;
             vm.setinputData(obj);
-            let commonApiParams = {
-                table: "weeklyReport",
-                attr: "depID",
-                timeattr: "date",
-                intervaltime: {
-                    date: [
-                        [
-                            vm.thisweekday[0] + " 00:00:00",
-                            vm.thisweekday[1] + " 23:59:59",
-                        ],
+
+            let commonApiParams = JSON.parse(
+                JSON.stringify(vm.DEFAULT_apiParams)
+            );
+            commonApiParams.normal.table = "weeklyReport";
+            commonApiParams.normal.attr = "depID";
+            commonApiParams.normal.timeattr = "date";
+            commonApiParams.normal.intervaltime = {
+                date: [
+                    [
+                        vm.thisweekday[0] + " 00:00:00",
+                        vm.thisweekday[1] + " 23:59:59",
                     ],
-                },
+                ],
             };
-            //console.log(commonApiParams);
             vm.setapiParams(commonApiParams);
         },
 
@@ -1648,7 +1649,7 @@ export default {
                             [false], //是否有分隔線
                             true, //是否要填色
                             [
-                                ["Item", "desc"],
+                                // ["Item", "desc"],
                                 ["Priority", "asc"],
                             ] //特殊指定排序欄位
                         );
@@ -1667,8 +1668,8 @@ export default {
                                 halign: "left",
                             }, //欲匯出autoTable data的預設格式
                             [true, { Separate: "下週工作重點" }], //是否有分隔線
-                            true,
-                            [["Item", "desc"]] //是否要填色 //特殊指定排序欄位
+                            true, //是否要填色
+                            [["Item", "desc"]] //特殊指定排序欄位
                         );
                         //console.log(
                         //     "nextweekfinalexportdata :>> ",
@@ -1700,7 +1701,7 @@ export default {
 
                     getThreePartData()
                         .then((value) => {
-                            //console.log(value);
+                            console.log(value);
                             vm.setautoTableStatus(true); //true為正式匯出
                             vm.setautoTable({
                                 body: value,
@@ -1791,7 +1792,7 @@ export default {
                     checkduplicate,
                     haveColor
                 ).then((response) => {
-                    //console.log(response);
+                    // console.log(response);
                     resolve(response);
                 });
             });
@@ -1952,7 +1953,7 @@ export default {
                         if (vm.errorFormat.length == 0) {
                             resolve(body);
                         } else {
-                            //console.log(checkduplicateCopy);
+                            console.log(JSON.stringify(checkduplicateCopy));
                             //console.log(data);
                             vm.errorFormat.forEach((element) => {
                                 //console.log(element.index);
@@ -1964,10 +1965,17 @@ export default {
                                 //         data[element.index].Group
                                 //     ]
                                 // );
+
+                                // {"Group":{"MIS":{"COUNT":[20],"INDEX":[0]},"PaaS":{"COUNT":[7],"INDEX":[20]}}}
+                                // {"Group":{"MIS":{"COUNT":[10,10],"INDEX":[0,10]},"PaaS":{"COUNT":[7],"INDEX":[20]}}}
+
                                 const divideNum = vm.getDivideNumber(
                                     checkduplicateCopy.Group[
                                         data[element.index].Group
-                                    ]["COUNT"][0],
+                                    ]["COUNT"],
+                                    checkduplicateCopy.Group[
+                                        data[element.index].Group
+                                    ]["INDEX"],
                                     element.division,
                                     element.index
                                 );
@@ -1978,7 +1986,7 @@ export default {
                                 checkduplicateCopy.Group[
                                     data[element.index].Group
                                 ]["INDEX"] = divideNum[0];
-                                //console.log(checkduplicateCopy);
+                                console.log(JSON.stringify(checkduplicateCopy));
                             });
                             //再重新跑一次整理func
                             vm.adjustPDFbody(
@@ -2000,18 +2008,34 @@ export default {
             return body;
         },
 
-        getDivideNumber(number, division, index) {
+        getDivideNumber(countNum, indexNum, division, index) {
+            console.log("countNum :>> ", countNum);
+            console.log("indexNum :>> ", indexNum);
+            console.log("division :>> ", division);
+            console.log("index :>> ", index);
             let numberCOUNTAry = [];
             let numberINDEXAry = [];
-            let childNum = Math.ceil(number / division);
+            //表示已經跑過檢查格式，但還是有問題
+            if (countNum.length > 1) {
+                numberINDEXAry = indexNum.slice(0, indexNum.indexOf(index));
+                numberCOUNTAry = countNum.slice(0, indexNum.indexOf(index));
+            }
+            console.log("numberCOUNTAry :>> ", numberCOUNTAry);
+            console.log("numberINDEXAry :>> ", numberINDEXAry);
+            let childNum = Math.ceil(
+                countNum[indexNum.indexOf(index)] / division
+            );
+            console.log("childNum :>> ", childNum);
             for (let i = 0; i < division; i++) {
                 numberINDEXAry.push(index + childNum * i);
                 //如果餘數為0表示整除
-                if (number % division == 0) {
+                if (countNum[indexNum.indexOf(index)] % division == 0) {
                     numberCOUNTAry.push(childNum);
                 } else {
                     if (i == division - 1) {
-                        numberCOUNTAry.push(number - childNum * i);
+                        numberCOUNTAry.push(
+                            countNum[indexNum.indexOf(index)] - childNum * i
+                        );
                     } else {
                         numberCOUNTAry.push(childNum);
                     }
@@ -2088,7 +2112,7 @@ export default {
             } else {
                 return content
                     .replace(/<br\s*[\/]?>/g, "\n")
-                    .replace(/&nbsp;/g, "");
+                    .replace(/&nbsp;/g, " ");
             }
         },
     },

@@ -7,12 +7,37 @@ const state = {
         options: [],
         selected: "",
         inputtext: "",
+        usetime: true
+    },
+    //建立defaul inputData不改變此state
+    DEFAULT_inputData: {
+        options: [],
+        selected: "",
+        inputtext: "",
+        usetime: true
     },
     apiParams: {
-        table: "",
-        attr: "",
-        timeattr: "",
-        intervaltime: {},
+        type: "normal", //預設為抓CommonSqlSyntaxQuery多條件查詢api
+        normal: {
+            table: "",
+            attr: "",
+            timeattr: "lastUpdateTime",
+            intervaltime: {},
+        },
+        join: {},
+        customized: {},
+    },
+    //建立defaul apiParams不改變此state
+    DEFAULT_apiParams: {
+        type: "normal", //預設為抓CommonSqlSyntaxQuery多條件查詢api
+        normal: {
+            table: "",
+            attr: "",
+            timeattr: "lastUpdateTime",
+            intervaltime: {},
+        },
+        join: {},
+        customized: {},
     },
     isInit: true,
     depDetail: null,
@@ -33,8 +58,14 @@ const getters = {
     get_inputData: state => {
         return state.inputData;
     },
+    get_DEFAULT_inputData: state => {
+        return state.DEFAULT_inputData;
+    },
     get_apiParams: state => {
         return state.apiParams;
+    },
+    get_DEFAULT_apiParams: state => {
+        return state.DEFAULT_apiParams;
     },
     get_isInit: state => {
         return state.isInit;

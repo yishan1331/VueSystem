@@ -34,7 +34,7 @@
                 <div>
                     <b-button
                         pill
-                        variant="primary"
+                        variant="success"
                         @click="addTaskModalShow = !addTaskModalShow;addTaskDetail.schedDate.time=nowFormat;addTaskDetail.startDate.time=nowFormat"
                     >新增事項</b-button>
                     <b-button pill class="ml-2" @click="exportModalShow = !exportModalShow">匯出</b-button>
@@ -496,6 +496,8 @@ export default {
             queryResponse: "commonquery/get_queryResponse",
             thisQueryTimeInterval: "commonquery/get_thisQueryTimeInterval",
             inputData: "commonquery/get_inputData",
+            DEFAULT_inputData: "commonquery/get_DEFAULT_inputData",
+            DEFAULT_apiParams: "commonquery/get_DEFAULT_apiParams",
             ttfStatus: "exportfile/get_ttfStatus",
             getDate: "getdate/get_Date",
         }),
@@ -505,7 +507,6 @@ export default {
         vm.now = vm.getDate.now;
         vm.nowFormat = vm.getDate.nowFormat;
         vm.thisweekday = vm.getDate.thisweekday;
-        // vm.getNow();
         if (vm.pageAccess.todolist.remark != "ALL") {
             vm.togglealertModal(true);
         } else {
@@ -576,108 +577,26 @@ export default {
                 ];
                 todolistqueryselected = vm.pageAccess.todolist.remark;
             }
-            var obj = {
-                options: todolistqueryoptions,
-                selected: todolistqueryselected,
-                inputtext: "",
-            };
+            let obj = JSON.parse(JSON.stringify(vm.DEFAULT_inputData));
+            obj.options = todolistqueryoptions;
+            obj.selected = todolistqueryselected;
             vm.setinputData(obj);
-            let commonApiParams = {
-                table: "todoList",
-                attr: "depID",
-                timeattr: "schedDate",
-                intervaltime: {
-                    schedDate: [
-                        [
-                            vm.thisweekday[0] + " 00:00:00",
-                            vm.thisweekday[1] + " 23:59:59",
-                        ],
+
+            let commonApiParams = JSON.parse(
+                JSON.stringify(vm.DEFAULT_apiParams)
+            );
+            commonApiParams.normal.table = "todoList";
+            commonApiParams.normal.attr = "depID";
+            commonApiParams.normal.timeattr = "schedDate";
+            commonApiParams.normal.intervaltime = {
+                schedDate: [
+                    [
+                        vm.thisweekday[0] + " 00:00:00",
+                        vm.thisweekday[1] + " 23:59:59",
                     ],
-                },
+                ],
             };
-            console.log(commonApiParams);
             vm.setapiParams(commonApiParams);
-        },
-        getNow() {
-            let vm = this;
-            let weekdaysCountConfig = [
-                [Number(-6), Number(0)],
-                [Number(0), Number(6)],
-                [Number(-1), Number(5)],
-                [Number(-2), Number(4)],
-                [Number(-3), Number(3)],
-                [Number(-4), Number(2)],
-                [Number(-5), Number(1)],
-            ];
-            let nowDate = new Date();
-            let returnobj = {};
-            returnobj = vm.dateFormat(nowDate);
-            console.log(returnobj);
-            vm.now =
-                returnobj.weekday +
-                ", " +
-                returnobj.month +
-                "月 " +
-                returnobj.day +
-                ", " +
-                returnobj.year;
-
-            vm.nowFormat =
-                returnobj.year + "-" + returnobj.month + "-" + returnobj.day;
-            console.log(vm.nowFormat);
-
-            Date.prototype.addDays = function (days) {
-                this.setDate(this.getDate() + days);
-                return this;
-            };
-
-            let thisweekdaystart = new Date();
-            thisweekdaystart.addDays(
-                weekdaysCountConfig[thisweekdaystart.getDay()][0]
-            );
-            let thisweekdaystartreturnobj = {};
-            thisweekdaystartreturnobj = vm.dateFormat(thisweekdaystart);
-            let thisweekdayend = new Date();
-            thisweekdayend.addDays(
-                weekdaysCountConfig[thisweekdayend.getDay()][1]
-            );
-            let thisweekdayendreturnobj = {};
-            thisweekdayendreturnobj = vm.dateFormat(thisweekdayend);
-            vm.thisweekday = [
-                thisweekdaystartreturnobj.year +
-                    "-" +
-                    thisweekdaystartreturnobj.month +
-                    "-" +
-                    thisweekdaystartreturnobj.day,
-                thisweekdayendreturnobj.year +
-                    "-" +
-                    thisweekdayendreturnobj.month +
-                    "-" +
-                    thisweekdayendreturnobj.day,
-            ];
-            console.log(vm.thisweekday);
-        },
-        dateFormat(time) {
-            let vm = this;
-            let weekdays = [
-                "星期日",
-                "星期一",
-                "星期二",
-                "星期三",
-                "星期四",
-                "星期五",
-                "星期六",
-            ];
-            let thisDay = time.getDate();
-            if (thisDay < 10) thisDay = "0" + thisDay;
-            let thisMonth = time.getMonth() + 1;
-            if (thisMonth < 10) thisMonth = "0" + thisMonth;
-            return {
-                year: time.getFullYear(),
-                month: thisMonth,
-                day: thisDay,
-                weekday: weekdays[time.getDay()],
-            };
         },
         getTodoList() {
             let vm = this;

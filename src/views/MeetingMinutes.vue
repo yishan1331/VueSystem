@@ -293,9 +293,9 @@
             </template>
         </b-modal>
         {{getDate}}
-        <br>
-        <br>
-        <br>
+        <br />
+        <br />
+        <br />
         {{depStaffRelation}}
     </div>
 </template>
@@ -445,6 +445,8 @@ export default {
             axiosResult: "commonaxios/get_axiosResult",
             loginData: "getlogin/get_loginData",
             queryResponse: "commonquery/get_queryResponse",
+            DEFAULT_inputData: "commonquery/get_DEFAULT_inputData",
+            DEFAULT_apiParams: "commonquery/get_DEFAULT_apiParams",
             tableBusy: "commonquery/get_tableBusy",
             getDate: "getdate/get_Date",
         }),
@@ -550,28 +552,26 @@ export default {
                 { text: "資訊通訊部", value: "1001" },
                 { text: "全選", value: "ALL" },
             ];
-            var obj = {
-                options: meetingminutesqueryoptions,
-                selected: meetingminutesqueryselected,
-                inputtext: "",
-            };
+            let obj = JSON.parse(JSON.stringify(vm.DEFAULT_inputData));
+            obj.options = meetingminutesqueryoptions;
+            obj.selected = meetingminutesqueryselected;
             vm.setinputData(obj);
-            let commonApiParams = {
-                table: "meetingMinutes",
-                attr: "depID",
-                timeattr: "date",
-                intervaltime: {
-                    date: [
-                        [
-                            vm.thisweekday[0] + " 00:00:00",
-                            vm.thisweekday[1] + " 23:59:59",
-                        ],
+
+            let commonApiParams = JSON.parse(
+                JSON.stringify(vm.DEFAULT_apiParams)
+            );
+            commonApiParams.normal.table = "meetingMinutes";
+            commonApiParams.normal.attr = "depID";
+            commonApiParams.normal.timeattr = "date";
+            commonApiParams.normal.intervaltime = {
+                date: [
+                    [
+                        vm.thisweekday[0] + " 00:00:00",
+                        vm.thisweekday[1] + " 23:59:59",
                     ],
-                },
+                ],
             };
-            console.log(commonApiParams);
             vm.setapiParams(commonApiParams);
-            vm.setinputData(obj);
         },
         getBelongDepStaff() {
             let vm = this;

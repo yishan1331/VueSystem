@@ -9,6 +9,8 @@ const state = {
         department: { "status": false }, //系統管理-部門
         account: { "status": false }, //系統管理-帳號
         structure: { "status": false }, //系統架構-架構圖
+        server: { "status": false }, //系統架構-伺服器狀態
+        storage: { "status": false }, //系統架構-儲存設備狀態
         todolist: { "status": false, "remark": null }, //報告-待辦事項
         weeklyreport: { "status": false, "remark": null }, //報告-週報表
         meetingminutes: { "status": false }, //報告-會議記錄
@@ -19,6 +21,8 @@ const state = {
         department: "部門",
         account: "帳號",
         structure: "架構圖",
+        server: "伺服器狀態",
+        storage: "儲存設備狀態",
         todolist: "待辦事項",
         weeklyreport: "Weekly Report",
         meetingminutes: "會議記錄",

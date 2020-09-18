@@ -49,6 +49,16 @@
                                 v-show="pageAccess.structure.status"
                                 :to="'structure'"
                             >架構圖</router-link>
+                            <router-link
+                                class="nav-link"
+                                v-show="pageAccess.server.status"
+                                :to="'server'"
+                            >伺服器狀態</router-link>
+                            <router-link
+                                class="nav-link"
+                                v-show="pageAccess.storage.status"
+                                :to="'storage'"
+                            >儲存設備狀態</router-link>
                         </div>
                     </li>
                     <li class="nav-item dropdown">
@@ -127,7 +137,7 @@
                     <a
                         class="changepwd a-hover"
                         style="float:right"
-                        @click.prevent="togglecommonModal()"
+                        @click.prevent="toggleChangePWDModal(true)"
                     >更改密碼</a>
                     <a class="logout a-hover" style="float:right" @click.prevent="logout">登出</a>
                 </form>
@@ -138,7 +148,7 @@
             <router-view style="margin-top:10px"></router-view>
             <!-- <router-view style="position:absolute;margin-top:10px"></router-view> -->
         </b-container>
-        <modal>
+        <modal v-if="ChangePwdmodalShow">
             <template v-slot:modalheader>
                 <h5>更改密碼</h5>
             </template>
@@ -187,7 +197,7 @@
                         variant="light"
                         size="sm"
                         class="float-right"
-                        @click.prevent="reset(),togglecommonModal()"
+                        @click.prevent="toggleChangePWDModal(false)"
                     >Close</b-button>
                     <b-button
                         variant="success"
@@ -211,6 +221,7 @@ export default {
     name: "index",
     data() {
         return {
+            ChangePwdmodalShow: false,
             ChangePwdmodal: {
                 old_pwd: "",
                 change_newpwd: "",
@@ -228,6 +239,7 @@ export default {
             axiosResult: "commonaxios/get_axiosResult",
             loginData: "getlogin/get_loginData",
             pageAccess: "getlogin/get_pageAccess",
+            DEFAULT_commonModalConfig: "usemodal/get_DEFAULT_commonModalConfig",
         }),
     },
     created: function () {
@@ -243,6 +255,7 @@ export default {
             axiosAction: "commonaxios/axiosAction",
             change_loginData: "getlogin/change_loginData",
             togglecommonModal: "usemodal/toggle_commonModal",
+            setcommonModalConfig: "usemodal/set_commonModalConfig",
             setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
@@ -423,7 +436,8 @@ export default {
                                 obj.accesslist = null;
                                 vm.change_loginData(obj);
                                 vm.reset();
-                                vm.togglecommonModal();
+                                vm.togglecommonModal(false);
+                                vm.ChangePwdmodalShow = false;
                                 setTimeout(function () {
                                     vm.$router.push("/");
                                 }, 900);
@@ -438,6 +452,23 @@ export default {
                 }
             });
         },
+
+        toggleChangePWDModal(status) {
+            let vm = this;
+            console.log(status);
+            if (status) {
+                let commonModalConfig = JSON.parse(
+                    JSON.stringify(vm.DEFAULT_commonModalConfig)
+                );
+                console.log(commonModalConfig);
+                vm.setcommonModalConfig(commonModalConfig);
+            } else {
+                vm.reset();
+            }
+            vm.ChangePwdmodalShow = status;
+            vm.togglecommonModal(status);
+        },
+
         //資料reset
         reset() {
             var def = this.$options.data();

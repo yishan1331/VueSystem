@@ -170,7 +170,8 @@ export default {
             loginData: "getlogin/get_loginData",
             queryResponse: "commonquery/get_queryResponse",
             tableBusy: "commonquery/get_tableBusy",
-            commonModalDetail: "usemodal/get_commonModalDetail",
+            DEFAULT_inputData: "commonquery/get_DEFAULT_inputData",
+            DEFAULT_apiParams: "commonquery/get_DEFAULT_apiParams",
         }),
     },
     watch: {
@@ -232,18 +233,16 @@ export default {
                 { value: "network", text: "網路" },
                 { value: "ALL", text: "全選" },
             ];
-            var obj = {
-                options: misbulletinqueryoptions,
-                selected: misbulletinqueryselected,
-                inputtext: "",
-            };
+            let obj = JSON.parse(JSON.stringify(vm.DEFAULT_inputData));
+            obj.options = misbulletinqueryoptions;
+            obj.selected = misbulletinqueryselected;
             vm.setinputData(obj);
-            let commonApiParams = {
-                table: "misBulletin",
-                attr: "category",
-                timeattr: "lastUpdateTime",
-                intervaltime: {},
-            };
+
+            let commonApiParams = JSON.parse(
+                JSON.stringify(vm.DEFAULT_apiParams)
+            );
+            commonApiParams.normal.table = "misBulletin";
+            commonApiParams.normal.attr = "category";
             vm.setapiParams(commonApiParams);
         },
         //查詢最新五筆
@@ -258,9 +257,9 @@ export default {
                 condition_1: {
                     table: "misBulletin",
                     orderby: ["desc", "lastUpdateTime"],
-                    limit: [0,5],
-                    where: {"showhide":[1]},
-                    symbols: {"showhide":["equal"]},
+                    limit: [0, 5],
+                    where: { showhide: [1] },
+                    symbols: { showhide: ["equal"] },
                 },
             };
             vm.axiosAction(params)

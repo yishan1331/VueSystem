@@ -43,7 +43,6 @@
 
 <script>
 import axios from "axios";
-import modal from "@/components/modal.vue";
 import alertModal from "@/components/alertModal.vue";
 import { mapGetters, mapActions } from "vuex";
 import { childRouter } from "@/router/childRouter";
@@ -60,7 +59,6 @@ export default {
         };
     },
     components: {
-        modal,
         alertModal,
     },
     computed: {
@@ -151,6 +149,8 @@ export default {
             //     account: { status: true },
             //     misbulletinmanage: { status: true },
             //     structure: { status: true },
+            //     server: { status: true },
+            //     storage: { status: true },
             //     todolist: { status: true, remark: "ALL" },
             //     weeklyreport: { status: true, remark: "1003" },
             //     meetingminutes: { status: true },

@@ -2,26 +2,32 @@
     <div class="systemForm">
         <b-form>
             <b-row v-for="(item1,key1) in vforData" :key="key1" :class="{'my-4': key1 != 'button'}">
-                <template v-if="key1 != 'button'">
+                <template v-if="key1 != 'button' && key1 != 'textclass'">
                     <b-col sm="2">
                         <label for="input-default">{{item1[1]}}:</label>
                     </b-col>
-                    <b-col sm="5">
+                    <b-col sm="10">
                         <b-form-input
                             v-if="item1[0] == 'readonly'"
-                            class="input-text"
                             type="text"
                             v-model="form[key1]"
                             readonly
-                            :class="{ wronginput: form.formcontentwrong }"
+                            :class="{wronginput:form.formcontentwrong, 'input-text':vforData['textclass']}"
+                            @keypress.enter.prevent
                         ></b-form-input>
                         <b-form-input
                             v-else-if="item1[0] == 'text'"
-                            class="input-text"
                             type="text"
                             v-model="form[key1]"
-                            :class="{ wronginput: form.formcontentwrong }"
+                            :class="{wronginput:form.formcontentwrong, 'input-text':vforData['textclass']}"
+                            @keypress.enter.prevent
                         ></b-form-input>
+                        <b-form-textarea
+                            v-else-if="item1[0] == 'textarea'"
+                            v-model="form[key1]"
+                            rows="4"
+                            max-rows="12"
+                        ></b-form-textarea>
                         <!-- :style="styleObject" -->
                         <b-form-checkbox
                             v-else-if="item1[0] == 'accesscheckbox'"
@@ -36,18 +42,34 @@
                                 v-model="form[key1][key2]['remark']"
                                 :options="[{'text':'雲端AI(智慧)平台部','value':'1003'},{'text':'系統研發部','value':'1002'},{'text':'資訊通訊部','value':'1001'},{'text':'ALL','value':'ALL'}]"
                                 size="sm"
-                                style="width: 100px !important"
-                            ></b-form-select>
+                                style="width: 100px !important;height:28px !important"
+                            >
+                                <template v-slot:first>
+                                    <b-form-select-option :value="null" disabled>------</b-form-select-option>
+                                </template>
+                            </b-form-select>
                         </b-form-checkbox>
+                        <b-form-checkbox
+                            switch
+                            size="lg"
+                            v-else-if="item1[0] == 'checkbox_switch'"
+                            v-model="form[key1]"
+                            :class="{ wronginput: form.formcontentwrong }"
+                        ></b-form-checkbox>
                         <b-form-select
                             v-else-if="item1[0] == 'depselect'"
                             v-model="form.noumenonID"
                             :options="selectOptions"
                             @change="depselectChange($event)"
                         ></b-form-select>
+                        <b-form-select
+                            v-else-if="item1[0] == 'select'"
+                            v-model="form[key1]"
+                            :options="selectOptions"
+                        ></b-form-select>
                     </b-col>
                 </template>
-                <template v-else>
+                <template v-else-if="key1 == 'button'">
                     <b-col lg="12" class="pb-2">
                         <div class="text-center">
                             <b-button
@@ -112,16 +134,14 @@ export default {
             // var formdatastyle = {};
             for (var i = 0; i < Object.keys(formdata).length; i++) {
                 if (Object.values(formdata)[i].length == 2) {
-                    if (Object.values(formdata)[i][0] == "text") {
-                        formdataitem[Object.keys(formdata)[i]] = "";
-                        // formdatastyle[Object.keys(formdata)[i]] = false;
-                    } else if (
-                        Object.values(formdata)[i][0] == "accesscheckbox"
-                    ) {
+                    if (Object.values(formdata)[i][0] == "accesscheckbox") {
                         if (Object.keys(formdata)[i] === "accessList") {
                             Object.keys(pageAccessobj).forEach(function (key) {
                                 console.log(key);
-                                if (key == "todolist" || key == "weeklyreport") {
+                                if (
+                                    key == "todolist" ||
+                                    key == "weeklyreport"
+                                ) {
                                     pageAccessobj[key]["status"] = false;
                                     pageAccessobj[key]["remark"] = null;
                                 } else {
@@ -132,9 +152,12 @@ export default {
                                 Object.keys(formdata)[i]
                             ] = pageAccessobj;
                         }
-                    } else if (Object.values(formdata)[i][0] == "depselect") {
+                    } else if (
+                        Object.values(formdata)[i][0] == "checkbox_switch"
+                    ) {
+                        formdataitem[Object.keys(formdata)[i]] = false;
+                    } else {
                         formdataitem[Object.keys(formdata)[i]] = "";
-                        // formdatastyle[Object.keys(formdata)[i]] = false;
                     }
                 } else if (Object.values(formdata)[i].length == 3) {
                     if (Object.values(formdata)[i][0] == "accesscheckbox") {
@@ -182,15 +205,17 @@ export default {
             vm.form.accessList = selectOptionsList[0][2];
         },
         submit() {
+            // event.preventDefault();
+            // event.stopPropagation();
             var vm = this;
-            // if (vm.vforData.button[0] == "Add") {
-            if (!vm.form.accessList.todolist.status)
-                vm.form.accessList.todolist.remark = null;
-            if (!vm.form.accessList.weeklyreport.status)
-                vm.form.accessList.weeklyreport.remark = null;
+            if (vm.form.hasOwnProperty("accessList")) {
+                if (!vm.form.accessList.todolist.status)
+                    vm.form.accessList.todolist.remark = null;
+                if (!vm.form.accessList.weeklyreport.status)
+                    vm.form.accessList.weeklyreport.remark = null;
+            }
             console.log(vm.form);
             vm.setcompletedData(vm.form);
-            // }
         },
         //資料reset
         reset() {
