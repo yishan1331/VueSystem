@@ -1,40 +1,87 @@
 <template>
-    <div class="commonQuery container mb-2">
-        <div :class="{'inline-block':!inputData.usetime}">
+    <div class="commonQuery container mb-3">
+        <div :class="{ inlineblock: !inputData.usetime }">
             <div>
-                <label>類別:</label>
+                <label>{{ inputData.label }}：</label>
                 <b-form-select
                     v-model="inputData.selected"
                     :options="inputData.options"
                     @change="onChange($event)"
                 ></b-form-select>
             </div>
-            <div v-if="selected == '部門名稱'" class="mt-1">
-                <label>{{selected}}:</label>
-                <b-form-select v-model="inputtext" :options="depDetail[0]"></b-form-select>
+            <template v-if="selected != ''">
+                <div class="mt-1">
+                    <label>{{ selected }}：</label>
+                    <template v-if="inputData.childcondition == 'input'">
+                        <b-form-select
+                            v-if="selected == '部門名稱'"
+                            v-model="inputtext"
+                            :options="conditionOptions"
+                        ></b-form-select>
+                        <b-form-input
+                            v-else
+                            class="input-title"
+                            v-model.trim="inputtext"
+                            type="text"
+                        ></b-form-input>
+                    </template>
+                    <template v-else-if="inputData.childcondition == 'select'">
+                        <b-form-select
+                            v-model="inputtext"
+                            :options="conditionOptions"
+                        ></b-form-select>
+                    </template>
+                </div>
+            </template>
+            <template v-if="inputData.secondcondition[0]">
+                <div class="mt-1">
+                    <label>{{ inputData.secondcondition[1].label }}：</label>
+                    <template
+                        v-if="
+                            inputData.secondcondition[1].condition == 'select'
+                        "
+                    >
+                        <b-form-select
+                            v-model="inputData.second_selected"
+                            :options="conditionOptions"
+                            @change="second_onChange($event)"
+                        ></b-form-select>
+                    </template>
+                </div>
+            </template>
+        </div>
+        <div class="mt-2" :class="{ inlineblock: !inputData.usetime }">
+            <div v-if="inputData.usetime" class="inlineblock">
+                <b-form-checkbox
+                    v-if="inputData.usetime"
+                    v-model="settingtime"
+                    class="inlineblock"
+                >
+                    <span v-if="!settingtime">指定時間</span>
+                </b-form-checkbox>
+                <div class="inlineblock" v-if="settingtime">
+                    <label>時間：</label>
+                    <datepicker
+                        :date="startTime"
+                        :option="startoption"
+                    ></datepicker
+                    >~
+                    <datepicker
+                        :date="endTime"
+                        :option="endoption"
+                        :limit="endoption.limit"
+                    ></datepicker>
+                </div>
             </div>
-            <div v-else-if="selected != ''" class="mt-1">
-                <label>{{selected}}:</label>
-                <b-form-input class="input-title" v-model="inputtext" type="text"></b-form-input>
+            <div class="inlineblock">
+                <b-button
+                    variant="primary"
+                    @click="QueryData($event)"
+                    class="ml-2"
+                    >查詢</b-button
+                >
             </div>
         </div>
-        <div class="mt-2" :class="{'inline-block':!inputData.usetime}">
-            <div v-if="inputData.usetime" class="inline-block">
-                <label>時間:</label>
-                <datepicker :date="startTime" :option="startoption"></datepicker>~
-                <datepicker :date="endTime" :option="endoption" :limit="endoption.limit"></datepicker>
-            </div>
-            <div class="inline-block">
-                <b-button variant="primary" @click="QueryData($event)" class="ml-2">查詢</b-button>
-            </div>
-        </div>
-        <b-form-checkbox
-            v-if="inputData.usetime"
-            v-model="settingtime"
-            class="inline-block"
-            style="margin-right:10px"
-        >指定時間</b-form-checkbox>
-        <br />
     </div>
 </template>
 
@@ -128,12 +175,13 @@ export default {
                 limit: [
                     {
                         type: "fromto",
-                        from: "1995-01-01",
-                        to: "9999-01-01",
+                        from: "",
+                        to: "",
                     },
                 ],
             },
             inputtext: "",
+            second_inputtext: "",
             selected: "",
             selectedCH: {
                 depID: "部門編號",
@@ -146,7 +194,16 @@ export default {
         };
     },
     created: function () {
-        this.DefaultDate("Default");
+        let vm = this;
+        vm.DefaultDate("Default");
+        if (vm.inputData.secondcondition[0]) {
+            if (vm.inputData.secondcondition[1].condition == "select") {
+                vm.second_inputtext = vm.inputData.second_selected;
+            }
+        }
+    },
+    mounted: function () {
+        console.log(this.conditionOptions);
     },
     components: {
         datepicker,
@@ -159,7 +216,7 @@ export default {
             inputData: "commonquery/get_inputData",
             apiParams: "commonquery/get_apiParams",
             isInit: "commonquery/get_isInit",
-            depDetail: "commonquery/get_depDetail",
+            conditionOptions: "commonquery/get_conditionOptions",
             getDate: "getdate/get_Date",
         }),
     },
@@ -182,6 +239,13 @@ export default {
         "endTime.time": {
             handler(value) {
                 var vm = this;
+                if (
+                    Date.parse(vm.startTime.time).valueOf() >
+                    Date.parse(value).valueOf()
+                ) {
+                    vm.startTime.time = "";
+                    vm.startoption.placeholder = "";
+                }
                 // vm.setthisQueryTimeInterval([
                 //     vm.startTime.time,
                 //     vm.endTime.time,
@@ -209,94 +273,110 @@ export default {
         onChange(event) {
             console.log(event);
             var vm = this;
-            if (typeof this.selectedCH[event] != "undefined") {
-                vm.selected = vm.selectedCH[event];
+            if (Object.keys(vm.inputData.conversiontable).length != 0) {
+                vm.selected = vm.inputData.conversiontable[event];
             } else {
                 vm.selected = "";
             }
+            // if (typeof this.selectedCH[event] != "undefined") {
+            //     vm.selected = vm.selectedCH[event];
+            // } else {
+            //     vm.selected = "";
+            // }
             vm.inputtext = "";
         },
+
+        second_onChange(event) {
+            console.log(event);
+            var vm = this;
+            vm.second_inputtext = event;
+        },
+
         //查詢API
         QueryDataFunction() {
             var vm = this;
             var params = {};
-            if (vm.selected != "") {
-                if (vm.inputtext == "") {
-                    vm.setTimeOutAlertMsg("尚未輸入條件");
-                    vm.settimeoutalertModal();
-                    vm.changetableBusy();
-                    return;
-                }
+            if (vm.selected != "" && vm.inputtext == "") {
+                vm.setTimeOutAlertMsg("尚未輸入條件");
+                vm.settimeoutalertModal();
+                vm.changetableBusy();
+                return;
+            }
+            if (vm.inputData.secondcondition[0] && vm.second_inputtext == "") {
+                vm.setTimeOutAlertMsg("尚未輸入條件");
+                vm.settimeoutalertModal();
+                vm.changetableBusy();
+                return;
             }
             console.log(vm.selected);
             vm.togglealertModal(true);
-            //預設今天
+            //預設今天inputtext
             params["timeattr"] = vm.apiParams.normal.timeattr;
             params["start_time"] = vm.startTime.time + " 00:00:00";
             params["end_time"] = vm.endTime.time + " 23:59:59";
             params["settingtime"] = vm.settingtime;
 
             if (vm.apiParams.type == "normal") {
-                if (vm.inputData.selected == "ALL") {
-                    params["whichFunction"] = "IntervalQuery";
-                    params["methods"] = "GET";
-                    params["table"] = vm.apiParams.normal.table;
+                // if (vm.inputData.selected == "ALL") {
+                //     params["whichFunction"] = "IntervalQuery";
+                //     params["methods"] = "GET";
+                //     params["table"] = vm.apiParams.normal.table;
+                //     //設定此次抓取的時間區間
+                //     vm.setthisQueryTimeInterval("ALL");
+                // } else {
+                params["methods"] = "POST";
+                params["whichFunction"] = "CommonSqlSyntaxQuery_";
+                //default params
+                let fieldsparams = "";
+                let orderbyparams = ["desc", "lastUpdateTime"];
+                let limitparams = ["ALL"];
+                let whereparams = {};
+                let symbolsparams = {};
+                let intervaltimeparams = {};
+
+                if (vm.settingtime) {
+                    intervaltimeparams[vm.apiParams.normal.timeattr] = [
+                        [
+                            vm.startTime.time + " 00:00:00",
+                            vm.endTime.time + " 23:59:59",
+                        ],
+                    ];
                     //設定此次抓取的時間區間
-                    vm.setthisQueryTimeInterval("ALL");
+                    vm.setthisQueryTimeInterval([
+                        vm.startTime.time,
+                        vm.endTime.time,
+                    ]);
                 } else {
-                    params["methods"] = "POST";
-                    params["whichFunction"] = "CommonSqlSyntaxQuery_";
-                    //default params
-                    let fieldsparams = "";
-                    let orderbyparams = ["desc", "lastUpdateTime"];
-                    let limitparams = ["ALL"];
-                    let whereparams = {};
-                    let symbolsparams = {};
-                    let intervaltimeparams = {};
-                    if (vm.settingtime) {
-                        intervaltimeparams[vm.apiParams.normal.timeattr] = [
-                            [
-                                vm.startTime.time + " 00:00:00",
-                                vm.endTime.time + " 23:59:59",
-                            ],
-                        ];
+                    //若是第一次查詢才找是否有defaul參數intervaltime
+                    console.log(vm.isInit);
+                    if (
+                        vm.isInit &&
+                        Object.keys(vm.apiParams.normal.intervaltime).length !=
+                            0
+                    ) {
+                        intervaltimeparams = vm.apiParams.normal.intervaltime;
+                        // vm.setisInit(false);
                         //設定此次抓取的時間區間
-                        vm.setthisQueryTimeInterval([
-                            vm.startTime.time,
-                            vm.endTime.time,
-                        ]);
+                        vm.setthisQueryTimeInterval("DEFAULT");
                     } else {
-                        //若是第一次查詢才找是否有defaul參數intervaltime
-                        console.log(vm.isInit);
-                        if (
-                            vm.isInit &&
-                            Object.keys(vm.apiParams.normal.intervaltime)
-                                .length != 0
-                        ) {
-                            intervaltimeparams =
-                                vm.apiParams.normal.intervaltime;
-                            // vm.setisInit(false);
-                            //設定此次抓取的時間區間
-                            vm.setthisQueryTimeInterval("DEFAULT");
-                        } else {
-                            intervaltimeparams = "";
-                            //設定此次抓取的時間區間
-                            vm.setthisQueryTimeInterval("ALL");
-                        }
-                        console.log(vm.isInit);
+                        intervaltimeparams = "";
+                        //設定此次抓取的時間區間
+                        vm.setthisQueryTimeInterval("ALL");
                     }
-                    console.log(vm.apiParams.normal);
+                    console.log(vm.isInit);
+                }
+                console.log(vm.apiParams.normal);
+
+                if (vm.inputData.selected != "ALL") {
                     if (vm.apiParams.normal.attr == "") {
                         if (
                             vm.apiParams.normal.table == "user" &&
                             vm.inputData.selected == "depName"
                         ) {
-                            whereparams["noumenonID"] = [vm.inputtext.trim()];
+                            whereparams["noumenonID"] = [vm.inputtext];
                             symbolsparams["noumenonID"] = ["like"];
                         } else {
-                            whereparams[vm.inputData.selected] = [
-                                vm.inputtext.trim(),
-                            ];
+                            whereparams[vm.inputData.selected] = [vm.inputtext];
                             symbolsparams[vm.inputData.selected] = ["like"];
                         }
                     } else {
@@ -311,18 +391,55 @@ export default {
                             orderbyparams = ["asc", "date"];
                         }
                     }
-                    params["condition"] = {
-                        condition_1: {
-                            table: vm.apiParams.normal.table,
-                            fields: fieldsparams,
-                            orderby: orderbyparams,
-                            limit: limitparams,
-                            where: whereparams,
-                            symbols: symbolsparams,
-                            intervaltime: intervaltimeparams,
-                        },
-                    };
+                } else {
+                    //設定此次抓取的時間區間
+                    vm.setthisQueryTimeInterval("ALL");
                 }
+
+                if (vm.inputData.secondcondition[0]) {
+                    let thisinputlen = vm.second_inputtext.length;
+                    whereparams[vm.inputData.secondcondition[1].attr] =
+                        vm.second_inputtext;
+
+                    let thissymbols = vm.second_inputtext.map(
+                        (index) => "equal"
+                    );
+                    console.log(thissymbols);
+                    symbolsparams[
+                        vm.inputData.secondcondition[1].attr
+                    ] = thissymbols;
+                }
+
+                if (Object.keys(whereparams).length == 0) {
+                    whereparams = "";
+                    symbolsparams = "";
+                }
+                params["condition"] = {
+                    condition_1: {
+                        table: vm.apiParams.normal.table,
+                        fields: fieldsparams,
+                        orderby: orderbyparams,
+                        limit: limitparams,
+                        where: whereparams,
+                        symbols: symbolsparams,
+                        intervaltime: intervaltimeparams,
+                    },
+                };
+
+                //若有自定義參數在此整理合併查詢
+                console.log(vm.apiParams.customized);
+                Object.keys(vm.apiParams.customized).map((element) => {
+                    if (params["condition"]["condition_1"][element] != "") {
+                        Object.assign(
+                            params["condition"]["condition_1"][element],
+                            vm.apiParams.customized[element]
+                        );
+                    } else {
+                        params["condition"]["condition_1"][element] =
+                            vm.apiParams.customized[element];
+                    }
+                });
+                // }
             } else if (vm.apiParams.type == "join") {
                 if (vm.inputData.selected == "ALL") {
                     params["methods"] = "POST";
@@ -357,6 +474,7 @@ export default {
                 }
             });
         },
+
         //時間格式化
         DefaultDate(Default) {
             var vm = this;
@@ -366,19 +484,20 @@ export default {
                 vm.startTime.time = vm.getDate.thisweekday[0];
                 vm.endoption.placeholder = vm.getDate.thisweekday[1];
                 vm.endTime.time = vm.getDate.thisweekday[1];
-                vm.endoption.limit[0].from = vm.getDate.thisweekday[1];
             } else {
                 vm.reset([
                     "startTime",
                     "endTime",
                     "selected",
                     "inputtext",
+                    "second_inputtext",
                     "settingtime",
                 ]);
                 vm.changetableBusy();
                 vm.QueryDataFunction();
             }
         },
+
         dateFormat(time) {
             let vm = this;
             let weekdays = [
@@ -401,6 +520,7 @@ export default {
                 weekday: weekdays[time.getDay()],
             };
         },
+
         //查詢按鈕
         QueryData(event) {
             console.log(event);
@@ -453,7 +573,7 @@ export default {
 .datepicker-overlay {
     z-index: 9999 !important;
 }
-.inline-block {
+.inlineblock {
     display: inline-block;
 }
 </style>

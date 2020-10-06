@@ -5,7 +5,7 @@ module.exports = {
 //     devServer: {
 //         proxy: { //配置代理，解决跨域请求后台数据的问题
 //             '/font': {
-//                 target: 'https://192.168.39.75:8888', //后台接口
+//                 target: 'https://192.168.88.75:8888', //后台接口
 //                 ws: true, //是否跨域
 //                 changeOrigin: true,
 //                 // pathRewrite: {

@@ -1,5 +1,6 @@
 <?php
 date_default_timezone_set("Asia/Taipei");
+include("../../globalvar.php");
 $postBody = file_get_contents("php://input");
 $postBody = json_decode($postBody);
 $this_seq = $postBody->seq;
@@ -12,7 +13,7 @@ if ($this_filename == "") {
 }
 $msg = [];
 
-$url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/misBulletin?uid=@sapido@PaaS";
+$url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/misBulletin?uid=@sapido@PaaS";
 //The JSON data.
 $data = array(
     "seq" => ["$this_seq"],
@@ -39,7 +40,7 @@ foreach ($Arr as $key => $value) {
         if ($nofiledelete) {
             array_push($msg, "資料刪除成功");
             echo json_encode($msg);
-            exit;
+            return;
         }
         $fileCount = count($this_filename);
         for ($i = 0; $i < $fileCount; $i++) {
@@ -53,9 +54,9 @@ foreach ($Arr as $key => $value) {
             array_push($msg, "資料、檔案刪除成功");
         }
         echo json_encode($msg);
-        exit;
+        return;
     } else if ($key == 'Response' && $value != 'ok') {
         echo json_encode($Arr);
-        exit;
+        return;
     }
 }

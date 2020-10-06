@@ -1,7 +1,8 @@
 <?php
 header('Access-Control-Allow-Origin: *');
+include("../../globalvar.php");
 $this_seq = $_POST['seq'];
-$url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/misBulletin?uid=@sapido@PaaS";
+$url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/misBulletin?uid=@sapido@PaaS";
 $nofileupload = false;
 $targetDir = "../../../misbulletinfiles/";
 if (!file_exists($targetDir)) {

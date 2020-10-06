@@ -52,7 +52,6 @@ export default {
         ...mapActions({
             setttfStatus: "exportfile/set_ttfStatus",
             seterrorFormat: "exportfile/set_errorFormat",
-            setautoTableStatus: "exportfile/set_autoTableStatus",
             setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             togglealertModal: "alertmodal/toggle_alertModal",

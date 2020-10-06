@@ -4,17 +4,25 @@ const state = {
     tableBusy: false,
     queryAgain: false,
     inputData: {
+        label: "條件",
         options: [],
         selected: "",
-        inputtext: "",
-        usetime: true
+        conversiontable: {}, //中英對照表
+        usetime: true,
+        childcondition: "input",
+        secondcondition: [false],
+        second_selected: "",
     },
     //建立defaul inputData不改變此state
     DEFAULT_inputData: {
+        label: "條件",
         options: [],
         selected: "",
-        inputtext: "",
-        usetime: true
+        conversiontable: {},
+        usetime: true,
+        childcondition: "input",
+        secondcondition: [false],
+        second_selected: "",
     },
     apiParams: {
         type: "normal", //預設為抓CommonSqlSyntaxQuery多條件查詢api
@@ -40,7 +48,7 @@ const state = {
         customized: {},
     },
     isInit: true,
-    depDetail: null,
+    conditionOptions: [],
 };
 const getters = {
     get_queryResponse: state => {
@@ -70,8 +78,8 @@ const getters = {
     get_isInit: state => {
         return state.isInit;
     },
-    get_depDetail: state => {
-        return state.depDetail;
+    get_conditionOptions: state => {
+        return state.conditionOptions;
     },
 };
 const actions = {
@@ -97,8 +105,8 @@ const actions = {
     set_isInit(context, status) {
         context.commit("SET_ISINIT", status);
     },
-    set_depDetail(context, data) {
-        context.commit("SET_DEPDETAIL", data);
+    set_conditionOptions(context, data) {
+        context.commit("SET_CONDITIONOPTIONS", data);
     },
 };
 const mutations = {
@@ -126,8 +134,8 @@ const mutations = {
         state.isInit = status;
         console.log(state.isInit);
     },
-    SET_DEPDETAIL(state, data) {
-        state.depDetail = data;
+    SET_CONDITIONOPTIONS(state, data) {
+        state.conditionOptions = data;
     },
 };
 

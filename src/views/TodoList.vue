@@ -1,46 +1,103 @@
 <template>
     <div class="TodoList">
-        <div id="bluebg">
-            <img src="../assets/todolist.png" />
-            待辦事項清單
+        <div id="bluebg" class="mb-2">
+            <b-row>
+                <b-col sm="1">
+                    <img src="../assets/todolist.png" />
+                </b-col>
+                <b-col class="title" sm="8">待辦事項清單</b-col>
+                <b-col sm="3">
+                    <p
+                        class="text-right"
+                        style="
+                            color: oldlace;
+                            font-size: 1.05rem;
+                            margin: 5px 10px 0 0;
+                        "
+                    >
+                        {{ now }}
+                    </p>
+                </b-col>
+            </b-row>
         </div>
-        <b-row class="mb-3 mt-1">
-            <b-col sm="3">
-                <h5 style="margin-top:5px">{{now}}</h5>
-            </b-col>
-            <b-col sm="9" class="text-right">
-                <b-button pill v-b-toggle.collapse-1 variant="light">選擇條件</b-button>
-                <b-collapse id="collapse-1" :visible="selectDepCollapseShow" class="mt-2">
+        <div class="text-right" style="opacity: 0.5">
+            <template v-if="collapseVisible">
+                <b-icon
+                    icon="arrows-collapse"
+                    scale="1.5"
+                    @click="collapseVisible = !collapseVisible"
+                ></b-icon>
+            </template>
+            <template v-else>
+                <b-icon
+                    icon="arrows-expand"
+                    scale="1.5"
+                    @click="collapseVisible = !collapseVisible"
+                ></b-icon>
+            </template>
+        </div>
+        <b-collapse v-model="collapseVisible" class="mt-2">
+            <b-row class="mb-3 mt-3">
+                <b-col sm="10">
                     <commonQuery />
-                </b-collapse>
-            </b-col>
-        </b-row>
-        <b-row>
-            <b-col sm="2">
-                <b-table-simple small responsive borderless style="width:300px;margin-bottom:20px">
-                    <b-tbody>
-                        <b-tr>
-                            <b-td class="text-right" variant="dark" style="width:100px">今天到期：</b-td>
-                            <b-td variant="secondary" style="width:200px">{{dueTodayNum}}</b-td>
-                        </b-tr>
-                        <b-tr>
-                            <b-td class="text-right" variant="dark" style="width:100px">逾期：</b-td>
-                            <b-td variant="secondary" style="width:200px">{{overDueNum}}</b-td>
-                        </b-tr>
-                    </b-tbody>
-                </b-table-simple>
-            </b-col>
-            <b-col sm="10" class="text-right">
-                <div>
-                    <b-button
-                        pill
-                        variant="success"
-                        @click="addTaskModalShow = !addTaskModalShow;addTaskDetail.schedDate.time=nowFormat;addTaskDetail.startDate.time=nowFormat"
-                    >新增事項</b-button>
-                    <b-button pill class="ml-2" @click="exportModalShow = !exportModalShow">匯出</b-button>
-                </div>
-            </b-col>
-        </b-row>
+                </b-col>
+                <b-col sm="2">
+                    <b-table-simple
+                        small
+                        responsive
+                        borderless
+                        style="width: 200px; margin-bottom: 20px"
+                    >
+                        <b-tbody>
+                            <b-tr>
+                                <b-td
+                                    class="text-right"
+                                    variant="dark"
+                                    style="width: 100px"
+                                    >今天到期：</b-td
+                                >
+                                <b-td
+                                    variant="secondary"
+                                    style="width: 100px"
+                                    >{{ dueTodayNum }}</b-td
+                                >
+                            </b-tr>
+                            <b-tr>
+                                <b-td
+                                    class="text-right"
+                                    variant="dark"
+                                    style="width: 100px"
+                                    >逾期：</b-td
+                                >
+                                <b-td
+                                    variant="secondary"
+                                    style="width: 100px"
+                                    >{{ overDueNum }}</b-td
+                                >
+                            </b-tr>
+                        </b-tbody>
+                    </b-table-simple>
+                    <div class="text-right">
+                        <b-button
+                            pill
+                            variant="success"
+                            @click="
+                                addTaskModalShow = !addTaskModalShow;
+                                addTaskDetail.schedDate.time = nowFormat;
+                                addTaskDetail.startDate.time = nowFormat;
+                            "
+                            >新增</b-button
+                        >
+                        <b-button
+                            pill
+                            class="ml-2"
+                            @click="exportModalShow = !exportModalShow"
+                            >匯出</b-button
+                        >
+                    </div>
+                </b-col>
+            </b-row>
+        </b-collapse>
 
         <h3 v-if="items.length == 0">查無資料</h3>
         <b-table
@@ -48,88 +105,161 @@
             responsive
             :items="items"
             :fields="fields"
-            head-variant="dark"
+            head-variant="light"
             v-if="items.length != 0"
-            class="text-center"
+            class="mt-2"
             :tbody-tr-attr="rowClass"
         >
             <template v-slot:cell(status)="row">
-                <div :class="{hide:activeItemsSeq == row.item.seq,completedTask:row.item.status}">
+                <div
+                    :class="{
+                        hide: activeItemsSeq == row.item.seq,
+                        completedTask: row.item.status,
+                    }"
+                >
                     <b-form-checkbox disabled v-model="row.item.status">
-                        <span v-if="row.item.status">完成日期({{row.item.completedDate}})</span>
+                        <span v-if="row.item.status"
+                            >完成日期({{ row.item.completedDate }})</span
+                        >
                     </b-form-checkbox>
                 </div>
-                <div :class="{hide:activeItemsSeq != row.item.seq}">
-                    <b-form-checkbox v-model="row.item.status" size="lg"></b-form-checkbox>
+                <div :class="{ hide: activeItemsSeq != row.item.seq }">
+                    <b-form-checkbox
+                        v-model="row.item.status"
+                        size="lg"
+                    ></b-form-checkbox>
                 </div>
             </template>
             <template v-slot:cell(taskInfo)="row">
                 <div
-                    :class="{hide:activeItemsSeq == row.item.seq,completedTask:row.item.status}"
-                >{{row.item.taskInfo}}</div>
-                <div :class="{hide:activeItemsSeq != row.item.seq}">
-                    <b-form-input class="input-text" type="text" v-model="row.item.taskInfo"></b-form-input>
+                    :class="{
+                        hide: activeItemsSeq == row.item.seq,
+                        completedTask: row.item.status,
+                    }"
+                >
+                    {{ row.item.taskInfo }}
+                </div>
+                <div :class="{ hide: activeItemsSeq != row.item.seq }">
+                    <b-form-input
+                        class="input-text"
+                        type="text"
+                        v-model="row.item.taskInfo"
+                    ></b-form-input>
                 </div>
             </template>
             <template v-slot:cell(schedDate)="row">
                 <template
-                    v-if="row.item.schedDate.time == '' && activeItemsSeq != row.item.seq"
-                >尚未指定</template>
+                    v-if="
+                        row.item.schedDate.time == '' &&
+                        activeItemsSeq != row.item.seq
+                    "
+                    >尚未指定</template
+                >
                 <template v-else>
                     <div
-                        :class="{hide:activeItemsSeq == row.item.seq,completedTask:row.item.status}"
-                    >{{row.item.schedDate.time}}</div>
+                        :class="{
+                            hide: activeItemsSeq == row.item.seq,
+                            completedTask: row.item.status,
+                        }"
+                    >
+                        {{ row.item.schedDate.time }}
+                    </div>
                 </template>
-                <div :class="{hide:activeItemsSeq != row.item.seq}">
-                    <datepicker :date="row.item.schedDate" :option="datepickerOptions"></datepicker>
+                <div :class="{ hide: activeItemsSeq != row.item.seq }">
+                    <datepicker
+                        :date="row.item.schedDate"
+                        :option="datepickerOptions"
+                    ></datepicker>
                 </div>
             </template>
             <template v-slot:cell(priority)="row">
                 <div
-                    :class="{hide:activeItemsSeq == row.item.seq,completedTask:row.item.status}"
-                >{{priorityConfig[row.item.priority]}}</div>
-                <div :class="{hide:activeItemsSeq != row.item.seq}">
-                    <b-form-select v-model="row.item.priority" :options="priorityOptions"></b-form-select>
+                    :class="{
+                        hide: activeItemsSeq == row.item.seq,
+                        completedTask: row.item.status,
+                    }"
+                >
+                    {{ priorityConfig[row.item.priority] }}
+                </div>
+                <div :class="{ hide: activeItemsSeq != row.item.seq }">
+                    <b-form-select
+                        v-model="row.item.priority"
+                        :options="priorityOptions"
+                    ></b-form-select>
                 </div>
             </template>
             <template v-slot:cell(assignTo)="row">
                 <div
-                    :class="{hide:activeItemsSeq == row.item.seq,completedTask:row.item.status}"
-                >{{staffConfig[row.item.assignTo]}}</div>
-                <div :class="{hide:activeItemsSeq != row.item.seq}">
-                    <b-form-select v-model="row.item.assignTo" :options="getStaffOptions"></b-form-select>
+                    :class="{
+                        hide: activeItemsSeq == row.item.seq,
+                        completedTask: row.item.status,
+                    }"
+                >
+                    {{ staffConfig[row.item.assignTo] }}
+                </div>
+                <div :class="{ hide: activeItemsSeq != row.item.seq }">
+                    <b-form-select
+                        v-model="row.item.assignTo"
+                        :options="getStaffOptions"
+                    ></b-form-select>
                 </div>
             </template>
             <template v-slot:cell(startDate)="row">
                 <div
-                    :class="{hide:activeItemsSeq == row.item.seq,completedTask:row.item.status}"
-                >{{row.item.startDate.time}}</div>
-                <div :class="{hide:activeItemsSeq != row.item.seq}">
-                    <datepicker :date="row.item.startDate" :option="datepickerOptions"></datepicker>
+                    :class="{
+                        hide: activeItemsSeq == row.item.seq,
+                        completedTask: row.item.status,
+                    }"
+                >
+                    {{ row.item.startDate.time }}
+                </div>
+                <div :class="{ hide: activeItemsSeq != row.item.seq }">
+                    <datepicker
+                        :date="row.item.startDate"
+                        :option="datepickerOptions"
+                    ></datepicker>
                 </div>
             </template>
             <template v-slot:cell(action)="row">
                 <template v-if="activeItemsSeq != row.item.seq">
                     <b-button
                         v-if="activeItemsSeq == null"
-                        @click="activeItemsSeq = row.item.seq;tempOldItemAction(true,row.item)"
-                    >編輯</b-button>
+                        @click="
+                            activeItemsSeq = row.item.seq;
+                            tempOldItemAction(true, row.item);
+                        "
+                        >編輯</b-button
+                    >
                     <b-button v-else disabled>編輯</b-button>
                     <b-button
                         v-if="activeItemsSeq == null"
                         variant="danger"
-                        @click="delTaskModalShow = !delTaskModalShow;delItemSeq = row.item.seq"
-                        style="margin-left:10px"
-                    >刪除</b-button>
-                    <b-button v-else disabled variant="danger" style="margin-left:10px">刪除</b-button>
+                        @click="
+                            delTaskModalShow = !delTaskModalShow;
+                            delItemSeq = row.item.seq;
+                        "
+                        style="margin-left: 10px"
+                        >刪除</b-button
+                    >
+                    <b-button
+                        v-else
+                        disabled
+                        variant="danger"
+                        style="margin-left: 10px"
+                        >刪除</b-button
+                    >
                 </template>
                 <template v-else-if="activeItemsSeq == row.item.seq">
                     <b-button @click="modTask(row.item)">完成編輯</b-button>
                     <b-button
                         variant="light"
-                        @click="activeItemsSeq = null;tempOldItemAction(false,row.item)"
-                        style="margin-left:10px"
-                    >取消</b-button>
+                        @click="
+                            activeItemsSeq = null;
+                            tempOldItemAction(false, row.item);
+                        "
+                        style="margin-left: 10px"
+                        >取消</b-button
+                    >
                 </template>
             </template>
         </b-table>
@@ -152,7 +282,10 @@
                             <label for="input-default">發起日:</label>
                         </b-col>
                         <b-col sm="10">
-                            <datepicker :date="addTaskDetail.startDate" :option="datepickerOptions"></datepicker>
+                            <datepicker
+                                :date="addTaskDetail.startDate"
+                                :option="datepickerOptions"
+                            ></datepicker>
                         </b-col>
                     </b-row>
                     <b-row class="my-4">
@@ -161,15 +294,26 @@
                         </b-col>
                         <b-col
                             sm="10"
-                            :class="{ 'form-group--error': $v.addTaskDetail.taskInfo.value.$error }"
+                            :class="{
+                                'form-group--error':
+                                    $v.addTaskDetail.taskInfo.value.$error,
+                            }"
                         >
                             <b-form-input
-                                v-model.trim="$v.addTaskDetail.taskInfo.$model.value"
+                                v-model.trim="
+                                    $v.addTaskDetail.taskInfo.$model.value
+                                "
                                 class="input-title"
                                 type="text"
                             ></b-form-input>
                             <template
-                                v-if="check_required($v.addTaskDetail.taskInfo.value.required,$v.addTaskDetail.taskInfo.$model)"
+                                v-if="
+                                    check_required(
+                                        $v.addTaskDetail.taskInfo.value
+                                            .required,
+                                        $v.addTaskDetail.taskInfo.$model
+                                    )
+                                "
                             >
                                 <div class="error">Is required</div>
                             </template>
@@ -180,7 +324,10 @@
                             <label for="input-default">預計完成日期:</label>
                         </b-col>
                         <b-col sm="10">
-                            <datepicker :date="addTaskDetail.schedDate" :option="datepickerOptions"></datepicker>
+                            <datepicker
+                                :date="addTaskDetail.schedDate"
+                                :option="datepickerOptions"
+                            ></datepicker>
                         </b-col>
                     </b-row>
                     <b-row class="my-4">
@@ -189,7 +336,10 @@
                         </b-col>
                         <b-col
                             sm="5"
-                            :class="{ 'form-group--error': $v.addTaskDetail.priority.value.$error }"
+                            :class="{
+                                'form-group--error':
+                                    $v.addTaskDetail.priority.value.$error,
+                            }"
                         >
                             <b-form-select
                                 v-model="$v.addTaskDetail.priority.$model.value"
@@ -197,14 +347,20 @@
                                 size="sm"
                             >
                                 <template v-slot:first>
-                                    <b-form-select-option
-                                        :value="null"
-                                        disabled
-                                    >-- Please select an option --</b-form-select-option>
+                                    <b-form-select-option :value="null" disabled
+                                        >-- Please select an option
+                                        --</b-form-select-option
+                                    >
                                 </template>
                             </b-form-select>
                             <template
-                                v-if="check_required($v.addTaskDetail.priority.value.required,$v.addTaskDetail.priority.$model)"
+                                v-if="
+                                    check_required(
+                                        $v.addTaskDetail.priority.value
+                                            .required,
+                                        $v.addTaskDetail.priority.$model
+                                    )
+                                "
                             >
                                 <div class="error">Is required</div>
                             </template>
@@ -216,7 +372,10 @@
                         </b-col>
                         <b-col
                             sm="5"
-                            :class="{ 'form-group--error': $v.addTaskDetail.assignTo.value.$error }"
+                            :class="{
+                                'form-group--error':
+                                    $v.addTaskDetail.assignTo.value.$error,
+                            }"
                         >
                             <b-form-select
                                 v-model="$v.addTaskDetail.assignTo.$model.value"
@@ -224,14 +383,20 @@
                                 size="sm"
                             >
                                 <template v-slot:first>
-                                    <b-form-select-option
-                                        :value="null"
-                                        disabled
-                                    >-- Please select an option --</b-form-select-option>
+                                    <b-form-select-option :value="null" disabled
+                                        >-- Please select an option
+                                        --</b-form-select-option
+                                    >
                                 </template>
                             </b-form-select>
                             <template
-                                v-if="check_required($v.addTaskDetail.assignTo.value.required,$v.addTaskDetail.assignTo.$model)"
+                                v-if="
+                                    check_required(
+                                        $v.addTaskDetail.assignTo.value
+                                            .required,
+                                        $v.addTaskDetail.assignTo.$model
+                                    )
+                                "
                             >
                                 <div class="error">Is required</div>
                             </template>
@@ -245,7 +410,8 @@
                                     size="sm"
                                     class="float-right"
                                     @click.prevent="addTaskClose()"
-                                >Close</b-button>
+                                    >Close</b-button
+                                >
                             </div>
                             <div class="text-right">
                                 <b-button
@@ -254,8 +420,9 @@
                                     size="sm"
                                     class="float-right"
                                     @click="$v.addTaskDetail.$touch"
-                                    style="margin-right:5px"
-                                >送出</b-button>
+                                    style="margin-right: 5px"
+                                    >送出</b-button
+                                >
                                 <!-- @click.prevent="onModify()" -->
                             </div>
                         </b-col>
@@ -284,14 +451,16 @@
                         size="sm"
                         class="float-right"
                         @click.prevent="delTaskModalShow = !delTaskModalShow"
-                    >Close</b-button>
+                        >Close</b-button
+                    >
                     <b-button
                         variant="success"
                         size="sm"
                         class="float-right"
-                        style="margin-right:10px"
+                        style="margin-right: 10px"
                         @click.prevent="delTask()"
-                    >確定刪除</b-button>
+                        >確定刪除</b-button
+                    >
                 </div>
             </template>
         </b-modal>
@@ -307,14 +476,21 @@
         >
             <template v-slot:default>
                 <div class="d-block text-center">
-                    <b-button pill variant="success" class="ml-2" @click="exportfile('CSV')">匯出CSV</b-button>
+                    <b-button
+                        pill
+                        variant="success"
+                        class="ml-2"
+                        @click="exportfile('CSV')"
+                        >匯出CSV</b-button
+                    >
                     <b-button
                         pill
                         variant="warning"
                         class="ml-2"
                         :disabled="ttfStatus"
                         @click="exportfile('PDF')"
-                    >匯出PDF</b-button>
+                        >匯出PDF</b-button
+                    >
                 </div>
             </template>
             <template v-slot:modal-footer>
@@ -324,11 +500,12 @@
                         size="sm"
                         class="float-right"
                         @click.prevent="exportModalShow = !exportModalShow"
-                    >Close</b-button>
+                        >Close</b-button
+                    >
                 </div>
             </template>
         </b-modal>
-        <exportFile />
+        <!-- <exportFile /> -->
     </div>
 </template>
 
@@ -450,8 +627,8 @@ export default {
             staffConfig: {},
             depStaffRelation: {},
             delTaskModalShow: false,
-            selectDepCollapseShow: false,
             exportModalShow: false,
+            collapseVisible: true,
         };
     },
     // 表單驗證引入
@@ -507,11 +684,6 @@ export default {
         vm.now = vm.getDate.now;
         vm.nowFormat = vm.getDate.nowFormat;
         vm.thisweekday = vm.getDate.thisweekday;
-        if (vm.pageAccess.todolist.remark != "ALL") {
-            vm.togglealertModal(true);
-        } else {
-            vm.selectDepCollapseShow = true;
-        }
         vm.SetCommonQueryData();
         vm.getBelongDepStaff();
     },
@@ -527,7 +699,6 @@ export default {
                     "now",
                     "nowFormat",
                     "thisweekday",
-                    "selectDepCollapseShow",
                 ]);
                 // vm.changetableBusy();
                 if (
@@ -549,19 +720,21 @@ export default {
             setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             togglealertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
-            showalertMsgProgress: "alertmodal/show_alertMsgProgress",
-            setalertMsgProgressValue: "alertmodal/set_alertMsgProgressValue",
             changesetPartitionStatus: "home/change_setPartitionStatus",
             setinputData: "commonquery/set_inputData",
+            setconditionOptions: "commonquery/set_conditionOptions",
             setapiParams: "commonquery/set_apiParams",
             queryAgain: "commonquery/do_queryAgain",
             setautoTable: "exportfile/set_autoTable",
+            setautoTableStatus: "exportfile/set_autoTableStatus",
         }),
         SetCommonQueryData() {
             var vm = this;
             var todolistqueryoptions = [];
             var todolistqueryselected = "ALL";
-            if (vm.pageAccess.todolist.remark == "ALL") {
+            if (
+                vm.pageAccess.todolist.remark.commonQueryCondition.main == "ALL"
+            ) {
                 todolistqueryoptions = [
                     { text: "雲端AI(智慧)平台部", value: "1003" },
                     { text: "系統研發部", value: "1002" },
@@ -571,16 +744,36 @@ export default {
             } else {
                 todolistqueryoptions = [
                     {
-                        text: vm.depConfig[vm.pageAccess.todolist.remark],
-                        value: String(vm.pageAccess.todolist.remark),
+                        text:
+                            vm.depConfig[
+                                vm.pageAccess.todolist.remark
+                                    .commonQueryCondition.main
+                            ],
+                        value: String(
+                            vm.pageAccess.todolist.remark.commonQueryCondition
+                                .main
+                        ),
                     },
                 ];
-                todolistqueryselected = vm.pageAccess.todolist.remark;
+                todolistqueryselected =
+                    vm.pageAccess.todolist.remark.commonQueryCondition.main;
             }
             let obj = JSON.parse(JSON.stringify(vm.DEFAULT_inputData));
             obj.options = todolistqueryoptions;
             obj.selected = todolistqueryselected;
+            obj.label = "部門";
+            obj.childcondition = "select";
+            obj.secondcondition = [
+                true,
+                { label: "狀態", condition: "select", attr: "status" },
+            ];
+            obj.second_selected = [1, 0];
             vm.setinputData(obj);
+            vm.setconditionOptions([
+                { text: "完成", value: [1] },
+                { text: "未完成", value: [0] },
+                { text: "全選", value: [1, 0] },
+            ]);
 
             let commonApiParams = JSON.parse(
                 JSON.stringify(vm.DEFAULT_apiParams)
@@ -601,7 +794,7 @@ export default {
         getTodoList() {
             let vm = this;
             vm.togglealertModal(true);
-            vm.selectDepCollapseShow = false;
+            vm.collapseVisible = false;
             vm.queryResponse.forEach((element) => {
                 let thisstatus = false;
                 if (element.status) thisstatus = true;
@@ -629,11 +822,15 @@ export default {
             params["whichFunction"] = "CommonSqlSyntaxQuery_";
             let thiswhere = [];
             let thissymbols = [];
-            if (vm.pageAccess.todolist.remark === "ALL") {
+            if (
+                vm.pageAccess.todolist.remark.commonQueryCondition.main == "ALL"
+            ) {
                 thiswhere = Object.keys(vm.depConfig);
                 thissymbols = ["equal", "equal", "equal"];
             } else {
-                thiswhere.push(vm.pageAccess.todolist.remark);
+                thiswhere.push(
+                    vm.pageAccess.todolist.remark.commonQueryCondition.main
+                );
                 thissymbols = ["equal"];
             }
             params["condition"] = {
@@ -659,7 +856,11 @@ export default {
                             anyerror = true;
                         } else {
                             //抓todoList
-                            if (vm.pageAccess.todolist.remark != "ALL") {
+                            if (
+                                vm.pageAccess.todolist.remark
+                                    .commonQueryCondition.main != "ALL"
+                            ) {
+                                vm.togglealertModal(true);
                                 vm.queryAgain();
                             }
                             // vm.getTodoList();
@@ -692,7 +893,10 @@ export default {
                 .finally(() => {
                     console.log("done");
                     if (anyerror) vm.settimeoutalertModal();
-                    if (vm.pageAccess.todolist.remark === "ALL")
+                    if (
+                        vm.pageAccess.todolist.remark.commonQueryCondition
+                            .main == "ALL"
+                    )
                         vm.togglealertModal(false);
                 });
             // vm.getTodoList();
@@ -1037,6 +1241,7 @@ export default {
                     thistimeinterval = vm.thisQueryTimeInterval.join(" ~ ");
                 }
                 console.log(thistimeinterval);
+                vm.setautoTableStatus(true);
                 vm.setautoTable({
                     body: data,
                     columns: [
@@ -1086,15 +1291,18 @@ export default {
 <style scoped src="../../public/css/vuelidateYS.css"></style>
 <style scoped>
 #bluebg {
-    min-height: 80px;
+    min-height: 70px;
     background-color: rgb(80, 114, 226);
-    font-size: 40px;
-    color: rgba(139, 15, 15, 0.555);
 }
 #bluebg img {
-    height: 80px;
+    height: 70px;
     padding: 5px;
     margin: 0 30px 0 10px;
+}
+#bluebg .title {
+    font-size: 40px;
+    color: rgb(231, 241, 79);
+    line-height: 70px;
 }
 .hide {
     display: none;

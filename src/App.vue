@@ -15,7 +15,7 @@ export default {
     computed: {
         ...mapGetters({
             loginData: "getlogin/get_loginData",
-            pageAccess: "getlogin/get_pageAccess",
+            DEFAULT_pageAccess: "getlogin/get_DEFAULT_pageAccess",
         }),
     },
     methods: {
@@ -47,36 +47,14 @@ export default {
                 vm.change_loginData(obj);
                 let trueList = [];
                 Object.entries(access).forEach(element => {
-                    if(element[1]["status"]) trueList.push(element[0])
+                    if(element[1]["authority"]) trueList.push(element[0])
                 });
                 console.log(trueList);
-                // if (access != "ALL") {
-                // const trueList = Object.keys(access).filter(
-                //     (acc) => access[acc]
-                // );
                 trueList.push("home");
                 childRouter[0].children = childRouter[0].children.filter(
                     (item) => trueList.includes(item.path)
                 );
                 vm.change_pageAccess(access);
-                // } else {
-                //     var obj2 = {};
-                //     //Deep copy
-                //     var pageAccessobj = Object.assign({}, vm.pageAccess);
-                //     Object.keys(pageAccessobj).forEach(function (key) {
-                //         if (key == "todolist") {
-                //             obj2[key] = {
-                //                 status: true,
-                //                 remark: "ALL",
-                //             };
-                //         } else {
-                //             obj2[key] = {
-                //                 status: true,
-                //             };
-                //         }
-                //     });
-                //     vm.change_pageAccess(obj2);
-                // }
                 console.log(childRouter);
                 vm.$router.addRoutes(childRouter);
                 sessionStorage.removeItem("loginStatus");
@@ -110,11 +88,8 @@ export default {
                 obj.accesslist = null;
                 var obj2 = {};
                 //Deep copy
-                var pageAccessobj = Object.assign({}, vm.pageAccess);
-                Object.keys(pageAccessobj).forEach(function (key) {
-                    obj2[key] = false;
-                });
-                vm.change_pageAccess(obj2);
+                var pageAccessobj = Object.assign({}, vm.DEFAULT_pageAccess);
+                vm.change_pageAccess(pageAccessobj);
                 vm.change_loginData(obj);
                 vm.$router.push("/login");
             }
@@ -136,11 +111,4 @@ export default {
 th {
     min-width: 150px;
 }
-// .tooltip-inner {
-//     max-width: 500px !important;
-//     text-align: left !important;
-// }
-// .tooltip-inner p {
-//     margin-bottom: 5px !important;
-// }
 </style>

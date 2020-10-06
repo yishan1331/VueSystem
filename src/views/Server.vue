@@ -2,11 +2,15 @@
     <div class="Server container">
         <b-row class="mb-3">
             <b-col sm="3">
-                <h4>Sapido Server Status</h4>
+                <h4>伺服器狀態</h4>
             </b-col>
             <b-col sm="9" class="text-right">
-                <b-button pill @click="toggleAddModal(true)" variant="success">新增</b-button>
-                <b-button class="ml-1" pill @click="toggleVMListModal(true)">vm列表</b-button>
+                <b-button pill @click="toggleAddModal(true)" variant="success"
+                    >新增</b-button
+                >
+                <b-button class="ml-1" pill @click="toggleVMListModal(true)"
+                    >虛擬機列表</b-button
+                >
                 <!-- 將『選擇條件』功能隱藏，直接預設搜尋所有server join vm的資料 -->
                 <!-- <b-button
                     v-show="false"
@@ -22,11 +26,12 @@
         </b-row>
         <b-breadcrumb>
             <b-breadcrumb-item
-                v-for="(item,index) in breadcrumbList"
+                v-for="(item, index) in breadcrumbList"
                 :key="index"
                 :active="item.active"
-                @click="breadcrumbClick(item.text,item.active,index)"
-            >{{item.text}}</b-breadcrumb-item>
+                @click="breadcrumbClick(item.text, item.active, index)"
+                >{{ item.text }}</b-breadcrumb-item
+            >
         </b-breadcrumb>
         <b-tabs v-model="tabIndex">
             <b-tab title="查詢" active>
@@ -39,40 +44,85 @@
                     responsive
                     :items="items"
                     :fields="fields"
-                    head-variant="dark"
-                    class="text-center mt-2"
+                    head-variant="light"
+                    class="mt-2"
                 >
-                    <template v-slot:[getCellSlot(data)]="row" v-for="(data,key) in slotList">
-                        <div :key="String(row.item.seq)+'_'+String(key)" v-html="row.item[data]"></div>
+                    <template
+                        v-slot:[getHeaderSlot(data)]="row"
+                        v-for="(data, key) in slotList"
+                    >
+                        <div :key="key" style="position: relative">
+                            {{ row.label }}
+                            <div
+                                class="deletefilebtn"
+                                v-if="fields.length > 2"
+                                @click.prevent="
+                                    removeHeaderFields(key, row.column)
+                                "
+                            ></div>
+                        </div>
                     </template>
-                    <template v-slot:cell(status)="row">
+
+                    <template
+                        v-slot:[getCellSlot(data)]="row"
+                        v-for="(data, key) in slotList"
+                    >
                         <div
-                            v-if="breadcrumbWhich == 'Server'"
-                        >{{serverStatusConfig[String(row.item.status)]}}</div>
-                        <div v-else>{{VMStatusConfig[String(row.item.status)]}}</div>
+                            v-if="data == 'status'"
+                            :key="String(row.item.seq) + '_' + String(key)"
+                        >
+                            {{
+                                statusConfig[breadcrumbWhich][
+                                    String(row.item.status)
+                                ]
+                            }}
+                        </div>
+                        <div
+                            v-else
+                            :key="String(row.item.seq) + '_' + String(key)"
+                            v-html="row.item[data]"
+                        ></div>
                     </template>
+
                     <template v-slot:cell(Action)="row">
                         <span
                             v-if="breadcrumbWhich == 'Server'"
-                            :id="String(row.item.seq)+'_'+String(row.index)"
+                            :id="String(row.item.seq) + '_' + String(row.index)"
                             tabindex="0"
                         >
                             <b-button
                                 @click="onRowClicked(row.item)"
                                 :disabled="VMItems[row.item.seq].length == 0"
-                            >查看VM</b-button>
+                                >查看VM</b-button
+                            >
                             <!-- :disabled="VMItems[row.item.seq].length != 0" -->
-                            <b-tooltip :target="String(row.item.seq)+'_'+String(row.index)">
-                                <span v-if="VMItems[row.item.seq].length == 0">此Server查無VM</span>
-                                <span v-else>共有{{VMItems[row.item.seq].length}}個VM</span>
+                            <b-tooltip
+                                :target="
+                                    String(row.item.seq) +
+                                    '_' +
+                                    String(row.index)
+                                "
+                            >
+                                <span v-if="VMItems[row.item.seq].length == 0"
+                                    >此Server查無VM</span
+                                >
+                                <span v-else
+                                    >共有{{
+                                        VMItems[row.item.seq].length
+                                    }}個VM</span
+                                >
                             </b-tooltip>
                         </span>
-                        <b-button v-else @click="onRowClicked(row.item)">返回</b-button>
+                        <b-button v-else @click="onRowClicked(row.item)"
+                            >返回</b-button
+                        >
                     </template>
                 </b-table>
             </b-tab>
             <b-tab title="編輯">
-                <h5 v-if="items.length == 0" class="card-title mt-2">查無資料</h5>
+                <h5 v-if="items.length == 0" class="card-title mt-2">
+                    查無資料
+                </h5>
                 <b-table
                     v-else
                     ref="editTable"
@@ -81,70 +131,96 @@
                     responsive
                     :items="items"
                     :fields="fields"
-                    head-variant="dark"
-                    class="text-center mt-2"
+                    head-variant="light"
+                    class="mt-2"
                 >
                     <!-- Yishan 09162020 Dynamic Slot https://stackoverflow.com/questions/58140842/vue-and-bootstrap-vue-dynamically-use-slots/58143362#58143362 -->
-                    <template v-slot:[getCellSlot(data)]="row" v-for="(data,key) in slotList">
-                        <div
-                            :key="String(row.item.seq)+'_'+String(key)"
-                            :class="{hide:activeItemsSeq == row.item.seq}"
-                            v-html="row.item[data]"
-                        ></div>
-                        <div
-                            :key="String(row.item.seq)+'__'+String(key)"
-                            :class="{hide:activeItemsSeq != row.item.seq}"
-                        >
-                            <b-form-select
-                                v-if="data == 'noumenonID'"
-                                v-model="row.item[data]"
-                                :options="serverIDList"
-                            ></b-form-select>
-                            <b-form-input
-                                v-else
-                                class="input-text"
-                                type="text"
-                                v-model="row.item[data]"
-                                @click="editLongData(row,data,true)"
-                            ></b-form-input>
-                        </div>
+                    <template
+                        v-slot:[getCellSlot(data)]="row"
+                        v-for="(data, key) in slotList"
+                    >
+                        <template>
+                            <div
+                                :key="String(row.item.seq) + '_' + String(key)"
+                                :class="{
+                                    hide: activeItemsSeq == row.item.seq,
+                                }"
+                            >
+                                <span v-if="data == 'status'">{{
+                                    statusConfig[breadcrumbWhich][
+                                        String(row.item.status)
+                                    ]
+                                }}</span>
+                                <span v-else v-html="row.item[data]"></span>
+                            </div>
+                        </template>
+                        <template>
+                            <div
+                                :key="String(row.item.seq) + '__' + String(key)"
+                                :class="{
+                                    hide: activeItemsSeq != row.item.seq,
+                                }"
+                            >
+                                <b-form-checkbox
+                                    v-if="data == 'status'"
+                                    switch
+                                    size="lg"
+                                    v-model="row.item.status"
+                                ></b-form-checkbox>
+                                <b-form-select
+                                    v-else-if="data == 'noumenonID'"
+                                    v-model="row.item[data]"
+                                    :options="serverIDList"
+                                ></b-form-select>
+                                <b-form-input
+                                    v-else
+                                    class="input-text"
+                                    type="text"
+                                    v-model="row.item[data]"
+                                    @click="editLongData(row, data, true)"
+                                ></b-form-input>
+                            </div>
+                        </template>
                     </template>
-                    <template v-slot:cell(status)="row">
-                        <div :class="{hide:activeItemsSeq == row.item.seq}">
-                            <template v-if="breadcrumbWhich == 'Server'">
-                                <div>{{serverStatusConfig[String(row.item.status)]}}</div>
-                            </template>
-                            <template v-else>
-                                <div>{{VMStatusConfig[String(row.item.status)]}}</div>
-                            </template>
-                        </div>
-                        <div :class="{hide:activeItemsSeq != row.item.seq}">
-                            <b-form-checkbox switch size="lg" v-model="row.item.status"></b-form-checkbox>
-                        </div>
-                    </template>
-
                     <template v-slot:cell(Action)="row">
                         <template v-if="activeItemsSeq != row.item.seq">
                             <b-button
                                 v-if="activeItemsSeq == null"
-                                @click="activeItemsSeq = row.item.seq;tempOldItemAction(true,row.item)"
-                            >編輯</b-button>
+                                @click="
+                                    activeItemsSeq = row.item.seq;
+                                    tempOldItemAction(true, row.item);
+                                "
+                                >編輯</b-button
+                            >
                             <b-button v-else disabled>編輯</b-button>
                             <b-button
                                 v-if="activeItemsSeq == null"
                                 variant="danger"
-                                @click="toggleDelModal(true,row.item.seq)"
-                                style="margin-left:10px"
-                            >刪除</b-button>
-                            <b-button v-else disabled variant="danger" style="margin-left:10px">刪除</b-button>
+                                @click="toggleDelModal(true, row.item.seq)"
+                                style="margin-left: 10px"
+                                >刪除</b-button
+                            >
+                            <b-button
+                                v-else
+                                disabled
+                                variant="danger"
+                                style="margin-left: 10px"
+                                >刪除</b-button
+                            >
                         </template>
                         <template v-else-if="activeItemsSeq == row.item.seq">
-                            <b-button @click="modAction(row.item)">完成編輯</b-button>
+                            <b-button @click="modAction(row.item)"
+                                >完成編輯</b-button
+                            >
                             <b-button
                                 variant="light"
-                                @click="activeItemsSeq = null;tempOldItemAction(false,row.item)"
-                                style="margin-left:10px"
-                            >取消</b-button>
+                                @click="
+                                    activeItemsSeq = null;
+                                    tempOldItemAction(false, row.item);
+                                "
+                                style="margin-left: 10px"
+                                >取消</b-button
+                            >
                         </template>
                     </template>
                 </b-table>
@@ -166,14 +242,28 @@
                     responsive
                     :items="vmList"
                     :fields="VMFields"
-                    head-variant="dark"
-                    class="text-center mt-2"
+                    head-variant="light"
+                    class="mt-2"
                 >
-                    <template v-slot:[getCellSlot(data)]="row" v-for="(data,key) in slotList">
-                        <div :key="String(row.item.seq)+'_'+String(key)" v-html="row.item[data]"></div>
-                    </template>
-                    <template v-slot:cell(status)="row">
-                        <div>{{VMStatusConfig[String(row.item.status)]}}</div>
+                    <template
+                        v-slot:[getCellSlot(data)]="row"
+                        v-for="(data, key) in slotList"
+                    >
+                        <div
+                            v-if="data == 'status'"
+                            :key="String(row.item.seq) + '_' + String(key)"
+                        >
+                            {{
+                                statusConfig[breadcrumbWhich][
+                                    String(row.item.status)
+                                ]
+                            }}
+                        </div>
+                        <div
+                            v-else
+                            :key="String(row.item.seq) + '_' + String(key)"
+                            v-html="row.item[data]"
+                        ></div>
                     </template>
                 </b-table>
             </template>
@@ -183,8 +273,9 @@
                         variant="light"
                         size="sm"
                         class="float-right"
-                        @click.prevent="toggleVMListModal(false);"
-                    >Close</b-button>
+                        @click.prevent="toggleVMListModal(false)"
+                        >Close</b-button
+                    >
                 </div>
             </template>
         </modal>
@@ -203,13 +294,15 @@
                         class="ml-2"
                         variant="info"
                         @click.prevent="setSystemFormData(true)"
-                    >Server</b-button>
+                        >Server</b-button
+                    >
                     <b-button
                         pill
                         class="ml-2"
                         variant="primary"
                         @click.prevent="setSystemFormData(false)"
-                    >VM</b-button>
+                        >VM</b-button
+                    >
                 </div>
                 <systemForm v-else />
             </template>
@@ -220,7 +313,8 @@
                         size="sm"
                         class="float-right"
                         @click.prevent="toggleAddModal(false)"
-                    >Close</b-button>
+                        >Close</b-button
+                    >
                 </div>
             </template>
         </modal>
@@ -229,13 +323,12 @@
         <modal v-if="editActionModalShow">
             <template v-slot:default>
                 <div class="d-block text-center">
-                    <b-form-select
-                        v-if="editActionItems.which == 'Owner'"
+                    <b-form-textarea
+                        ref="editlongdata"
                         v-model="editActionItems.Data"
-                        :options="getStaffOptions"
-                        multiple
-                    ></b-form-select>
-                    <b-form-textarea v-else v-model="editActionItems.Data" rows="6" max-rows="12"></b-form-textarea>
+                        rows="6"
+                        max-rows="12"
+                    ></b-form-textarea>
                 </div>
             </template>
             <template v-slot:modalfooter>
@@ -244,15 +337,20 @@
                         variant="light"
                         size="sm"
                         class="float-right"
-                        @click.prevent="editActionModalShow = false;togglecommonModal(false);"
-                    >Close</b-button>
+                        @click.prevent="
+                            editActionModalShow = false;
+                            togglecommonModal(false);
+                        "
+                        >Close</b-button
+                    >
                     <b-button
                         variant="success"
                         size="sm"
                         class="float-right"
-                        style="margin-right:10px"
-                        @click.prevent="editLongData(null,null,false)"
-                    >確定</b-button>
+                        style="margin-right: 10px"
+                        @click.prevent="editLongData(null, null, false)"
+                        >確定</b-button
+                    >
                 </div>
             </template>
         </modal>
@@ -270,15 +368,17 @@
                         variant="light"
                         size="sm"
                         class="float-right"
-                        @click.prevent="toggleDelModal(false,null)"
-                    >Close</b-button>
+                        @click.prevent="toggleDelModal(false, null)"
+                        >Close</b-button
+                    >
                     <b-button
                         variant="success"
                         size="sm"
                         class="float-right"
-                        style="margin-right:10px"
+                        style="margin-right: 10px"
                         @click.prevent="delAction(null)"
-                    >確定刪除</b-button>
+                        >確定刪除</b-button
+                    >
                 </div>
             </template>
         </modal>
@@ -308,17 +408,18 @@ export default {
                     active: true,
                 },
             ],
-            serverStatusConfig: {
-                1: "運作中",
-                0: "非運作中",
-            },
-            VMStatusConfig: {
-                1: "已開啟電源",
-                0: "已關閉電源",
+            statusConfig: {
+                Server: {
+                    1: "運作中",
+                    0: "非運作中",
+                },
+                VM: { 1: "已開啟電源", 0: "已關閉電源" },
             },
             fields: [],
             items: [],
             slotList: [
+                "seq",
+                "status",
                 "type",
                 "manufacturer",
                 "model",
@@ -361,9 +462,14 @@ export default {
             ],
             serverItems: [],
             VMFields: [
-                { key: "seq", label: "編號", sortable: true },
+                // { key: "seq", label: "編號", sortable: true },
                 { key: "noumenonID", label: "隸屬server編號", sortable: true },
-                { key: "name", label: "VM名稱", sortable: true },
+                { key: "name", label: "VM名稱", sortable: false },
+                { key: "application", label: "用途", sortable: false },
+                { key: "OS", label: "作業系統", sortable: false },
+                { key: "privateIP", label: "內部IP", sortable: true },
+                { key: "publicIP", label: "對外IP", sortable: true },
+                { key: "port", label: "Port", sortable: false },
                 { key: "status", label: "狀態", sortable: true },
                 {
                     key: "provisionedSpace",
@@ -372,7 +478,6 @@ export default {
                 },
                 { key: "usedSpace", label: "已使用的空間", sortable: false },
                 { key: "memory", label: "記憶體", sortable: false },
-                { key: "application", label: "用途", sortable: false },
                 { key: "property", label: "性質", sortable: false },
                 {
                     key: "installtionService",
@@ -380,11 +485,7 @@ export default {
                     sortable: false,
                 },
                 { key: "computerName", label: "電腦名稱", sortable: false },
-                { key: "OS", label: "作業系統", sortable: false },
                 { key: "systemLocation", label: "系統位置", sortable: false },
-                { key: "privateIP", label: "內部IP", sortable: false },
-                { key: "publicIP", label: "對外IP", sortable: false },
-                { key: "port", label: "Port", sortable: false },
                 { key: "DM", label: "Disk保護機制", sortable: false },
                 { key: "remark", label: "備註", sortable: false },
                 { key: "Action", label: "Action", sortable: false },
@@ -431,6 +532,7 @@ export default {
         this.setCommonQueryData();
     },
     mounted: function () {
+        this.togglealertModal(true);
         this.queryAgain();
     },
     components: {
@@ -451,6 +553,7 @@ export default {
             DEFAULT_apiParams: "commonquery/get_DEFAULT_apiParams",
             isInit: "commonquery/get_isInit",
             DEFAULT_commonModalConfig: "usemodal/get_DEFAULT_commonModalConfig",
+            thisSortData: "sort/get_thisSortData",
         }),
     },
     watch: {
@@ -462,12 +565,20 @@ export default {
                     "breadcrumbList",
                     "serverIDList",
                     "thisVMBelong",
-                    "fields",
+                    // "fields",
                     "items",
                     "serverItems",
                     "VMItems",
                     "vmList",
                 ]);
+                if (this.breadcrumbWhich === "Server") {
+                    this.fields = this.serverFields;
+                } else {
+                    this.fields = this.VMFields;
+                }
+                if (value === 1) {
+                    this.slotList.splice(0, 1);
+                }
                 this.$nextTick(() => {
                     //等渲染完畢才執行
                     if (this.items.length != 0) {
@@ -490,6 +601,7 @@ export default {
                 console.log(vm.systemFormCompletedData);
                 if (Object.keys(vm.systemFormCompletedData).length != 0) {
                     if (vm.addWhich) {
+                        vm.togglealertModal(true);
                         vm.serverAdd();
                     } else {
                         console.log(vm.systemFormCompletedData.noumenonID);
@@ -499,6 +611,7 @@ export default {
                             vm.setSystemFormCompletedData({});
                             return;
                         }
+                        vm.togglealertModal(true);
                         vm.VMAdd();
                     }
                 }
@@ -522,11 +635,12 @@ export default {
                 ) {
                     vm.setTimeOutAlertMsg(vm.queryResponse);
                     vm.settimeoutalertModal();
+                    vm.togglealertModal(false);
                     return;
                 }
                 console.log(vm.queryResponse);
                 console.log(JSON.stringify(vm.queryResponse));
-                vm.getServerList();
+                vm.getDataList();
             },
         },
     },
@@ -535,9 +649,9 @@ export default {
             axiosAction: "commonaxios/axiosAction",
             setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
+            togglealertModal: "alertmodal/toggle_alertModal",
             setinputData: "commonquery/set_inputData",
             setapiParams: "commonquery/set_apiParams",
-            setdepDetail: "commonquery/set_depDetail",
             queryAgain: "commonquery/do_queryAgain",
             setvforData: "systemform/set_vforData",
             setsystemFormResponse: "systemform/set_systemFormResponse",
@@ -545,6 +659,7 @@ export default {
             setSystemFormSelectOptions: "systemform/set_selectOptions",
             togglecommonModal: "usemodal/toggle_commonModal",
             setcommonModalConfig: "usemodal/set_commonModalConfig",
+            setthisSortData: "sort/set_thisSortData",
         }),
 
         setSystemFormData(which) {
@@ -664,6 +779,7 @@ export default {
                 })
                 .finally(() => {
                     console.log("done");
+                    vm.togglealertModal(false);
                     vm.settimeoutalertModal();
                     vm.toggleAddModal(false);
                     vm.queryAgain();
@@ -727,6 +843,7 @@ export default {
                 })
                 .finally(() => {
                     console.log("done");
+                    vm.togglealertModal(false);
                     vm.settimeoutalertModal();
                     vm.toggleAddModal(false);
                     vm.queryAgain();
@@ -735,9 +852,8 @@ export default {
 
         modAction(items) {
             let vm = this;
-            // vm.togglealertModal(true);
+            vm.togglealertModal(true);
             console.log(items);
-
             Object.keys(items).map(function (item) {
                 if (item != "seq" && item != "status" && item != "noumenonID") {
                     items[item] = vm.replaceContentData(
@@ -813,6 +929,7 @@ export default {
                 })
                 .finally(() => {
                     //console.log("done");
+                    vm.togglealertModal(false);
                     vm.settimeoutalertModal();
                     vm.queryAgain();
                 });
@@ -821,6 +938,7 @@ export default {
         delAction(apiparams) {
             let vm = this;
             let params = {};
+            vm.togglealertModal(true);
             if (apiparams != null) {
                 params = apiparams;
             } else {
@@ -879,13 +997,14 @@ export default {
                 })
                 .finally(() => {
                     //console.log("done");
+                    vm.togglealertModal(false);
                     vm.settimeoutalertModal();
                     vm.toggleDelModal(false, null);
                     vm.queryAgain();
                 });
         },
 
-        getServerList() {
+        getDataList() {
             let vm = this;
             let serveritems = {};
             let serverIDList = [];
@@ -893,8 +1012,9 @@ export default {
             let vmList = [];
             console.log(vmitems);
             console.log(serveritems);
+            vm.togglealertModal(true);
             vm.queryResponse.forEach((element) => {
-                console.log(element);
+                // console.log(element);
                 // Object.keys(element).map(function (item) {
                 //     //將&nbsp;跟<br/>去除
                 //     if (
@@ -938,7 +1058,6 @@ export default {
 
                 //去掉有些server尚未有vm的資料(sql join語法會給null)
                 if (element["virtualMachine$seq"] != null) {
-                    console.log(element["virtualMachine$seq"]);
                     let itemsobj2 = {
                         seq: element["virtualMachine$seq"],
                         noumenonID: element["virtualMachine$noumenonID"],
@@ -966,12 +1085,23 @@ export default {
                     vmList.push(itemsobj2);
                 }
             });
+
             console.log(serverIDList);
             serverIDList.sort((a, b) => {
                 return a - b;
             });
             console.log(serveritems);
             console.log(vmitems);
+            console.log(Object.values(vmitems));
+
+            Object.values(vmitems).forEach((element) => {
+                vm.setthisSortData({
+                    data: element,
+                    sortKey: [["privateIP", "asc"]],
+                });
+            });
+            console.log(vmitems);
+
             vm.serverItems = JSON.parse(
                 JSON.stringify(Object.values(serveritems))
             );
@@ -982,6 +1112,10 @@ export default {
             console.log(vm.serverIDList);
 
             console.log(vmList);
+            vm.setthisSortData({
+                data: vmList,
+                sortKey: [["noumenonID", "asc"]],
+            });
             vm.vmList = JSON.parse(JSON.stringify(vmList));
 
             console.log(vm.thisVMBelong);
@@ -990,8 +1124,17 @@ export default {
                 vm.fields = vm.serverFields;
             } else {
                 vm.items = vm.VMItems[String(vm.thisVMBelong)];
+                if (this.tabIndex === 0) {
+                    vm.VMFields.splice(0, 1);
+                    if (vm.slotList.indexOf("noumenonID") != -1)
+                        vm.slotList.splice(
+                            vm.slotList.indexOf("noumenonID"),
+                            1
+                        );
+                }
                 vm.fields = vm.VMFields;
             }
+            vm.togglealertModal(false);
         },
 
         onRowClicked(items) {
@@ -1003,14 +1146,21 @@ export default {
                 console.log(thisseq);
                 console.log(vm.VMItems[String(thisseq)]);
                 vm.items = vm.VMItems[String(thisseq)];
+
+                vm.VMFields.splice(0, 1);
+                if (vm.slotList.indexOf("noumenonID") != -1)
+                    vm.slotList.splice(vm.slotList.indexOf("noumenonID"), 1);
+
                 vm.fields = vm.VMFields;
                 vm.breadcrumbList[0]["active"] = false;
+                vm.breadcrumbList[0]["text"] = "Server_" + thisseq;
                 vm.breadcrumbList.push({ text: "VM", active: true });
                 vm.breadcrumbWhich = "VM";
             } else {
                 vm.items = vm.serverItems;
                 vm.fields = vm.serverFields;
                 vm.breadcrumbList[0]["active"] = true;
+                vm.breadcrumbList[0]["text"] = "Server";
                 vm.breadcrumbList.splice(1, 1);
                 vm.breadcrumbWhich = "Server";
                 vm.thisVMBelong = null;
@@ -1024,10 +1174,11 @@ export default {
         breadcrumbClick(item, active, index) {
             let vm = this;
             console.log(item, active, index);
-            if (item == "Server") {
+            if (item.split("_")[0] == "Server") {
                 vm.items = vm.serverItems;
                 vm.fields = vm.serverFields;
                 vm.breadcrumbList[0]["active"] = true;
+                vm.breadcrumbList[0]["text"] = "Server";
                 vm.breadcrumbList.splice(1, 1);
                 vm.breadcrumbWhich = "Server";
                 vm.thisVMBelong = null;
@@ -1042,6 +1193,10 @@ export default {
             if (!item || type !== "row") return;
             if (item.status)
                 return { style: "background-color:rgba(0, 0, 0, 0.144)" };
+        },
+
+        getHeaderSlot(key) {
+            return `head(${key})`;
         },
 
         getCellSlot(key) {
@@ -1108,6 +1263,11 @@ export default {
             }
             vm.editActionModalShow = status;
             vm.togglecommonModal(status);
+            if (status) {
+                setTimeout(() => {
+                    this.$nextTick(() => this.$refs.editlongdata.focus());
+                }, 0);
+            }
         },
 
         replaceContentData(content, status) {
@@ -1160,6 +1320,19 @@ export default {
         toggleVMListModal(status) {
             let vm = this;
             console.log(status);
+            vm.reset([
+                "tabIndex",
+                "breadcrumbWhich",
+                "breadcrumbList",
+                "serverIDList",
+                "thisVMBelong",
+                "fields",
+                "items",
+                "serverItems",
+                "VMItems",
+                "vmList",
+                "slotList",
+            ]);
             if (status) {
                 let commonModalConfig = JSON.parse(
                     JSON.stringify(vm.DEFAULT_commonModalConfig)
@@ -1169,23 +1342,22 @@ export default {
                 commonModalConfig.modalClassFull = true;
                 console.log(commonModalConfig);
                 vm.setcommonModalConfig(commonModalConfig);
-                vm.VMFields.splice(18, 1);
-            } else {
-                vm.reset([
-                    "tabIndex",
-                    "breadcrumbWhich",
-                    "breadcrumbList",
-                    "serverIDList",
-                    "thisVMBelong",
-                    "fields",
-                    "items",
-                    "serverItems",
-                    "VMItems",
-                    "vmList",
-                ]);
+                vm.VMFields.splice(17, 1);
             }
             vm.vmListModalShow = status;
             vm.togglecommonModal(status);
+        },
+
+        removeHeaderFields(key, column) {
+            console.log(key);
+            console.log(column);
+            let thisindex = null;
+            this.fields.map(function (item, index) {
+                if (item.key == column) thisindex = index;
+            });
+            console.log(thisindex);
+            this.fields.splice(thisindex, 1);
+            this.slotList.splice(this.slotList.indexOf(column), 1);
         },
 
         //資料reset
@@ -1209,5 +1381,43 @@ h5 {
 }
 .hide {
     display: none;
+}
+/*刪除圖示*/
+.deletefilebtn {
+    position: absolute;
+    left: -12px;
+    top: -12px;
+    width: 14px;
+    height: 14px;
+    background: silver;
+    /* background: rgb(88, 85, 85); */
+    border-radius: 25px;
+    box-shadow: 1px 1px 5px 0px black;
+    cursor: pointer;
+}
+.deletefilebtn:hover {
+    background: red;
+}
+.deletefilebtn:before {
+    position: absolute;
+    content: "";
+    width: 9px;
+    height: 3px;
+    background: white;
+    /* background: rgb(192, 192, 192); */
+    transform: rotate(45deg);
+    top: 5px;
+    left: 2px;
+}
+.deletefilebtn:after {
+    content: "";
+    position: absolute;
+    width: 9px;
+    height: 3px;
+    background: white;
+    /* background: rgb(192, 192, 192); */
+    transform: rotate(-45deg);
+    top: 5px;
+    left: 2px;
 }
 </style>

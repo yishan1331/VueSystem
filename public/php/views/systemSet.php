@@ -1,8 +1,8 @@
 <?php
-function DepartmentAdd($params, $returnData)
+function DepartmentAdd($params, $publicIP)
 {
     $this_accessList = json_decode($params->accessList);
-    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/department/registerDep?uid=@sapido@PaaS";
+    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/department/registerDep?uid=@sapido@PaaS";
     $data = array(
         'depID' => $params->depID,
         'depName' => $params->depName,
@@ -13,28 +13,24 @@ function DepartmentAdd($params, $returnData)
         'creatorID' => $params->creatorID,
         'creDB' => "no",
     );
-    $returnData[0] = $url;
-    $returnData[1] = $data;
-    return $returnData;
+    return array($url, $data);
 }
-function DepartmentMod($params, $returnData)
+function DepartmentMod($params, $publicIP)
 {
     $this_accessList = json_decode($params->accessList);
-    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/department/update_Department?uid=@sapido@PaaS";
+    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/department/update_Department?uid=@sapido@PaaS";
     $data = array(
         'depID' => $params->depID,
         'depName' => $params->depName,
         'accessList' => $this_accessList,
         'depInfo' => $params->depInfo,
     );
-    $returnData[0] = $url;
-    $returnData[1] = $data;
-    return $returnData;
+    return array($url, $data);
 }
-function AccountAdd($params, $returnData)
+function AccountAdd($params, $publicIP)
 {
     $this_accessList = json_decode($params->accessList);
-    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/user/reg_User?uid=@sapido@PaaS";
+    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/user/reg_User?uid=@sapido@PaaS";
     $data = array(
         'uID' => $params->uID,
         'pwd' => $params->pwd,
@@ -45,14 +41,12 @@ function AccountAdd($params, $returnData)
         'accessList' => $this_accessList,
         'creatorID' => $params->creatorID,
     );
-    $returnData[0] = $url;
-    $returnData[1] = $data;
-    return $returnData;
+    return array($url, $data);
 }
-function AccountMod($params, $returnData)
+function AccountMod($params, $publicIP)
 {
     $this_accessList = json_decode($params->accessList);
-    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/user/update_User?uid=@sapido@PaaS";
+    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/user/update_User?uid=@sapido@PaaS";
     $data = array(
         'old_uID' => $params->uID,
         'new_uID' => $params->uID,
@@ -64,13 +58,10 @@ function AccountMod($params, $returnData)
         'accessList' => $this_accessList,
         'creatorID' => $params->creatorID,
     );
-    $returnData[0] = $url;
-    $returnData[1] = $data;
-    return $returnData;
+    return array($url, $data);
 }
-function AccountDel($params, $returnData)
+function AccountDel($params, $publicIP)
 {
-    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/user/delete_User?uid=@sapido@PaaS&del_uID=" . $params->uID;
-    $returnData[0] = $url;
-    return $returnData;
+    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/user/delete_User?uid=@sapido@PaaS&del_uID=" . $params->uID;
+    return array($url);
 }

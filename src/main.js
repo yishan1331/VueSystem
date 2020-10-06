@@ -5,7 +5,11 @@ import store from './store'
 
 import axios from "axios";
 import VueAxios from "vue-axios";
-import BootstrapVue from "bootstrap-vue";
+import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
+
+import vSelect from "vue-select";
+Vue.component("v-select", vSelect);
+import "vue-select/dist/vue-select.css";
 
 Vue.config.productionTip = false
 
@@ -19,6 +23,7 @@ Vue.component("font-awesome-icon", FontAwesomeIcon);
 
 Vue.use(VueAxios, axios);
 Vue.use(BootstrapVue);
+Vue.use(BootstrapVueIcons);
 
 new Vue({
     router,
@@ -30,7 +35,7 @@ new Vue({
 router.beforeEach((to, from, next) => {
     console.log(to);
     if (to.matched.length === 0) {
-        router.app.$options.store.dispatch("alertmodal/set_alertMsg", "請先登入");
+        router.app.$options.store.dispatch("alertmodal/set_setTimeOutAlertMsg", "請先登入");
         router.app.$options.store.dispatch("alertmodal/settimeout_alertModal");
         next("/login");
         //   next('/404') // 判断此跳转路由的来源路由是否存在，存在的情况跳转到来源路由，否则跳转到404页面
@@ -48,7 +53,7 @@ router.beforeEach((to, from, next) => {
             router.app.$options.store.dispatch("exportfile/set_ttfStatus", true);
             next();
         } else {
-            router.app.$options.store.dispatch("alertmodal/set_alertMsg", "請先登入");
+            router.app.$options.store.dispatch("alertmodal/set_setTimeOutAlertMsg", "請先登入");
             router.app.$options.store.dispatch("alertmodal/settimeout_alertModal");
             var obj = {};
             obj.account = null;

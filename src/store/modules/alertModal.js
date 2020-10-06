@@ -4,8 +4,8 @@ const state = {
     alertModalShowTime: 900,
     alertMsg: "請稍候....",
     setTimeOutAlertMsg: "",
-    alertMsgProgressValue: 0,
-    alertMsgProgressShow: false
+    alertProgressValue: 0,
+    alertProgressModalShow: false
 }
 const getters = {
     get_alertModalShow: state => {
@@ -20,11 +20,11 @@ const getters = {
     get_setTimeOutAlertMsg: state => {
         return state.setTimeOutAlertMsg
     },
-    get_alertMsgProgressValue: state => {
-        return state.alertMsgProgressValue
+    get_alertProgressValue: state => {
+        return state.alertProgressValue
     },
     get_alertMsgProgressShow: state => {
-        return state.alertMsgProgressShow
+        return state.alertProgressModalShow
     },
 }
 const actions = {
@@ -44,11 +44,11 @@ const actions = {
     set_setTimeOutAlertMsg(context, msg) {
         context.commit('SET_SETTIMEOUTALERTMSG', msg);
     },
-    set_alertMsgProgressValue(context) {
-        context.commit('SET_ALERTMSGPROGRESSVALUE');
+    set_alertMsgProgressValue(context, value) {
+        context.commit('SET_ALERTMSGPROGRESSVALUE', value);
     },
-    show_alertMsgProgress(context) {
-        context.commit('SHOW_ALERTMSGPROGRESS');
+    toggle_alertProgressModal(context, status) {
+        context.commit('TOGGLE_ALERTPROGRESSMODAL', status);
     },
 }
 const mutations = {
@@ -72,22 +72,30 @@ const mutations = {
     SET_SETTIMEOUTALERTMSG(state, msg) {
         state.setTimeOutAlertMsg = msg;
     },
-    SET_ALERTMSGPROGRESSVALUE(state) {
-        for (var i = 1; i < 6; i++) {
-            (function (i) {
-                setTimeout(function () {
-                    state.alertMsgProgressValue = i * 20;
-                }, (i + 1) * 500);
-            })(i)
-        }
-        setTimeout(function () {
-            state.alertModalShow = false;
-            state.alertMsgProgressShow = false;
-            state.alertMsgProgressValue = 0;
-        }, 3900)
+    SET_ALERTMSGPROGRESSVALUE(state, value) {
+        state.alertProgressValue = value;
+        // for (var i = 1; i < 6; i++) {
+        //     (function (i) {
+        //         setTimeout(function () {
+        //             state.alertMsgProgressValue = i * 20;
+        //         }, (i + 1) * 500);
+        //     })(i)
+        // }
+        // setTimeout(function () {
+        //     state.alertModalShow = false;
+        //     state.alertMsgProgressShow = false;
+        //     state.alertMsgProgressValue = 0;
+        // }, 3900)
     },
-    SHOW_ALERTMSGPROGRESS(state) {
-        state.alertMsgProgressShow = true;
+    TOGGLE_ALERTPROGRESSMODAL(state, status) {
+        if (status) {
+            state.alertProgressModalShow = true;
+            state.alertModalShow = true;
+        } else {
+            state.alertModalShow = false;
+            state.alertProgressModalShow = false;
+            state.alertProgressValue = 0;
+        }
     },
 }
 

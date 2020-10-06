@@ -1,34 +1,65 @@
 <template>
     <div class="WeeklyReport">
-        <div id="bluebg">
-            <img src="../assets/todolist.png" />
-            Weekly Report
+        <div id="bluebg" class="mb-2">
+            <b-row>
+                <b-col sm="1">
+                    <img src="../assets/todolist.png" />
+                </b-col>
+                <b-col class="title" sm="8">工作週報</b-col>
+                <b-col sm="3">
+                    <p
+                        class="text-right"
+                        style="
+                            color: oldlace;
+                            font-size: 1.05rem;
+                            margin: 5px 10px 0 0;
+                        "
+                    >
+                        {{ now }}
+                    </p>
+                </b-col>
+            </b-row>
         </div>
-        <b-row class="mb-3 mt-1">
-            <b-col sm="3">
-                <h5 style="margin-top:5px">{{now}}</h5>
-            </b-col>
-            <b-col sm="9" class="text-right" v-show="tabIndex == 0">
-                <b-button pill v-b-toggle.collapse-1 variant="light">選擇條件</b-button>
-                <b-collapse id="collapse-1" v-model="selectDepCollapseShow" class="mt-2">
+        <div class="text-right" style="opacity: 0.5">
+            <template v-if="collapseVisible">
+                <b-icon
+                    icon="arrows-collapse"
+                    scale="1.5"
+                    @click="collapseVisible = !collapseVisible"
+                ></b-icon>
+            </template>
+            <template v-else>
+                <b-icon
+                    icon="arrows-expand"
+                    scale="1.5"
+                    @click="collapseVisible = !collapseVisible"
+                ></b-icon>
+            </template>
+        </div>
+        <b-collapse v-model="collapseVisible" class="mt-2">
+            <b-row>
+                <b-col sm="10" :class="{ opacity_: tabIndex == 1 }">
                     <commonQuery />
-                </b-collapse>
-            </b-col>
-        </b-row>
-        <b-row class="mb-1">
-            <b-col sm="12" class="text-right">
-                <b-button
-                    pill
-                    class="ml-2"
-                    variant="success"
-                    @click="addTaskModalShow = !addTaskModalShow;addTaskWhich = tabIndex"
-                >
-                    ✚
-                    <span style="font-weight:bold">add</span>
-                </b-button>
-                <b-button pill class="ml-2" @click="checkExportFileLegal()">匯出</b-button>
-            </b-col>
-        </b-row>
+                </b-col>
+                <b-col sm="2" class="text-right">
+                    <b-button
+                        pill
+                        class="ml-2"
+                        variant="success"
+                        @click="
+                            addTaskModalShow = !addTaskModalShow;
+                            addTaskWhich = tabIndex;
+                        "
+                    >
+                        新增
+                    </b-button>
+                    <b-button pill class="ml-2" @click="checkExportFileLegal()"
+                        >匯出</b-button
+                    >
+                </b-col>
+            </b-row>
+        </b-collapse>
+
         <b-tabs v-model="tabIndex">
             <b-tab title="本週" active></b-tab>
             <b-tab title="下週重點"></b-tab>
@@ -38,145 +69,216 @@
                 responsive
                 :items="items"
                 :fields="fields"
-                head-variant="dark"
+                head-variant="light"
                 v-if="items.length != 0"
-                class="text-center mt-2"
+                class="mt-2"
                 :tbody-tr-attr="rowClass"
             >
                 <template v-slot:cell(Group)="row">
-                    <div :class="{hide:activeItemsSeq == row.item.seq}">{{row.item.Group}}</div>
-                    <div :class="{hide:activeItemsSeq != row.item.seq}">
-                        <b-form-input list="input-list-Group" v-model.trim="row.item.Group"></b-form-input>
+                    <div :class="{ hide: activeItemsSeq == row.item.seq }">
+                        {{ row.item.Group }}
+                    </div>
+                    <div :class="{ hide: activeItemsSeq != row.item.seq }">
+                        <b-form-input
+                            list="input-list-Group"
+                            v-model.trim="row.item.Group"
+                        ></b-form-input>
                         <b-form-datalist
                             id="input-list-Group"
-                            :options="getDataListFromDBTable['Group'][pageAccess.weeklyreport.remark]"
+                            :options="
+                                getDataListFromDBTable['Group'][
+                                    pageAccess.weeklyreport.remark
+                                        .commonQueryCondition.main
+                                ]
+                            "
                             v-model.trim="row.item.Group"
                         ></b-form-datalist>
                     </div>
                 </template>
                 <template v-slot:cell(Item)="row">
-                    <div :class="{hide:activeItemsSeq == row.item.seq}">{{row.item.Item}}</div>
-                    <div :class="{hide:activeItemsSeq != row.item.seq}">
-                        <b-form-input list="input-list-Item" v-model.trim="row.item.Item"></b-form-input>
+                    <div :class="{ hide: activeItemsSeq == row.item.seq }">
+                        {{ row.item.Item }}
+                    </div>
+                    <div :class="{ hide: activeItemsSeq != row.item.seq }">
+                        <b-form-input
+                            list="input-list-Item"
+                            v-model.trim="row.item.Item"
+                        ></b-form-input>
                         <b-form-datalist
                             id="input-list-Item"
-                            :options="getDataListFromDBTable['Item'][pageAccess.weeklyreport.remark]"
+                            :options="
+                                getDataListFromDBTable['Item'][
+                                    pageAccess.weeklyreport.remark
+                                        .commonQueryCondition.main
+                                ]
+                            "
                             v-model.trim="row.item.Item"
                         ></b-form-datalist>
                     </div>
                 </template>
                 <template v-slot:cell(Date)="row">
-                    <template v-if="row.item.Date.time == '' && activeItemsSeq != row.item.seq">尚未指定</template>
+                    <template
+                        v-if="
+                            row.item.Date.time == '' &&
+                            activeItemsSeq != row.item.seq
+                        "
+                        >尚未指定</template
+                    >
                     <template v-else>
-                        <div :class="{hide:activeItemsSeq == row.item.seq}">{{row.item.Date.time}}</div>
+                        <div :class="{ hide: activeItemsSeq == row.item.seq }">
+                            {{ row.item.Date.time }}
+                        </div>
                     </template>
-                    <div :class="{hide:activeItemsSeq != row.item.seq}">
-                        <datepicker :date="row.item.Date" :option="datepickerOptions"></datepicker>
+                    <div :class="{ hide: activeItemsSeq != row.item.seq }">
+                        <datepicker
+                            :date="row.item.Date"
+                            :option="datepickerOptions"
+                        ></datepicker>
                     </div>
                 </template>
                 <template v-slot:cell(Status)="row">
-                    <div :class="{hide:activeItemsSeq == row.item.seq}">{{row.item.Status}}</div>
-                    <div :class="{hide:activeItemsSeq != row.item.seq}">
+                    <div :class="{ hide: activeItemsSeq == row.item.seq }">
+                        {{ row.item.Status }}
+                    </div>
+                    <div :class="{ hide: activeItemsSeq != row.item.seq }">
                         <b-form-input
                             class="input-text"
                             type="text"
                             v-model="row.item.Status"
-                            @click="editLongData(row,'Status',true)"
+                            @click="editLongData(row, 'Status', true)"
                         ></b-form-input>
                     </div>
                 </template>
                 <template v-slot:cell(Progress)="row">
-                    <div :class="{hide:activeItemsSeq == row.item.seq}">
-                        <p style="color:green">{{row.item.Progress}}%</p>
+                    <div :class="{ hide: activeItemsSeq == row.item.seq }">
+                        <p style="color: green">{{ row.item.Progress }}%</p>
                     </div>
-                    <div :class="{hide:activeItemsSeq != row.item.seq}">
+                    <div :class="{ hide: activeItemsSeq != row.item.seq }">
                         <b-form-input
                             class="input-text"
                             type="number"
                             v-model="row.item.Progress"
                             min="0"
-                            max="100"
                             step="20"
                         ></b-form-input>
                     </div>
                 </template>
                 <template v-slot:cell(Action)="row">
-                    <div :class="{hide:activeItemsSeq == row.item.seq}">{{row.item.Action}}</div>
-                    <div :class="{hide:activeItemsSeq != row.item.seq}">
+                    <div :class="{ hide: activeItemsSeq == row.item.seq }">
+                        {{ row.item.Action }}
+                    </div>
+                    <div :class="{ hide: activeItemsSeq != row.item.seq }">
                         <b-form-input
                             class="input-text"
                             type="text"
                             v-model="row.item.Action"
-                            @click="editLongData(row,'Action',true)"
+                            @click="editLongData(row, 'Action', true)"
                         ></b-form-input>
                     </div>
                 </template>
                 <template v-slot:cell(Remark)="row">
-                    <div :class="{hide:activeItemsSeq == row.item.seq}">{{row.item.Remark}}</div>
-                    <div :class="{hide:activeItemsSeq != row.item.seq}">
-                        <b-form-input class="input-text" type="text" v-model="row.item.Remark"></b-form-input>
+                    <div :class="{ hide: activeItemsSeq == row.item.seq }">
+                        {{ row.item.Remark }}
+                    </div>
+                    <div :class="{ hide: activeItemsSeq != row.item.seq }">
+                        <b-form-input
+                            class="input-text"
+                            type="text"
+                            v-model="row.item.Remark"
+                        ></b-form-input>
                     </div>
                 </template>
                 <template v-slot:cell(Priority)="row">
-                    <div :class="{hide:activeItemsSeq == row.item.seq}">{{row.item.Priority}}</div>
-                    <div :class="{hide:activeItemsSeq != row.item.seq}">
+                    <div :class="{ hide: activeItemsSeq == row.item.seq }">
+                        {{ row.item.Priority }}
+                    </div>
+                    <div :class="{ hide: activeItemsSeq != row.item.seq }">
                         <b-form-input
                             class="input-text"
                             type="number"
                             v-model="row.item.Priority"
                             min="0"
                             max="100"
+                            step="20"
                         ></b-form-input>
                     </div>
                 </template>
                 <template v-slot:cell(Owner)="row">
-                    <div :class="{hide:activeItemsSeq == row.item.seq}">
-                        <span v-for="(item,index) in row.item.Owner.split(',')" :key="index">
-                            {{staffConfig[item]}}
+                    <div :class="{ hide: activeItemsSeq == row.item.seq }">
+                        <span
+                            v-for="(item, index) in row.item.Owner.split(',')"
+                            :key="index"
+                        >
+                            {{ staffConfig[item] }}
                             <span
-                                v-if="index != row.item.Owner.split(',').length -1"
-                            >,</span>
+                                v-if="
+                                    index !=
+                                    row.item.Owner.split(',').length - 1
+                                "
+                                >,</span
+                            >
                         </span>
                     </div>
-                    <div :class="{hide:activeItemsSeq != row.item.seq}">
+                    <div :class="{ hide: activeItemsSeq != row.item.seq }">
                         <b-form-input
                             class="input-text"
                             type="text"
                             v-model="row.item.Owner"
-                            @click="editLongData(row,'Owner',true)"
+                            @click="editLongData(row, 'Owner', true)"
                         ></b-form-input>
                     </div>
                 </template>
                 <template v-slot:cell(Dep)="row">
-                    <div
-                        :class="{hide:activeItemsSeq == row.item.seq}"
-                    >{{depConfig[row.item.depID]}}</div>
-                    <div :class="{hide:activeItemsSeq != row.item.seq}">
-                        <b-form-select v-model="row.item.depID" :options="depOptions"></b-form-select>
+                    <div :class="{ hide: activeItemsSeq == row.item.seq }">
+                        {{ depConfig[row.item.depID] }}
+                    </div>
+                    <div :class="{ hide: activeItemsSeq != row.item.seq }">
+                        <b-form-select
+                            v-model="row.item.depID"
+                            :options="depOptions"
+                        ></b-form-select>
                     </div>
                 </template>
                 <template v-slot:cell(Edit)="row">
                     <template v-if="activeItemsSeq != row.item.seq">
                         <b-button
                             v-if="activeItemsSeq == null"
-                            @click="activeItemsSeq = row.item.seq;tempOldItemAction(true,row.item)"
-                        >編輯</b-button>
+                            @click="
+                                activeItemsSeq = row.item.seq;
+                                tempOldItemAction(true, row.item);
+                            "
+                            >編輯</b-button
+                        >
                         <b-button v-else disabled>編輯</b-button>
                         <b-button
                             v-if="activeItemsSeq == null"
                             variant="danger"
-                            @click="delTaskModalShow = !delTaskModalShow;delItemSeq = row.item.seq"
-                            style="margin-left:10px"
-                        >刪除</b-button>
-                        <b-button v-else disabled variant="danger" style="margin-left:10px">刪除</b-button>
+                            @click="
+                                delTaskModalShow = !delTaskModalShow;
+                                delItemSeq = row.item.seq;
+                            "
+                            style="margin-left: 10px"
+                            >刪除</b-button
+                        >
+                        <b-button
+                            v-else
+                            disabled
+                            variant="danger"
+                            style="margin-left: 10px"
+                            >刪除</b-button
+                        >
                     </template>
                     <template v-else-if="activeItemsSeq == row.item.seq">
                         <b-button @click="modTask(row.item)">完成編輯</b-button>
                         <b-button
                             variant="light"
-                            @click="activeItemsSeq = null;tempOldItemAction(false,row.item)"
-                            style="margin-left:10px"
-                        >取消</b-button>
+                            @click="
+                                activeItemsSeq = null;
+                                tempOldItemAction(false, row.item);
+                            "
+                            style="margin-left: 10px"
+                            >取消</b-button
+                        >
                     </template>
                 </template>
             </b-table>
@@ -196,35 +298,49 @@
             </template>
             <template v-slot:default>
                 <b-form v-if="addTaskWhich != null" @submit="addTask">
-                    <b-row class="my-4" v-for="(item,index,key) in addTaskDetail" :key="key">
+                    <b-row
+                        class="my-4"
+                        v-for="(item, index, key) in addTaskDetail"
+                        :key="key"
+                    >
                         <!-- <b-row class="my-4" v-for="(item,index,key) in $v.addTaskDetail" :key="key"> -->
                         <b-col sm="2">
-                            <label :for="'input-'+index">{{index}}:</label>
+                            <label :for="'input-' + index">{{ index }}:</label>
                         </b-col>
                         <template v-if="$v.addTaskDetail.hasOwnProperty(index)">
                             <b-col
                                 sm="10"
-                                :class="{ 'form-group--error': $v.addTaskDetail[index].value.$error }"
+                                :class="{
+                                    'form-group--error':
+                                        $v.addTaskDetail[index].value.$error,
+                                }"
                             >
                                 <b-form-input
-                                    v-if="index == 'Progress' || index == 'Priority'"
-                                    :id="'input-'+index"
-                                    v-model.trim="$v.addTaskDetail[index].$model.value"
+                                    v-if="
+                                        index == 'Progress' ||
+                                        index == 'Priority'
+                                    "
+                                    :id="'input-' + index"
+                                    v-model.trim="
+                                        $v.addTaskDetail[index].$model.value
+                                    "
                                     class="input-title"
                                     type="number"
                                     min="0"
                                     max="100"
                                 ></b-form-input>
                                 <b-form-select
-                                    :id="'input-'+index"
+                                    :id="'input-' + index"
                                     v-else-if="index == 'Owner'"
-                                    v-model="$v.addTaskDetail.Owner.$model.value"
+                                    v-model="
+                                        $v.addTaskDetail.Owner.$model.value
+                                    "
                                     :options="getStaffOptions"
                                     size="sm"
                                     multiple
                                 ></b-form-select>
                                 <b-form-select
-                                    :id="'input-'+index"
+                                    :id="'input-' + index"
                                     v-else-if="index == 'Dep'"
                                     v-model="$v.addTaskDetail.Dep.$model.value"
                                     :options="depOptions"
@@ -234,38 +350,74 @@
                                         <b-form-select-option
                                             :value="null"
                                             disabled
-                                        >-- Please select an option --</b-form-select-option>
+                                            >-- Please select an option
+                                            --</b-form-select-option
+                                        >
                                     </template>
                                 </b-form-select>
-                                <template v-else-if="index == 'Group' || index == 'Item'">
+                                <template
+                                    v-else-if="
+                                        index == 'Group' || index == 'Item'
+                                    "
+                                >
                                     <b-form-input
-                                        :id="'input-'+index"
-                                        :list="'input-list'+index"
-                                        v-model.trim="$v.addTaskDetail[index].$model.value"
+                                        :id="'input-' + index"
+                                        :list="'input-list' + index"
+                                        v-model.trim="
+                                            $v.addTaskDetail[index].$model.value
+                                        "
                                     ></b-form-input>
                                     <b-form-datalist
-                                        :id="'input-list'+index"
-                                        :options="getDataListFromDBTable[index][pageAccess.weeklyreport.remark]"
-                                        v-model.trim="$v.addTaskDetail[index].$model.value"
+                                        :id="'input-list' + index"
+                                        :options="
+                                            getDataListFromDBTable[index][
+                                                pageAccess.weeklyreport.remark
+                                                    .commonQueryCondition.main
+                                            ]
+                                        "
+                                        v-model.trim="
+                                            $v.addTaskDetail[index].$model.value
+                                        "
                                     ></b-form-datalist>
                                 </template>
                                 <b-form-input
                                     v-else
-                                    :id="'input-'+index"
-                                    v-model.trim="$v.addTaskDetail[index].$model.value"
+                                    :id="'input-' + index"
+                                    v-model.trim="
+                                        $v.addTaskDetail[index].$model.value
+                                    "
                                     class="input-title"
                                     type="text"
                                 ></b-form-input>
                                 <template
-                                    v-if="check_required($v.addTaskDetail[index].value.required,$v.addTaskDetail[index].$model)"
+                                    v-if="
+                                        check_required(
+                                            $v.addTaskDetail[index].value
+                                                .required,
+                                            $v.addTaskDetail[index].$model
+                                        )
+                                    "
                                 >
                                     <div class="error">Is required</div>
                                 </template>
-                                <template v-else-if="index == 'Progress' || index == 'Priority'">
+                                <template
+                                    v-else-if="
+                                        index == 'Progress' ||
+                                        index == 'Priority'
+                                    "
+                                >
                                     <div
                                         class="jsonerror"
-                                        v-if="check_positivenumvalid($v.addTaskDetail[index].value.positivenumvalidator,$v.addTaskDetail[index].$model)"
-                                    >必須是正整數</div>
+                                        v-if="
+                                            check_positivenumvalid(
+                                                $v.addTaskDetail[index].value
+                                                    .positivenumvalidator,
+                                                $v.addTaskDetail[index].$model
+                                            )
+                                        "
+                                    >
+                                        必須是正整數
+                                    </div>
                                 </template>
                             </b-col>
                         </template>
@@ -277,9 +429,13 @@
                                         :option="datepickerOptions"
                                     ></datepicker>
                                 </template>
-                                <template v-else-if="index == 'Action' || index == 'Status'">
+                                <template
+                                    v-else-if="
+                                        index == 'Action' || index == 'Status'
+                                    "
+                                >
                                     <b-form-textarea
-                                        :id="'input-'+index"
+                                        :id="'input-' + index"
                                         v-model="addTaskDetail[index]"
                                         rows="4"
                                         max-rows="12"
@@ -287,7 +443,7 @@
                                 </template>
                                 <template v-else>
                                     <b-form-input
-                                        :id="'input-'+index"
+                                        :id="'input-' + index"
                                         v-model.trim="addTaskDetail[index]"
                                         class="input-title"
                                         type="text"
@@ -304,7 +460,8 @@
                                     size="sm"
                                     class="float-right"
                                     @click.prevent="addTaskClose()"
-                                >Close</b-button>
+                                    >Close</b-button
+                                >
                             </div>
                             <div class="text-right">
                                 <b-button
@@ -313,8 +470,9 @@
                                     size="sm"
                                     class="float-right"
                                     @click="$v.addTaskDetail.$touch"
-                                    style="margin-right:5px"
-                                >送出</b-button>
+                                    style="margin-right: 5px"
+                                    >送出</b-button
+                                >
                             </div>
                         </b-col>
                     </b-row>
@@ -342,14 +500,16 @@
                         size="sm"
                         class="float-right"
                         @click.prevent="delTaskModalShow = !delTaskModalShow"
-                    >Close</b-button>
+                        >Close</b-button
+                    >
                     <b-button
                         variant="success"
                         size="sm"
                         class="float-right"
-                        style="margin-right:10px"
+                        style="margin-right: 10px"
                         @click.prevent="delTask()"
-                    >確定刪除</b-button>
+                        >確定刪除</b-button
+                    >
                 </div>
             </template>
         </b-modal>
@@ -371,8 +531,12 @@
                                 pill
                                 variant="success"
                                 @click="exportFile('CSV')"
-                                style="position: relative;transform: translateY(50%)"
-                            >CSV</b-button>
+                                style="
+                                    position: relative;
+                                    transform: translateY(50%);
+                                "
+                                >CSV</b-button
+                            >
                         </b-col>
                         <b-col sm="6" style="border-left: 1px solid">
                             <b-form-select
@@ -388,7 +552,8 @@
                                 @click="exportFile('PDF')"
                                 v-b-tooltip.hover
                                 title="合併儲存格會因資料長度太長可能出現排版問題(大約50chars、115bytes左右)，此時可以下載不合併的版本或分成多筆資料"
-                            >PDF</b-button>
+                                >PDF</b-button
+                            >
                         </b-col>
                     </b-row>
                 </div>
@@ -400,7 +565,8 @@
                         size="sm"
                         class="float-right"
                         @click.prevent="exportModalShow = !exportModalShow"
-                    >Close</b-button>
+                        >Close</b-button
+                    >
                 </div>
             </template>
         </b-modal>
@@ -422,7 +588,12 @@
                         :options="getStaffOptions"
                         multiple
                     ></b-form-select>
-                    <b-form-textarea v-else v-model="editActionItems.Data" rows="6" max-rows="12"></b-form-textarea>
+                    <b-form-textarea
+                        v-else
+                        v-model="editActionItems.Data"
+                        rows="6"
+                        max-rows="12"
+                    ></b-form-textarea>
                 </div>
             </template>
             <template v-slot:modal-footer>
@@ -431,15 +602,19 @@
                         variant="light"
                         size="sm"
                         class="float-right"
-                        @click.prevent="editActionModalShow = !editActionModalShow"
-                    >Close</b-button>
+                        @click.prevent="
+                            editActionModalShow = !editActionModalShow
+                        "
+                        >Close</b-button
+                    >
                     <b-button
                         variant="success"
                         size="sm"
                         class="float-right"
-                        style="margin-right:10px"
-                        @click.prevent="editLongData(null,null,false)"
-                    >確定</b-button>
+                        style="margin-right: 10px"
+                        @click.prevent="editLongData(null, null, false)"
+                        >確定</b-button
+                    >
                 </div>
             </template>
         </b-modal>
@@ -581,7 +756,7 @@ export default {
                 Item: { 1001: [], 1002: [], 1003: [], ALL: [] },
             },
             delTaskModalShow: false,
-            selectDepCollapseShow: false,
+            collapseVisible: true,
             //about export
             exportModalShow: false,
             exportPDFoptions: [
@@ -711,11 +886,6 @@ export default {
         vm.now = vm.getDate.now;
         vm.nowFormat = vm.getDate.nowFormat;
         vm.thisweekday = vm.getDate.thisweekday;
-        if (vm.pageAccess.weeklyreport.remark != "ALL") {
-            vm.togglealertModal(true);
-        } else {
-            vm.selectDepCollapseShow = true;
-        }
         vm.SetCommonQueryData();
         vm.getBelongDepStaff();
     },
@@ -736,7 +906,7 @@ export default {
                     "now",
                     "nowFormat",
                     "thisweekday",
-                    "selectDepCollapseShow",
+                    "collapseVisible",
                     "exportModalShow",
                 ];
                 saveData.push("items", "tempData");
@@ -804,7 +974,7 @@ export default {
                     "now",
                     "nowFormat",
                     "thisweekday",
-                    "selectDepCollapseShow",
+                    "collapseVisible",
                     "exportModalShow",
                 ];
                 if (vm.tabIndex == 1) {
@@ -852,8 +1022,6 @@ export default {
             setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             togglealertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
-            showalertMsgProgress: "alertmodal/show_alertMsgProgress",
-            setalertMsgProgressValue: "alertmodal/set_alertMsgProgressValue",
             changesetPartitionStatus: "home/change_setPartitionStatus",
             setinputData: "commonquery/set_inputData",
             setapiParams: "commonquery/set_apiParams",
@@ -885,7 +1053,10 @@ export default {
             var vm = this;
             var weeklyreportqueryoptions = [];
             var weeklyreportqueryselected = "ALL";
-            if (vm.pageAccess.weeklyreport.remark == "ALL") {
+            if (
+                vm.pageAccess.weeklyreport.remark.commonQueryCondition.main ==
+                "ALL"
+            ) {
                 weeklyreportqueryoptions = [
                     { text: "雲端AI(智慧)平台部", value: "1003" },
                     { text: "系統研發部", value: "1002" },
@@ -900,21 +1071,37 @@ export default {
             } else {
                 weeklyreportqueryoptions = [
                     {
-                        text: vm.depConfig[vm.pageAccess.weeklyreport.remark],
-                        value: String(vm.pageAccess.weeklyreport.remark),
+                        text:
+                            vm.depConfig[
+                                vm.pageAccess.weeklyreport.remark
+                                    .commonQueryCondition.main
+                            ],
+                        value: String(
+                            vm.pageAccess.weeklyreport.remark
+                                .commonQueryCondition.main
+                        ),
                     },
                 ];
-                weeklyreportqueryselected = vm.pageAccess.weeklyreport.remark;
+                weeklyreportqueryselected =
+                    vm.pageAccess.weeklyreport.remark.commonQueryCondition.main;
                 vm.depOptions = [
                     {
-                        text: vm.depConfig[vm.pageAccess.weeklyreport.remark],
-                        value: String(vm.pageAccess.weeklyreport.remark),
+                        text:
+                            vm.depConfig[
+                                vm.pageAccess.weeklyreport.remark
+                                    .commonQueryCondition.main
+                            ],
+                        value: String(
+                            vm.pageAccess.weeklyreport.remark
+                                .commonQueryCondition.main
+                        ),
                     },
                 ];
             }
             let obj = JSON.parse(JSON.stringify(vm.DEFAULT_inputData));
             obj.options = weeklyreportqueryoptions;
             obj.selected = weeklyreportqueryselected;
+            obj.label = "部門";
             vm.setinputData(obj);
 
             let commonApiParams = JSON.parse(
@@ -937,7 +1124,7 @@ export default {
         getTaskList() {
             let vm = this;
             vm.togglealertModal(true);
-            vm.selectDepCollapseShow = false;
+            vm.collapseVisible = false;
             let itemsobj = {};
             vm.queryResponse.forEach((element) => {
                 if (
@@ -1016,11 +1203,16 @@ export default {
             params["whichFunction"] = "CommonSqlSyntaxQuery_";
             let thiswhere = [];
             let thissymbols = [];
-            if (vm.pageAccess.weeklyreport.remark === "ALL") {
+            if (
+                vm.pageAccess.weeklyreport.remark.commonQueryCondition.main ==
+                "ALL"
+            ) {
                 thiswhere = Object.keys(vm.depConfig);
                 thissymbols = ["equal", "equal", "equal"];
             } else {
-                thiswhere.push(vm.pageAccess.weeklyreport.remark);
+                thiswhere.push(
+                    vm.pageAccess.weeklyreport.remark.commonQueryCondition.main
+                );
                 thissymbols = ["equal"];
             }
             params["condition"] = {
@@ -1046,7 +1238,11 @@ export default {
                             anyerror = true;
                         } else {
                             //抓todoList
-                            if (vm.pageAccess.weeklyreport.remark != "ALL") {
+                            if (
+                                vm.pageAccess.weeklyreport.remark
+                                    .commonQueryCondition.main != "ALL"
+                            ) {
+                                vm.togglealertModal(true);
                                 vm.queryAgain();
                             }
                             let itemsobj = {};
@@ -1078,7 +1274,10 @@ export default {
                 .finally(() => {
                     //console.log("done");
                     if (anyerror) vm.settimeoutalertModal();
-                    if (vm.pageAccess.weeklyreport.remark === "ALL")
+                    if (
+                        vm.pageAccess.weeklyreport.remark.commonQueryCondition
+                            .main == "ALL"
+                    )
                         vm.togglealertModal(false);
                 });
         },
@@ -2123,20 +2322,26 @@ export default {
 <style scoped src="../../public/css/vuelidateYS.css"></style>
 <style scoped>
 #bluebg {
-    min-height: 80px;
+    min-height: 70px;
     background-color: rgb(80, 114, 226);
-    font-size: 40px;
-    color: rgba(139, 15, 15, 0.555);
 }
 #bluebg img {
-    height: 80px;
+    height: 70px;
     padding: 5px;
     margin: 0 30px 0 10px;
+}
+#bluebg .title {
+    font-size: 40px;
+    color: rgb(231, 241, 79);
+    line-height: 70px;
 }
 .hide {
     display: none;
 }
 ::v-deep #choose .choose_content {
     opacity: 0 !important;
+}
+.opacity_ {
+    opacity: 0;
 }
 </style>

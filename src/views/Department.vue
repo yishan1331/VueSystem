@@ -8,7 +8,9 @@
                     <systemForm />
                 </b-tab>
                 <b-tab title="修改">
-                    <h5 class="card-title" v-if="items.length == 0">選擇查詢條件</h5>
+                    <h5 class="card-title" v-if="items.length == 0">
+                        選擇查詢條件
+                    </h5>
                     <b-table
                         sticky-header="550px"
                         responsive
@@ -50,7 +52,9 @@
                     </b-table>-->
                 </b-tab>
                 <b-tab title="查詢">
-                    <h5 class="card-title" v-if="items.length == 0">選擇查詢條件</h5>
+                    <h5 class="card-title" v-if="items.length == 0">
+                        選擇查詢條件
+                    </h5>
                     <b-table
                         sticky-header="550px"
                         responsive
@@ -92,14 +96,16 @@
                         size="sm"
                         class="float-right"
                         @click.prevent="delDepartmentModalShow = false"
-                    >Close</b-button>
+                        >Close</b-button
+                    >
                     <b-button
                         variant="success"
                         size="sm"
                         class="float-right"
-                        style="margin-right:10px"
+                        style="margin-right: 10px"
                         @click.prevent="DepDel()"
-                    >確定刪除</b-button>
+                        >確定刪除</b-button
+                    >
                 </div>
             </template>
         </b-modal>
@@ -124,7 +130,8 @@
                         size="sm"
                         class="float-right"
                         @click.prevent="modDepartmentModalShow = false"
-                    >Close</b-button>
+                        >Close</b-button
+                    >
                 </div>
             </template>
         </b-modal>
@@ -185,7 +192,6 @@ export default {
         ...mapGetters({
             axiosResult: "commonaxios/get_axiosResult",
             loginData: "getlogin/get_loginData",
-            pageAccess: "getlogin/get_pageAccess",
             commonQueryResponse: "commonquery/get_queryResponse",
             tableBusy: "commonquery/get_tableBusy",
             DEFAULT_inputData: "commonquery/get_DEFAULT_inputData",
@@ -242,23 +248,50 @@ export default {
                     if (vm.systemFormCompletedData.depID == "") {
                         msg.push("部門編號尚未輸入");
                     }
-                    console.log(
-                        vm.systemFormCompletedData.accessList.todolist.remark
-                    );
                     if (
-                        vm.systemFormCompletedData.accessList.todolist.status &&
-                        vm.systemFormCompletedData.accessList.todolist.remark ==
-                            null
+                        vm.systemFormCompletedData.accessList.todolist
+                            .authority &&
+                        vm.systemFormCompletedData.accessList.todolist.remark
+                            .commonQueryCondition.main === null
                     ) {
                         msg.push("權限:『待辦事項』需選擇指定部門");
                     }
                     if (
                         vm.systemFormCompletedData.accessList.weeklyreport
-                            .status &&
+                            .authority &&
                         vm.systemFormCompletedData.accessList.weeklyreport
-                            .remark == null
+                            .remark.commonQueryCondition.main === null
                     ) {
-                        msg.push("權限:『Weekly Report』需選擇指定部門");
+                        msg.push("權限:『工作週報』需選擇指定部門");
+                    }
+                    if (
+                        vm.systemFormCompletedData.accessList.meetingminutes
+                            .authority
+                    ) {
+                        if (
+                            vm.systemFormCompletedData.accessList.meetingminutes
+                                .remark.commonQueryCondition.main.length === 0
+                        )
+                            msg.push("權限:『會議記錄』需選擇指定部門");
+                        if (
+                            vm.systemFormCompletedData.accessList.meetingminutes
+                                .remark.commonQueryCondition.secondary === null
+                        )
+                            msg.push("權限:『會議記錄』需選擇指定員工階級");
+                        if (
+                            vm.systemFormCompletedData.accessList.meetingminutes
+                                .remark.dataHandleAuthority.length === 0
+                        ) {
+                            msg.push("權限:『會議記錄』需選擇指定執行權限");
+                        } else if (
+                            !vm.systemFormCompletedData.accessList.meetingminutes.remark.dataHandleAuthority.includes(
+                                "query"
+                            )
+                        ) {
+                            msg.push(
+                                "權限:『會議記錄』- 指定執行權限至少要有查詢"
+                            );
+                        }
                     }
                     console.log(msg);
                     if (msg.length != 0) {
@@ -284,7 +317,7 @@ export default {
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             setinputData: "commonquery/set_inputData",
             setapiParams: "commonquery/set_apiParams",
-            setdepDetail: "commonquery/set_depDetail",
+            setconditionOptions: "commonquery/set_conditionOptions",
             queryAgain: "commonquery/do_queryAgain",
             setvforData: "systemform/set_vforData",
             setsystemFormResponse: "systemform/set_systemFormResponse",
@@ -324,7 +357,10 @@ export default {
             let obj = JSON.parse(JSON.stringify(vm.DEFAULT_inputData));
             obj.options = departmentqueryoptions;
             obj.selected = departmentqueryselected;
-            obj.inputtext = "text";
+            obj.conversiontable = {
+                depID: "部門編號",
+                depName: "部門名稱",
+            };
             vm.setinputData(obj);
 
             let commonApiParams = JSON.parse(
@@ -345,12 +381,13 @@ export default {
                 var array = [];
                 if (result["Response"] == "ok") {
                     var depDetail = [];
-                    depDetail[0] = {};
                     for (var i = 0; i < result["QueryTableData"].length; i++) {
-                        depDetail[0][result["QueryTableData"][i]["depName"]] =
-                            result["QueryTableData"][i]["depName"];
+                        let obj = {};
+                        obj["text"] = result["QueryTableData"][i]["depName"];
+                        obj["value"] = result["QueryTableData"][i]["depName"];
+                        depDetail.push(obj);
                     }
-                    vm.setdepDetail(depDetail);
+                    vm.setconditionOptions(depDetail);
                 } else {
                     vm.setTimeOutAlertMsg(result["Response"]);
                     vm.settimeoutalertModal();

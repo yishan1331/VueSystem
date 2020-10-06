@@ -7,6 +7,8 @@ import commonquery from './commonQuery'
 import systemform from './systemForm'
 import exportfile from './exportFile'
 import getdate from './getDate'
+import sort from './sort'
+import commontable from './commonTable'
 
 export default {
     getlogin,
@@ -17,5 +19,7 @@ export default {
     commonquery,
     systemform,
     exportfile,
-    getdate
+    getdate,
+    sort,
+    commontable
 }

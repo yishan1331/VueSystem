@@ -8,7 +8,9 @@
                     <systemForm />
                 </b-tab>
                 <b-tab title="修改">
-                    <h5 class="card-title" v-if="items.length == 0">選擇查詢條件</h5>
+                    <h5 class="card-title" v-if="items.length == 0">
+                        選擇查詢條件
+                    </h5>
                     <b-table
                         sticky-header="550px"
                         responsive
@@ -29,7 +31,9 @@
                     </b-table>
                 </b-tab>
                 <b-tab title="刪除">
-                    <h5 class="card-title" v-if="items.length == 0">選擇查詢條件</h5>
+                    <h5 class="card-title" v-if="items.length == 0">
+                        選擇查詢條件
+                    </h5>
                     <b-table
                         sticky-header="550px"
                         responsive
@@ -50,7 +54,9 @@
                     </b-table>
                 </b-tab>
                 <b-tab title="查詢">
-                    <h5 class="card-title" v-if="items.length == 0">選擇查詢條件</h5>
+                    <h5 class="card-title" v-if="items.length == 0">
+                        選擇查詢條件
+                    </h5>
                     <b-table
                         sticky-header="550px"
                         responsive
@@ -92,14 +98,16 @@
                         size="sm"
                         class="float-right"
                         @click.prevent="delAccountModalShow = false"
-                    >Close</b-button>
+                        >Close</b-button
+                    >
                     <b-button
                         variant="success"
                         size="sm"
                         class="float-right"
-                        style="margin-right:10px"
+                        style="margin-right: 10px"
                         @click.prevent="AccountDel()"
-                    >確定刪除</b-button>
+                        >確定刪除</b-button
+                    >
                 </div>
             </template>
         </b-modal>
@@ -124,7 +132,8 @@
                         size="sm"
                         class="float-right"
                         @click.prevent="modAccountModalShow = false"
-                    >Close</b-button>
+                        >Close</b-button
+                    >
                 </div>
             </template>
         </b-modal>
@@ -191,7 +200,6 @@ export default {
         ...mapGetters({
             axiosResult: "commonaxios/get_axiosResult",
             loginData: "getlogin/get_loginData",
-            pageAccess: "getlogin/get_pageAccess",
             queryResponse: "commonquery/get_queryResponse",
             tableBusy: "commonquery/get_tableBusy",
             DEFAULT_inputData: "commonquery/get_DEFAULT_inputData",
@@ -255,28 +263,54 @@ export default {
                         if (vm.systemFormCompletedData.noumenonID == "") {
                             msg.push("部門尚未選擇");
                         }
-                        console.log(
-                            vm.systemFormCompletedData.accessList.todolist
-                                .remark
-                        );
+                    }
+                    if (vm.systemFormCompletedData.pwd == "") {
+                        msg.push("密碼尚未輸入");
                     }
                     if (
-                        vm.systemFormCompletedData.accessList.todolist.status &&
-                        vm.systemFormCompletedData.accessList.todolist.remark ==
-                            null
+                        vm.systemFormCompletedData.accessList.todolist
+                            .authority &&
+                        vm.systemFormCompletedData.accessList.todolist.remark
+                            .commonQueryCondition.main === null
                     ) {
                         msg.push("權限:『待辦事項』需選擇指定部門");
                     }
                     if (
                         vm.systemFormCompletedData.accessList.weeklyreport
-                            .status &&
+                            .authority &&
                         vm.systemFormCompletedData.accessList.weeklyreport
-                            .remark == null
+                            .remark.commonQueryCondition.main === null
                     ) {
-                        msg.push("權限:『Weekly Report』需選擇指定部門");
+                        msg.push("權限:『工作週報』需選擇指定部門");
                     }
-                    if (vm.systemFormCompletedData.pwd == "") {
-                        msg.push("密碼尚未輸入");
+                    if (
+                        vm.systemFormCompletedData.accessList.meetingminutes
+                            .authority
+                    ) {
+                        if (
+                            vm.systemFormCompletedData.accessList.meetingminutes
+                                .remark.commonQueryCondition.main.length === 0
+                        )
+                            msg.push("權限:『會議記錄』需選擇指定查詢條件");
+                        if (
+                            vm.systemFormCompletedData.accessList.meetingminutes
+                                .remark.commonQueryCondition.secondary === null
+                        )
+                            msg.push("權限:『會議記錄』需選擇指定員工階級");
+                        if (
+                            vm.systemFormCompletedData.accessList.meetingminutes
+                                .remark.dataHandleAuthority.length === 0
+                        ) {
+                            msg.push("權限:『會議記錄』需選擇指定執行權限");
+                        } else if (
+                            !vm.systemFormCompletedData.accessList.meetingminutes.remark.dataHandleAuthority.includes(
+                                "query"
+                            )
+                        ) {
+                            msg.push(
+                                "權限:『會議記錄』- 指定執行權限至少要有查詢"
+                            );
+                        }
                     }
                     console.log(msg);
                     if (msg.length != 0) {
@@ -302,7 +336,7 @@ export default {
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             setinputData: "commonquery/set_inputData",
             setapiParams: "commonquery/set_apiParams",
-            setdepDetail: "commonquery/set_depDetail",
+            setconditionOptions: "commonquery/set_conditionOptions",
             queryAgain: "commonquery/do_queryAgain",
             setvforData: "systemform/set_vforData",
             setsystemFormResponse: "systemform/set_systemFormResponse",
@@ -340,6 +374,7 @@ export default {
             console.log(vforData);
             this.setvforData(vforData);
         },
+
         SetSystemFormSelectOptionsFunc() {
             var vm = this;
             var params = {};
@@ -368,15 +403,17 @@ export default {
                             result["QueryTableData"][i]["accessList"];
                         array.push(systemformselectoptions);
                     }
+                    console.log(array);
                     vm.setSystemFormSelectOptions(array);
                     vm.depDetail = depDetail;
-                    vm.setdepDetail(depDetail);
+                    vm.setconditionOptions(array);
                 } else {
                     vm.setTimeOutAlertMsg(result["Response"]);
                     vm.settimeoutalertModal();
                 }
             });
         },
+
         SetCommonQueryData() {
             var vm = this;
             var accountqueryselected = "ALL";
@@ -390,7 +427,12 @@ export default {
             let obj = JSON.parse(JSON.stringify(vm.DEFAULT_inputData));
             obj.options = accountqueryoptions;
             obj.selected = accountqueryselected;
-            obj.inputtext = "text";
+            obj.conversiontable = {
+                noumenonID: "部門編號",
+                depName: "部門名稱",
+                uID: "帳號",
+                uName: "姓名",
+            };
             vm.setinputData(obj);
 
             let commonApiParams = JSON.parse(
@@ -482,19 +524,11 @@ export default {
             params["noumenonID"] = String(
                 vm.systemFormCompletedData.noumenonID
             );
-            // if (
-            //     Object.values(vm.systemFormCompletedData.accessList).indexOf(
-            //         false
-            //     ) != -1
-            // ) {
             params["accessList"] = JSON.stringify(
                 vm.systemFormCompletedData.accessList
             );
-            // } else {
-            //     params["accessList"] = '"ALL"';
-            // }
             params["creatorID"] = String(vm.loginData.account);
-
+            console.log(params);
             vm.axiosAction(params).then(() => {
                 var result = vm.axiosResult;
                 console.log(result);

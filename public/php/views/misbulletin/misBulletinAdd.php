@@ -1,5 +1,6 @@
 <?php
 header('Access-Control-Allow-Origin: *');
+include("../../globalvar.php");
 $this_title = $_POST['title'];
 $this_category = $_POST['category'];
 $this_content = $_POST['content'];
@@ -37,7 +38,7 @@ if (count($_FILES) != 0) {
 } else {
     $nofileupload = true;
 }
-$url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/misBulletin?uid=@sapido@PaaS";
+$url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/misBulletin?uid=@sapido@PaaS";
 //The JSON data.
 $data = array(
     "seq" => [""],

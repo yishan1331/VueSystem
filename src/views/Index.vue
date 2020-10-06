@@ -4,10 +4,20 @@
             class="navbar navbar-expand-lg navbar-light fixed-top"
             style="background-color:#7C93B6;"
         >-->
-        <b-navbar toggleable="lg" type="dark" id="navbar" sticky style="background-color:#7C93B6;">
+        <b-navbar
+            toggleable="lg"
+            type="dark"
+            id="navbar"
+            sticky
+            style="background-color: #7c93b6"
+        >
             <div>
                 <router-link :to="'home'">
-                    <img class="navbar-brand" src="../assets/sapidoLOGOw.png" width="170px" />
+                    <img
+                        class="navbar-brand"
+                        src="../assets/sapidoLOGOw.png"
+                        width="170px"
+                    />
                 </router-link>
             </div>
             <button
@@ -26,82 +36,106 @@
                     <li class="nav-item">
                         <router-link
                             class="nav-link"
-                            v-show="pageAccess.misbulletinboard.status"
+                            v-show="pageAccess.misbulletinboard.authority"
                             :to="'misbulletinboard'"
-                        >MIS公告區</router-link>
+                            >MIS公告區</router-link
+                        >
                     </li>
                     <li class="nav-item">
                         <router-link
                             class="nav-link"
-                            v-show="pageAccess.misbulletinmanage.status"
+                            v-show="pageAccess.misbulletinmanage.authority"
                             :to="'misbulletinmanage'"
-                        >MIS公告管理</router-link>
+                            >MIS公告管理</router-link
+                        >
                     </li>
                     <li class="nav-item dropdown">
                         <a
                             class="nav-link dropdown"
                             role="button"
-                            v-show="pageAccess.structure.status"
-                        >系統架構</a>
+                            v-show="
+                                pageAccess.structure.authority ||
+                                pageAccess.server.authority ||
+                                pageAccess.storage.authority
+                            "
+                            >系統架構</a
+                        >
                         <div class="dropdown-menu">
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.structure.status"
+                                v-show="pageAccess.structure.authority"
                                 :to="'structure'"
-                            >架構圖</router-link>
+                                >架構圖</router-link
+                            >
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.server.status"
+                                v-show="pageAccess.server.authority"
                                 :to="'server'"
-                            >伺服器狀態</router-link>
+                                >伺服器狀態</router-link
+                            >
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.storage.status"
+                                v-show="pageAccess.storage.authority"
                                 :to="'storage'"
-                            >儲存設備狀態</router-link>
+                                >儲存設備狀態</router-link
+                            >
                         </div>
                     </li>
                     <li class="nav-item dropdown">
                         <a
                             class="nav-link dropdown"
                             role="button"
-                            v-show="pageAccess.todolist.status"
-                        >報告</a>
+                            v-show="
+                                pageAccess.todolist.authority ||
+                                pageAccess.weeklyreport.authority ||
+                                pageAccess.meetingminutes.authority
+                            "
+                            >報告</a
+                        >
                         <div class="dropdown-menu">
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.todolist.status"
+                                v-show="pageAccess.todolist.authority"
                                 :to="'todolist'"
-                            >各部待辦事項</router-link>
+                                >待辦事項</router-link
+                            >
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.weeklyreport.status"
+                                v-show="pageAccess.weeklyreport.authority"
                                 :to="'weeklyreport'"
-                            >Weekly Report</router-link>
+                                >工作週報</router-link
+                            >
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.meetingminutes.status"
+                                v-show="pageAccess.meetingminutes.authority"
                                 :to="'meetingminutes'"
-                            >會議記錄</router-link>
+                                >會議記錄</router-link
+                            >
                         </div>
                     </li>
                     <li class="nav-item dropdown">
                         <a
                             class="nav-link dropdown"
                             role="button"
-                            v-show="pageAccess.department.status || pageAccess.account.status"
-                        >系統管理</a>
+                            v-show="
+                                pageAccess.department.authority ||
+                                pageAccess.account.authority
+                            "
+                            >系統管理</a
+                        >
                         <div class="dropdown-menu">
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.department.status"
+                                v-show="pageAccess.department.authority"
                                 :to="'department'"
-                            >部門</router-link>
+                                >部門</router-link
+                            >
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.account.status"
+                                v-show="pageAccess.account.authority"
                                 :to="'account'"
-                            >帳號</router-link>
+                                >帳號</router-link
+                            >
                         </div>
                     </li>
                     <!-- <li class="nav-item dropdown">
@@ -131,21 +165,31 @@
                 </ul>
                 <form class="form-inline my-2 my-lg-0">
                     <div class="username">
-                        <p v-if="loginData.username === null" class="account">HI, xxxx</p>
-                        <p v-else class="account">HI, {{ loginData.username }}</p>
+                        <p v-if="loginData.username === null" class="account">
+                            HI, xxxx
+                        </p>
+                        <p v-else class="account">
+                            HI, {{ loginData.username }}
+                        </p>
                     </div>
                     <a
                         class="changepwd a-hover"
-                        style="float:right"
+                        style="float: right"
                         @click.prevent="toggleChangePWDModal(true)"
-                    >更改密碼</a>
-                    <a class="logout a-hover" style="float:right" @click.prevent="logout">登出</a>
+                        >更改密碼</a
+                    >
+                    <a
+                        class="logout a-hover"
+                        style="float: right"
+                        @click.prevent="logout"
+                        >登出</a
+                    >
                 </form>
             </div>
             <!-- </nav> -->
         </b-navbar>
         <b-container>
-            <router-view style="margin-top:10px"></router-view>
+            <router-view style="margin-top: 10px"></router-view>
             <!-- <router-view style="position:absolute;margin-top:10px"></router-view> -->
         </b-container>
         <modal v-if="ChangePwdmodalShow">
@@ -160,9 +204,12 @@
                             type="password"
                             id="change_oldpwd"
                             class="form-control"
-                            style="background-color:white"
+                            style="background-color: white"
                             v-model="ChangePwdmodal.old_pwd"
-                            v-bind:class="{ wrongoldpwd: ChangePwdmodal.wrongStatus.oldisWrong }"
+                            v-bind:class="{
+                                wrongoldpwd:
+                                    ChangePwdmodal.wrongStatus.oldisWrong,
+                            }"
                         />
                     </div>
                 </div>
@@ -174,7 +221,10 @@
                             id="change_newpwd"
                             class="form-control"
                             v-model="ChangePwdmodal.change_newpwd"
-                            v-bind:class="{ wrongnewpwd1: ChangePwdmodal.wrongStatus.new1isWrong}"
+                            v-bind:class="{
+                                wrongnewpwd1:
+                                    ChangePwdmodal.wrongStatus.new1isWrong,
+                            }"
                         />
                     </div>
                 </div>
@@ -186,7 +236,10 @@
                             id="change_newpwd2"
                             class="form-control"
                             v-model="ChangePwdmodal.change_newpwd2"
-                            v-bind:class="{ wrongnewpwd2: ChangePwdmodal.wrongStatus.new2isWrong}"
+                            v-bind:class="{
+                                wrongnewpwd2:
+                                    ChangePwdmodal.wrongStatus.new2isWrong,
+                            }"
                         />
                     </div>
                 </div>
@@ -198,14 +251,16 @@
                         size="sm"
                         class="float-right"
                         @click.prevent="toggleChangePWDModal(false)"
-                    >Close</b-button>
+                        >Close</b-button
+                    >
                     <b-button
                         variant="success"
                         size="sm"
                         class="float-right"
-                        style="margin-right:10px"
+                        style="margin-right: 10px"
                         @click.prevent="changepwd"
-                    >更改密碼</b-button>
+                        >更改密碼</b-button
+                    >
                 </div>
             </template>
         </modal>

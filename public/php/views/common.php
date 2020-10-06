@@ -1,46 +1,45 @@
 <?php
-function IntervalQuery($params, $returnData){
+function IntervalQuery($params, $publicIP)
+{
     if ($params->settingtime) {
-        $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/Interval/" . $params->table . "?uid=@sapido@PaaS&attr=" . $params->timeattr . "&valueStart=" . $params->start_time . "&valueEnd=" . $params->end_time;
+        $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/Interval/" . $params->table . "?uid=@sapido@PaaS&attr=" . $params->timeattr . "&valueStart=" . $params->start_time . "&valueEnd=" . $params->end_time;
     } else {
-        $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/TableData?uid=@sapido@PaaS&table=" . $params->table;
+        $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/TableData?uid=@sapido@PaaS&table=" . $params->table;
     }
-    $returnData[0] = $url;
-    return $returnData;
+    return array($url);
 }
 
-function CommonSimpleQuery($params, $returnData)
+function CommonSimpleQuery($params, $publicIP)
 {
     if ($params->category == "ALL") {
         if (!$params->settingtime) {
-            $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/Interval/" . $params->table . "?uid=@sapido@PaaS&attr=lastUpdateTime&valueStart=" . $params->start_time . "&valueEnd=" . $params->end_time;
+            $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/Interval/" . $params->table . "?uid=@sapido@PaaS&attr=lastUpdateTime&valueStart=" . $params->start_time . "&valueEnd=" . $params->end_time;
         } else {
-            $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/TableData?uid=@sapido@PaaS&table=" . $params->table;
+            $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/TableData?uid=@sapido@PaaS&table=" . $params->table;
         }
     } else if ($params->category == "systemformselectoptions") {
-        $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/TableData?uid=@sapido@PaaS&table=" . $params->table;
+        $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/TableData?uid=@sapido@PaaS&table=" . $params->table;
     } else {
         if (!$params->settingtime) {
-            $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/Interval/" . $params->table . "?uid=@sapido@PaaS&attr=lastUpdateTime&valueStart=" . $params->start_time . "&valueEnd=" . $params->end_time . "&whereParameter=" . $params->category . "&whereValue=" . $params->categoryparameter;
+            $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/Interval/" . $params->table . "?uid=@sapido@PaaS&attr=lastUpdateTime&valueStart=" . $params->start_time . "&valueEnd=" . $params->end_time . "&whereParameter=" . $params->category . "&whereValue=" . $params->categoryparameter;
         } else {
-            $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/Interval/" . $params->table . "?uid=@sapido@PaaS&attr=" . $params->category . "&valueStart=" . $params->categoryparameter . "&valueEnd=" . $params->categoryparameter;
+            $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/Interval/" . $params->table . "?uid=@sapido@PaaS&attr=" . $params->category . "&valueStart=" . $params->categoryparameter . "&valueEnd=" . $params->categoryparameter;
         }
     }
-    $returnData[0] = $url;
-    return $returnData;
+    return array($url);
 }
 
-function CommonSqlSyntaxQuery($params, $returnData)
+function CommonSqlSyntaxQuery($params, $publicIP)
 {
-    (!property_exists($params,'purpose'))? $purpose="":$purpose=$params->purpose;
-    (!property_exists($params,'fields'))? $fields="":$fields=$params->fields;
-    (!property_exists($params,'where'))? $where="":$where=$params->where;
-    (!property_exists($params,'orderby'))? $orderby="":$orderby=$params->orderby;
-    (!property_exists($params,'limit'))? $limit="":$limit=$params->limit;
-    (!property_exists($params,'symbols'))? $symbols="":$symbols=$params->symbols;
-    (!property_exists($params,'intervaltime'))? $intervaltime="":$intervaltime=$params->intervaltime;
+    (!property_exists($params, 'purpose')) ? $purpose = "" : $purpose = $params->purpose;
+    (!property_exists($params, 'fields')) ? $fields = "" : $fields = $params->fields;
+    (!property_exists($params, 'where')) ? $where = "" : $where = $params->where;
+    (!property_exists($params, 'orderby')) ? $orderby = "" : $orderby = $params->orderby;
+    (!property_exists($params, 'limit')) ? $limit = "" : $limit = $params->limit;
+    (!property_exists($params, 'symbols')) ? $symbols = "" : $symbols = $params->symbols;
+    (!property_exists($params, 'intervaltime')) ? $intervaltime = "" : $intervaltime = $params->intervaltime;
 
-    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/SqlSyntax/" . $params->table . "?uid=@sapido@PaaS";
+    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/SqlSyntax/" . $params->table . "?uid=@sapido@PaaS";
     $data = array(
         'purpose' => $purpose,
         'fields' => $fields,
@@ -50,11 +49,9 @@ function CommonSqlSyntaxQuery($params, $returnData)
         'symbols' => $symbols,
         'intervaltime' => $intervaltime
     );
-    $returnData[0] = $url;
-    $returnData[1] = $data;
-    return $returnData;
+    return array($url, $data);
 }
-function CommonSqlSyntaxQuery_($params, $returnData)
+function CommonSqlSyntaxQuery_($params, $publicIP)
 {
     $postdata = new stdClass();
     foreach ($params->condition as $key => $value) {
@@ -74,13 +71,11 @@ function CommonSqlSyntaxQuery_($params, $returnData)
         $postdata->$key->symbols = $symbols;
         $postdata->$key->intervaltime = $intervaltime;
     }
-    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/SqlSyntax_?uid=@sapido@PaaS&getSqlSyntax=yes";
-    $returnData[0] = $url;
-    $returnData[1] = $postdata;
-    return $returnData;
+    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/SqlSyntax_?uid=@sapido@PaaS&getSqlSyntax=yes";
+    return array($url, $postdata);
 }
 
-function CommonJoinMultiTable_($params, $returnData)
+function CommonJoinMultiTable_($params, $publicIP)
 {
     $postdata = new stdClass();
     foreach ($params->condition as $key => $value) {
@@ -102,32 +97,24 @@ function CommonJoinMultiTable_($params, $returnData)
         $postdata->$key->join = $join;
         $postdata->$key->jointype = $jointype;
     }
-    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/SqlSyntax/JoinMultiTable_?uid=@sapido@PaaS&getSqlSyntax=yes";
-    $returnData[0] = $url;
-    $returnData[1] = $postdata;
-    return $returnData;
+    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/SqlSyntax/JoinMultiTable_?uid=@sapido@PaaS&getSqlSyntax=yes";
+    return array($url, $postdata);
 }
 
-function CommonRegister($params, $returnData)
+function CommonRegister($params, $publicIP)
 {
-    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/" . $params->table . "?uid=@sapido@PaaS";
-    $returnData[0] = $url;
-    $returnData[1] = $params->postdata;
-    return $returnData;
+    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/" . $params->table . "?uid=@sapido@PaaS";
+    return array($url, $params->postdata);
 }
 
-function CommonUpdate($params, $returnData)
+function CommonUpdate($params, $publicIP)
 {
-    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/" . $params->table . "?uid=@sapido@PaaS";
-    $returnData[0] = $url;
-    $returnData[1] = $params->postdata;
-    return $returnData;
+    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/" . $params->table . "?uid=@sapido@PaaS";
+    return array($url, $params->postdata);
 }
 
-function CommonDelete($params, $returnData)
+function CommonDelete($params, $publicIP)
 {
-    $url = "https://192.168.39.75:3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/" . $params->table . "?uid=@sapido@PaaS";
-    $returnData[0] = $url;
-    $returnData[1] = $params->postdata;
-    return $returnData;
+    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/" . $params->table . "?uid=@sapido@PaaS";
+    return array($url, $params->postdata);
 }

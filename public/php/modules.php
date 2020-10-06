@@ -5,12 +5,12 @@ $postBody = json_decode($postBody);
 $methods = $postBody->methods;
 $whichFunction = $postBody->whichFunction;
 
+include("./globalvar.php");
 include("./views/accountAction.php");
 include("./views/systemSet.php");
 include("./views/common.php");
 
-$returnData = [];
-$postdata = $whichFunction($postBody,$returnData);
+$postdata = $whichFunction($postBody,$publicIP);
 if ($methods == "GET"){
     // $getfunction = new FunctionGetClass;
     // $postdata = $getfunction->$whichFunction($postBody,$returnData);

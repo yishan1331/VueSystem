@@ -791,6 +791,7 @@ export default {
         //表格點擊
         onRowClicked(items, index, event) {
             var vm = this;
+            const thisitem = JSON.parse(JSON.stringify(items));
             var categorytoEN = {};
             categorytoEN = {
                 網路: "network",
@@ -798,20 +799,18 @@ export default {
                 系統: "system",
             };
             if (vm.tabIndex == 1) {
-                console.log(items);
-                console.log(JSON.stringify(items));
                 console.log(index);
                 console.log(event);
                 vm.modmodalcontentusetable = false;
                 vm.modmodalcontentusepre = false;
                 vm.RowClickedIndex = index;
-                vm.modmodalcontent.seq = items.seq;
-                vm.modmodalcontent.title.value = items.title;
-                vm.modmodalcontent.category = categorytoEN[items.category];
-                if (vm.checkIsJsonData(items.content)) {
-                    let parsecontent = items.content;
+                vm.modmodalcontent.seq = thisitem.seq;
+                vm.modmodalcontent.title.value = thisitem.title;
+                vm.modmodalcontent.category = categorytoEN[thisitem.category];
+                if (vm.checkIsJsonData(thisitem.content)) {
+                    let parsecontent = thisitem.content;
                     if (
-                        Object.prototype.toString.call(items.content) !=
+                        Object.prototype.toString.call(thisitem.content) !=
                         "[object Object]"
                     )
                         parsecontent = JSON.parse(parsecontent);
@@ -846,16 +845,16 @@ export default {
                         );
                     }
                 } else {
-                    items.content = items.content
+                    thisitem.content = thisitem.content
                         .replace(/<br\s*[\/]?>/g, "\n")
                         .replace(/&nbsp;/g, "");
-                    vm.modmodalcontent.content.value = items.content;
+                    vm.modmodalcontent.content.value = thisitem.content;
                 }
-                vm.modmodalcontent.showhide = items.showhide;
-                if (typeof items.annex != "undefined") {
-                    for (var i = 0; i < items.annex.length; i++) {
-                        vm.modmodalcontent.boardannex[items.annex[i]] =
-                            "./misbulletinfiles/" + items.annex[i];
+                vm.modmodalcontent.showhide = thisitem.showhide;
+                if (typeof thisitem.annex != "undefined") {
+                    for (var i = 0; i < thisitem.annex.length; i++) {
+                        vm.modmodalcontent.boardannex[thisitem.annex[i]] =
+                            "./misbulletinfiles/" + thisitem.annex[i];
                     }
                 }
                 vm.modBulletinModalShow = true;
@@ -969,6 +968,7 @@ export default {
                         "Content-Type": "multipart/form-data",
                     },
                 };
+                vm.togglealertModal(true);
                 const instance = axios.create({
                     withCredentials: true,
                 });
@@ -1009,10 +1009,8 @@ export default {
                         vm.settimeoutalertModal();
                     })
                     .finally(() => {
-                        console.log("done");
-                        setTimeout(() => {
-                            vm.queryAgain();
-                        }, 1200);
+                        vm.togglealertModal(false);
+                        vm.queryAgain();
                     });
             }
         },

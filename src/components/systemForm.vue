@@ -1,10 +1,14 @@
 <template>
     <div class="systemForm">
         <b-form>
-            <b-row v-for="(item1,key1) in vforData" :key="key1" :class="{'my-4': key1 != 'button'}">
+            <b-row
+                v-for="(item1, key1) in vforData"
+                :key="key1"
+                :class="{ 'my-4': key1 != 'button' }"
+            >
                 <template v-if="key1 != 'button' && key1 != 'textclass'">
                     <b-col sm="2">
-                        <label for="input-default">{{item1[1]}}:</label>
+                        <label for="input-default">{{ item1[1] }}:</label>
                     </b-col>
                     <b-col sm="10">
                         <b-form-input
@@ -12,14 +16,20 @@
                             type="text"
                             v-model="form[key1]"
                             readonly
-                            :class="{wronginput:form.formcontentwrong, 'input-text':vforData['textclass']}"
+                            :class="{
+                                wronginput: form.formcontentwrong,
+                                'input-text': vforData['textclass'],
+                            }"
                             @keypress.enter.prevent
                         ></b-form-input>
                         <b-form-input
                             v-else-if="item1[0] == 'text'"
                             type="text"
                             v-model="form[key1]"
-                            :class="{wronginput:form.formcontentwrong, 'input-text':vforData['textclass']}"
+                            :class="{
+                                wronginput: form.formcontentwrong,
+                                'input-text': vforData['textclass'],
+                            }"
                             @keypress.enter.prevent
                         ></b-form-input>
                         <b-form-textarea
@@ -28,27 +38,118 @@
                             rows="4"
                             max-rows="12"
                         ></b-form-textarea>
-                        <!-- :style="styleObject" -->
-                        <b-form-checkbox
+                        <div
                             v-else-if="item1[0] == 'accesscheckbox'"
-                            v-for="(item2,key2) in pageAccess"
-                            v-model="form[key1][key2]['status']"
+                            v-for="(item2, key2) in pageAccessConfig"
                             :key="key2"
-                            style="display:inline-block;margin-right:10px"
+                            :class="{
+                                haveremark: !form[key1][key2].hasOwnProperty(
+                                    'remark'
+                                ),
+                            }"
                         >
-                            {{pageAccessCH[key2]}}
-                            <b-form-select
-                                v-if="key2 == 'todolist' || key2 == 'weeklyreport'"
-                                v-model="form[key1][key2]['remark']"
-                                :options="[{'text':'雲端AI(智慧)平台部','value':'1003'},{'text':'系統研發部','value':'1002'},{'text':'資訊通訊部','value':'1001'},{'text':'ALL','value':'ALL'}]"
-                                size="sm"
-                                style="width: 100px !important;height:28px !important"
+                            <b-form-checkbox
+                                v-model="form[key1][key2]['authority']"
+                                style="margin-right: 10px"
+                                class="haveremark"
+                                @change="
+                                    accesscheckboxClick(
+                                        $event,
+                                        form[key1][key2]
+                                    )
+                                "
                             >
-                                <template v-slot:first>
-                                    <b-form-select-option :value="null" disabled>------</b-form-select-option>
+                                {{ pageAccessCH[key2] }}
+                            </b-form-checkbox>
+                            <template
+                                v-if="form[key1][key2].hasOwnProperty('remark')"
+                            >
+                                <div
+                                    v-for="(item3, key3) in Object.keys(
+                                        item2.remark.commonQueryCondition
+                                    )"
+                                    :key="key3"
+                                    class="haveremark"
+                                    style="
+                                        margin-right: 10px;
+                                        height: 28px !important;
+                                    "
+                                >
+                                    <v-select
+                                        label="text"
+                                        v-model="
+                                            form[key1][key2].remark
+                                                .commonQueryCondition[item3]
+                                        "
+                                        :reduce="(options) => options.value"
+                                        :options="
+                                            item2.remark.commonQueryCondition[
+                                                item3
+                                            ].options
+                                        "
+                                        style="
+                                            min-width: 150px !important;
+                                            height: 28px !important;
+                                        "
+                                        :multiple="
+                                            item2.remark.commonQueryCondition[
+                                                item3
+                                            ].multiple
+                                        "
+                                        :placeholder="
+                                            item2.remark.commonQueryCondition[
+                                                item3
+                                            ].placeholder
+                                        "
+                                        :searchable="false"
+                                        :close-on-select="
+                                            !item2.remark.commonQueryCondition[
+                                                item3
+                                            ].multiple
+                                        "
+                                    ></v-select>
+                                </div>
+                                <template
+                                    v-if="
+                                        form[key1][key2].remark.hasOwnProperty(
+                                            'dataHandleAuthority'
+                                        )
+                                    "
+                                    )
+                                >
+                                    <v-select
+                                        label="text"
+                                        v-model="
+                                            form[key1][key2].remark
+                                                .dataHandleAuthority
+                                        "
+                                        :reduce="(options) => options.value"
+                                        :options="
+                                            item2.remark.dataHandleAuthority
+                                                .options
+                                        "
+                                        style="
+                                            min-width: 150px !important;
+                                            height: 28px !important;
+                                        "
+                                        :multiple="
+                                            item2.remark.dataHandleAuthority
+                                                .multiple
+                                        "
+                                        :placeholder="
+                                            item2.remark.dataHandleAuthority
+                                                .placeholder
+                                        "
+                                        :searchable="false"
+                                        :close-on-select="
+                                            !item2.remark.dataHandleAuthority
+                                                .multiple
+                                        "
+                                        class="haveremark"
+                                    ></v-select>
                                 </template>
-                            </b-form-select>
-                        </b-form-checkbox>
+                            </template>
+                        </div>
                         <b-form-checkbox
                             switch
                             size="lg"
@@ -67,6 +168,13 @@
                             v-model="form[key1]"
                             :options="selectOptions"
                         ></b-form-select>
+                        <b-form-input
+                            v-else-if="item1[0] == 'number'"
+                            type="number"
+                            v-model="form[key1]"
+                            min="0"
+                            step="20"
+                        ></b-form-input>
                     </b-col>
                 </template>
                 <template v-else-if="key1 == 'button'">
@@ -76,7 +184,8 @@
                                 type="submit"
                                 variant="primary"
                                 @click.prevent="submit()"
-                            >{{item1[1]}}</b-button>
+                                >{{ item1[1] }}</b-button
+                            >
                         </div>
                     </b-col>
                 </template>
@@ -102,7 +211,8 @@ export default {
         ...mapGetters({
             vforData: "systemform/get_vforData",
             selectOptions: "systemform/get_selectOptions",
-            pageAccess: "getlogin/get_pageAccess",
+            pageAccessConfig: "getlogin/get_pageAccessConfig",
+            DEFAULT_pageAccess: "getlogin/get_DEFAULT_pageAccess",
             pageAccessCH: "getlogin/get_pageAccessCH",
             systemFormResponse: "systemform/get_systemFormResponse",
         }),
@@ -126,7 +236,9 @@ export default {
         }),
         createFormData() {
             var vm = this;
-            var pageAccessobj = JSON.parse(JSON.stringify(vm.pageAccess));
+            var pageAccessobj = JSON.parse(
+                JSON.stringify(vm.DEFAULT_pageAccess)
+            );
             console.log(pageAccessobj);
             var formdata = JSON.parse(JSON.stringify(vm.vforData));
             console.log(formdata);
@@ -136,18 +248,6 @@ export default {
                 if (Object.values(formdata)[i].length == 2) {
                     if (Object.values(formdata)[i][0] == "accesscheckbox") {
                         if (Object.keys(formdata)[i] === "accessList") {
-                            Object.keys(pageAccessobj).forEach(function (key) {
-                                console.log(key);
-                                if (
-                                    key == "todolist" ||
-                                    key == "weeklyreport"
-                                ) {
-                                    pageAccessobj[key]["status"] = false;
-                                    pageAccessobj[key]["remark"] = null;
-                                } else {
-                                    pageAccessobj[key]["status"] = false;
-                                }
-                            });
                             formdataitem[
                                 Object.keys(formdata)[i]
                             ] = pageAccessobj;
@@ -156,6 +256,8 @@ export default {
                         Object.values(formdata)[i][0] == "checkbox_switch"
                     ) {
                         formdataitem[Object.keys(formdata)[i]] = false;
+                    } else if (Object.values(formdata)[i][0] == "number") {
+                        formdataitem[Object.keys(formdata)[i]] = 0;
                     } else {
                         formdataitem[Object.keys(formdata)[i]] = "";
                     }
@@ -194,29 +296,71 @@ export default {
             console.log(vm.form);
             // vm.style = formdatastyle;
         },
+
         depselectChange(event) {
             var vm = this;
+            console.log(event);
+            console.log(vm.form.accessList);
             var selectOptionsObj = JSON.parse(JSON.stringify(vm.selectOptions));
+            console.log(selectOptionsObj);
             const selectOptionsList = selectOptionsObj
                 .map((item) => Object.values(item))
                 .filter(function (item, index) {
+                    console.log(item);
                     return item[1] == event;
                 });
+            console.log(selectOptionsList);
             vm.form.accessList = selectOptionsList[0][2];
+            console.log(vm.form.accessList);
         },
+
+        accesscheckboxClick(event, item) {
+            console.log(event);
+            console.log(item);
+            if (!event) {
+                if (item.hasOwnProperty("remark")) {
+                    if (
+                        typeof item.remark.commonQueryCondition.main ===
+                        "object"
+                    ) {
+                        item.remark.commonQueryCondition.main = [];
+                    } else {
+                        item.remark.commonQueryCondition.main = null;
+                    }
+                    if (
+                        item.remark.commonQueryCondition.hasOwnProperty(
+                            "secondary"
+                        )
+                    ) {
+                        if (
+                            typeof item.remark.commonQueryCondition
+                                .secondary === "object"
+                        ) {
+                            item.remark.commonQueryCondition.secondary = [];
+                        } else {
+                            item.remark.commonQueryCondition.secondary = null;
+                        }
+                    }
+                    if (item.remark.hasOwnProperty("dataHandleAuthority"))
+                        item.remark.dataHandleAuthority = [];
+                }
+            } else {
+                if (item.hasOwnProperty("remark")) {
+                    if (item.remark.hasOwnProperty("dataHandleAuthority"))
+                        item.remark.dataHandleAuthority = ["query"];
+                }
+            }
+            console.log(item);
+        },
+
         submit() {
             // event.preventDefault();
             // event.stopPropagation();
             var vm = this;
-            if (vm.form.hasOwnProperty("accessList")) {
-                if (!vm.form.accessList.todolist.status)
-                    vm.form.accessList.todolist.remark = null;
-                if (!vm.form.accessList.weeklyreport.status)
-                    vm.form.accessList.weeklyreport.remark = null;
-            }
             console.log(vm.form);
             vm.setcompletedData(vm.form);
         },
+
         //資料reset
         reset() {
             var def = this.$options.data();
@@ -237,5 +381,9 @@ export default {
 }
 .wronginput {
     border: 1px solid red;
+}
+.haveremark {
+    display: inline-block;
+    margin-top: 5px;
 }
 </style>

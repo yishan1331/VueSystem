@@ -2,7 +2,7 @@
     <div class="MISBulletinBoard container">
         <commonQuery />
         <br />
-        <div style="width:100%;min-height:260px" v-if="boardtitle || items.length != 0">
+        <div id="board" style="width:100%;min-height:260px" v-if="boardtitle || items.length != 0">
             <div class="card text-center">
                 <div class="card-header" style="font-size:20px">公告內容</div>
                 <div class="card-body" style="min-height:260px">
@@ -332,6 +332,13 @@ export default {
                         "./misbulletinfiles/" + items.annex[i];
                 }
             }
+            //畫面scroll移至最上方
+            window.scrollTo(0, 0);
+            // window.scrollTo({
+            //     top: 0,
+            //     left: 0,
+            //     behavior: "smooth",
+            // });
         },
         //附件下載
         onDownload(path, filename) {

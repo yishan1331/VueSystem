@@ -1,302 +1,425 @@
 <template>
     <div class="MeetingMinutes container">
-        <commonQuery v-if="tabIndex != 0" />
-        <b-card no-body>
-            <b-tabs card v-model="tabIndex">
-                <b-tab title="上傳" active>
-                    <b-row class="my-4">
-                        <b-col sm="2">
-                            <label for="input-default">會議日期:</label>
-                        </b-col>
-                        <b-col sm="5">
-                            <datepicker :date="form.date" :option="datepickerOptions"></datepicker>
-                        </b-col>
-                    </b-row>
-                    <b-row class="my-4">
-                        <b-col sm="2">
-                            <label for="input-default">會議標題:</label>
-                        </b-col>
-                        <b-col sm="10">
-                            <b-form-input v-model.trim="form.title" type="text"></b-form-input>
-                        </b-col>
-                    </b-row>
-                    <b-row class="my-4">
-                        <b-col sm="2">
-                            <label for="textarea-large">
-                                附件:
-                                <br />(小於10MB)
-                            </label>
-                        </b-col>
-                        <b-col sm="10">
-                            <b-form-file
-                                v-model="form.files"
-                                multiple
-                                class="mb-2"
-                                type="file"
-                                ref="file"
-                                :file-name-formatter="formatNames"
-                                @change="fileChange"
-                                accept="image/*, .pdf, .zip"
-                            ></b-form-file>
-                        </b-col>
-                    </b-row>
-                    <b-row>
-                        <b-col lg="12" class="pb-2">
-                            <div class="text-center">
-                                <b-button
-                                    type="submit"
-                                    variant="primary"
-                                    @click.prevent="uploadFormSubmit()"
-                                >上傳</b-button>
-                            </div>
-                        </b-col>
-                    </b-row>
-                </b-tab>
-                <b-tab title="修改">
-                    <h5 class="card-title" v-if="items.length == 0">選擇查詢條件</h5>
-                    <b-table
-                        sticky-header="430px"
-                        responsive
-                        hover
-                        :busy="tableBusy"
-                        :items="items"
-                        :fields="fields"
-                        @row-clicked="onRowClicked"
-                        head-variant="light"
-                        v-if="items.length != 0"
-                    >
-                        <template v-slot:table-busy>
-                            <div class="text-center text-danger my-2">
-                                <b-spinner class="align-middle"></b-spinner>
-                                <strong>Loading...</strong>
-                            </div>
-                        </template>
-                    </b-table>
-                </b-tab>
-                <b-tab title="刪除">
-                    <h5 class="card-title" v-if="items.length == 0">選擇查詢條件</h5>
-                    <b-table
-                        sticky-header="430px"
-                        responsive
-                        hover
-                        :busy="tableBusy"
-                        :items="items"
-                        :fields="fields"
-                        @row-clicked="onRowClicked"
-                        head-variant="light"
-                        v-if="items.length != 0"
-                    >
-                        <template v-slot:table-busy>
-                            <div class="text-center text-danger my-2">
-                                <b-spinner class="align-middle"></b-spinner>
-                                <strong>Loading...</strong>
-                            </div>
-                        </template>
-                    </b-table>
-                </b-tab>
-            </b-tabs>
-        </b-card>
-        <!-- 公告刪除modal -->
+        <b-row class="mb-3">
+            <b-col sm="3">
+                <h4>會議記錄</h4>
+            </b-col>
+            <b-col sm="9" class="text-right">
+                <b-button
+                    pill
+                    v-if="
+                        pageAccess.meetingminutes.remark.dataHandleAuthority.includes(
+                            'add'
+                        )
+                    "
+                    @click="toggleAddModal()"
+                    variant="success"
+                    >新增</b-button
+                >
+                <b-button
+                    v-if="tabIndex == 0"
+                    class="ml-1"
+                    pill
+                    v-b-toggle.collapse-1
+                    variant="outline-info"
+                    >選擇條件</b-button
+                >
+                <b-collapse
+                    id="collapse-1"
+                    v-model="commonqueryCollapseShow"
+                    class="mt-2"
+                >
+                    <commonQuery />
+                </b-collapse>
+            </b-col>
+        </b-row>
+        <b-tabs v-model="tabIndex">
+            <b-tab
+                v-if="
+                    pageAccess.meetingminutes.remark.dataHandleAuthority.includes(
+                        'query'
+                    )
+                "
+                title="查詢"
+                active
+            >
+                <h5 v-if="items.length == 0" class="card-title mt-2">
+                    查無資料
+                </h5>
+                <commonTable v-else></commonTable>
+            </b-tab>
+            <b-tab
+                v-if="
+                    pageAccess.meetingminutes.remark.dataHandleAuthority.includes(
+                        'modify'
+                    ) ||
+                    pageAccess.meetingminutes.remark.dataHandleAuthority.includes(
+                        'delete'
+                    )
+                "
+                title="編輯"
+            >
+                <h5 v-if="items.length == 0" class="card-title mt-2">
+                    查無資料
+                </h5>
+                <commonTable v-else></commonTable>
+            </b-tab>
+        </b-tabs>
+
+        <!-- 新增modal -->
         <b-modal
             centered
-            v-model="delBulletinModalShow"
-            hide-header
-            hide-header-close
+            v-model="addModalShow"
             no-close-on-backdrop
             no-close-on-esc
-            v-if="tabIndex == 2"
+            scrollable
+            size="xl"
+            hide-footer
         >
-            <template v-slot:default>
-                <div class="d-block text-center">
-                    <h3>確定要刪除此公告嗎？</h3>
-                </div>
+            <template v-slot:modal-header>
+                <h5>新增會議記錄</h5>
             </template>
-            <template v-slot:modal-footer>
+            <template v-slot:default>
+                <b-row class="my-4">
+                    <b-col sm="2">
+                        <label for="input-default">會議日期:</label>
+                    </b-col>
+                    <b-col sm="5">
+                        <datepicker
+                            :date="form.date"
+                            :option="datepickerOptions"
+                        ></datepicker>
+                    </b-col>
+                </b-row>
+                <b-row class="my-4">
+                    <b-col sm="2">
+                        <label for="input-default">會議標題:</label>
+                    </b-col>
+                    <b-col sm="10">
+                        <b-form-input
+                            v-model.trim="form.title"
+                            type="text"
+                        ></b-form-input>
+                    </b-col>
+                </b-row>
+                <b-row class="my-4">
+                    <b-col sm="2">
+                        <label for="textarea-large">
+                            儲存路徑:
+                            <br /><span
+                                style="font-style: italic; font-size: 15px"
+                                >根目錄:</span
+                            >
+                            <b-form-select
+                                v-model="form.root"
+                                :options="form.rootTree"
+                                @change="rootChange($event)"
+                                size="sm"
+                                style="width: 100px !important"
+                            >
+                                <template v-slot:first>
+                                    <b-form-select-option :value="null" disabled
+                                        >選擇根目錄</b-form-select-option
+                                    >
+                                </template>
+                            </b-form-select>
+                        </label>
+                    </b-col>
+                    <b-col sm="8">
+                        <div
+                            v-for="(item, key) in form.pathTree"
+                            :key="key"
+                            style="display: inline-block; margin-right: 10px"
+                        >
+                            <b-form-select
+                                v-model="form.path[key]"
+                                :options="item"
+                                @change="pathChange(true, $event, key)"
+                            >
+                                <template v-slot:first>
+                                    <b-form-select-option :value="null" disabled
+                                        >無選擇則放在此層目錄下</b-form-select-option
+                                    >
+                                </template>
+                            </b-form-select>
+                            /
+                        </div>
+                    </b-col>
+                    <b-col sm="2" class="text-right">
+                        <b-button
+                            id="addFolder"
+                            pill
+                            @click="toggleAddSMBFolderModal(true)"
+                            >新建資料夾</b-button
+                        >
+                        <b-tooltip target="addFolder">
+                            <span>將會建在左側選單中的最後一層資料夾下</span>
+                        </b-tooltip>
+                    </b-col>
+                </b-row>
+                <b-row class="my-4">
+                    <b-col sm="2">
+                        <label for="textarea-large">
+                            附件:
+                            <br />(小於1000MB)
+                        </label>
+                    </b-col>
+                    <b-col sm="10">
+                        <b-form-file
+                            v-model="form.files"
+                            multiple
+                            class="mb-2"
+                            type="file"
+                            ref="file"
+                            :file-name-formatter="formatNames"
+                            @change="fileChange"
+                            accept="image/*, .pdf, .zip, audio/*"
+                        ></b-form-file>
+                    </b-col>
+                </b-row>
+                <b-row class="my-4">
+                    <b-col sm="2">
+                        <label for="textarea-large">機密:</label>
+                    </b-col>
+                    <b-col sm="10">
+                        <b-form-checkbox
+                            v-model="form.level"
+                            switch
+                        ></b-form-checkbox>
+                    </b-col>
+                </b-row>
+                <b-row>
+                    <b-col lg="12" class="pb-2">
+                        <div class="text-center">
+                            <b-button
+                                type="submit"
+                                variant="primary"
+                                @click.prevent="addAction()"
+                                >上傳</b-button
+                            >
+                        </div>
+                        <div class="w-100">
+                            <b-button
+                                variant="light"
+                                size="sm"
+                                class="float-right"
+                                @click.prevent="
+                                    addModalShow = false;
+                                    reset([
+                                        'tabIndex',
+                                        'depStaffRelation',
+                                        'items',
+                                    ]);
+                                "
+                                >Close</b-button
+                            >
+                        </div>
+                    </b-col>
+                </b-row>
+            </template>
+            <template v-slot:modal-footer></template>
+        </b-modal>
+
+        <!-- 編輯modal -->
+        <b-modal
+            centered
+            v-model="modModalShow"
+            no-close-on-backdrop
+            no-close-on-esc
+            scrollable
+            size="xl"
+            hide-footer
+        >
+            <template v-slot:modal-header>
+                <h5>修改會議記錄</h5>
+            </template>
+            <template v-slot:default>
+                <b-row class="my-4">
+                    <b-col sm="2">
+                        <label for="input-default">會議日期:</label>
+                    </b-col>
+                    <b-col sm="5">
+                        <datepicker
+                            :date="modfrom.date"
+                            :option="datepickerOptions"
+                        ></datepicker>
+                    </b-col>
+                </b-row>
+                <b-row class="my-4">
+                    <b-col sm="2">
+                        <label for="input-default">會議標題:</label>
+                    </b-col>
+                    <b-col sm="10">
+                        <b-form-input
+                            v-model="modfrom.title"
+                            type="text"
+                        ></b-form-input>
+                    </b-col>
+                </b-row>
+                <b-row class="my-4">
+                    <b-col sm="2">
+                        <label for="textarea-large"
+                            >原附件: <br />
+                            <div style="font-style: italic; font-size: 15px">
+                                <span>根目錄: </span
+                                ><span v-if="modfrom.path != ''">{{
+                                    modfrom.path
+                                }}</span>
+                                <span v-else>無設定根目錄，無法新增檔案</span>
+                            </div>
+                        </label>
+                    </b-col>
+                    <b-col sm="10">
+                        <p v-if="modfrom.old_filename == ''">無</p>
+                        <div
+                            v-else
+                            v-for="(item, key) in modfrom.old_filename.split(
+                                ','
+                            )"
+                            :key="key"
+                            style="
+                                display: inline-block;
+                                position: relative;
+                                margin-right: 15px;
+                                margin-bottom: 10px;
+                            "
+                        >
+                            <b-button
+                                pill
+                                variant="outline-secondary"
+                                disabled
+                                >{{ item }}</b-button
+                            >
+                            <div
+                                class="deletefilebtn"
+                                @click.prevent="deletefile(item)"
+                            ></div>
+                        </div>
+                    </b-col>
+                </b-row>
+                <b-row class="my-4">
+                    <b-col sm="2">
+                        <label for="textarea-large">
+                            附件:
+                            <br />(小於1000MB)
+                        </label>
+                    </b-col>
+                    <b-col sm="10">
+                        <b-form-file
+                            :disabled="modfrom.path === ''"
+                            v-model="modfrom.files"
+                            multiple
+                            class="mb-2"
+                            type="file"
+                            ref="file"
+                            :file-name-formatter="formatNames"
+                            @change="fileChange"
+                            accept="image/*, .pdf, .zip, audio/*"
+                        ></b-form-file>
+                    </b-col>
+                </b-row>
+                <b-row class="my-4">
+                    <b-col sm="2">
+                        <label for="textarea-large">機密:</label>
+                    </b-col>
+                    <b-col sm="10">
+                        <b-form-checkbox
+                            v-model="modfrom.level"
+                            switch
+                        ></b-form-checkbox>
+                    </b-col>
+                </b-row>
+                <b-row>
+                    <b-col lg="12" class="pb-2">
+                        <div class="text-center">
+                            <b-button
+                                type="submit"
+                                variant="primary"
+                                @click.prevent="modAction()"
+                                >送出</b-button
+                            >
+                        </div>
+                        <div class="w-100">
+                            <b-button
+                                variant="light"
+                                size="sm"
+                                class="float-right"
+                                @click.prevent="
+                                    reset([
+                                        'tabIndex',
+                                        'depStaffRelation',
+                                        'items',
+                                    ])
+                                "
+                                >Close</b-button
+                            >
+                        </div>
+                    </b-col>
+                </b-row>
+            </template>
+            <template v-slot:modal-footer></template>
+        </b-modal>
+
+        <!-- 新增SMB server folder modal -->
+        <modal v-if="addFolderModalShow">
+            <template v-slot:modalheader>
+                <h5>新增資料夾</h5>
+            </template>
+            <template v-slot:default>
+                <b-row class="my-4">
+                    <b-col sm="8">
+                        <div
+                            v-for="(item, key) in addFolderItem.pathTree"
+                            :key="key"
+                            style="display: inline-block; margin-top: 10px"
+                        >
+                            <b-form-select
+                                v-model="addFolderItem.path[key]"
+                                :options="item"
+                                @change="pathChange(false, $event, key)"
+                            >
+                                <template v-slot:first>
+                                    <b-form-select-option :value="null" disabled
+                                        >無選擇則放在此層目錄下</b-form-select-option
+                                    >
+                                </template>
+                            </b-form-select>
+                            /
+                        </div>
+                    </b-col>
+                </b-row>
+                <b-row class="my-4">
+                    <b-col sm="3">
+                        <label for="input-default">資料夾名稱:</label>
+                    </b-col>
+                    <b-col sm="7">
+                        <b-form-input
+                            type="text"
+                            v-model.trim="addFolderItem.name"
+                        ></b-form-input>
+                    </b-col>
+                </b-row>
+            </template>
+            <template v-slot:modalfooter>
                 <div class="w-100">
                     <b-button
                         variant="light"
                         size="sm"
                         class="float-right"
-                        @click.prevent="delBulletinModalShow = !delBulletinModalShow"
-                    >Close</b-button>
+                        @click.prevent="toggleAddSMBFolderModal(false)"
+                        >Close</b-button
+                    >
                     <b-button
                         variant="success"
                         size="sm"
                         class="float-right"
-                        style="margin-right:10px"
-                        @click.prevent="onDelete()"
-                    >確定刪除</b-button>
+                        style="margin-right: 10px"
+                        @click.prevent="addFolder()"
+                        >送出</b-button
+                    >
                 </div>
             </template>
-        </b-modal>
-        <!-- 公告修改modal -->
-        <b-modal
-            centered
-            v-model="modBulletinModalShow"
-            size="xl"
-            no-close-on-backdrop
-            no-close-on-esc
-            hide-footer
-            v-if="tabIndex == 1"
-        >
-            <template v-slot:modal-header>
-                <h5>公告修改</h5>
-            </template>
-            <template v-slot:default>
-                <b-form @submit="modifyFormSubmit">
-                    <b-row class="my-4">
-                        <b-col sm="2">
-                            <label for="input-default">類別:</label>
-                        </b-col>
-                        <b-col sm="5">
-                            <b-form-select
-                                id="input-category"
-                                v-model="modmodalcontent.category"
-                                :options="categoryoptions"
-                                style="display:inline-block"
-                            ></b-form-select>
-                        </b-col>
-                    </b-row>
-                    <b-row class="my-4">
-                        <b-col sm="2">
-                            <label for="input-default">公告標題:</label>
-                        </b-col>
-                        <b-col
-                            sm="5"
-                            :class="{ 'form-group--error': $v.modmodalcontent.title.value.$error }"
-                        >
-                            <b-form-input
-                                class="input-title"
-                                v-model.trim="$v.modmodalcontent.title.$model.value"
-                                type="text"
-                            ></b-form-input>
-                            <template
-                                v-if="check_required($v.modmodalcontent.title.value.required,$v.modmodalcontent.title.$model)"
-                            >
-                                <div class="error">Is required</div>
-                            </template>
-                        </b-col>
-                    </b-row>
-                    <b-row class="my-4">
-                        <b-col sm="2">
-                            <label for="textarea-large">公告內容:</label>
-                            <b-form-checkbox
-                                v-model="modmodalcontentusetable"
-                                v-b-tooltip="{ trigger:'hover',title: usetableTooltipExample, html:true, placement: 'right', variant: 'info'}"
-                            >自定義文字格式或使用表格(若兩者都勾選以此優先)</b-form-checkbox>
-                            <b-form-checkbox
-                                v-model="modmodalcontentusepre"
-                                v-b-tooltip="{ trigger:'hover',title: usepreTooltipExample, html:true, placement: 'bottom', variant: 'info'}"
-                            >自定義格式內容(&lt;pre&gt;)</b-form-checkbox>
-                        </b-col>
-                        <b-col
-                            sm="10"
-                            :class="{ 'form-group--error': seterrorclass($v.modmodalcontent.content.value,tabIndex)}"
-                        >
-                            <b-form-textarea
-                                id="textarea-default"
-                                size="lg"
-                                no-resize
-                                rows="8"
-                                v-model="$v.modmodalcontent.content.$model.value"
-                            ></b-form-textarea>
-                            <template
-                                v-if="check_required($v.modmodalcontent.content.value.required,$v.modmodalcontent.content.$model)"
-                            >
-                                <div class="error">Is required</div>
-                            </template>
-                            <template v-else-if="modmodalcontentusetable">
-                                <div
-                                    class="jsonerror"
-                                    v-if="check_jsonvalid($v.modmodalcontent.content.value.jsonvalidator,$v.modmodalcontent.content.$model)"
-                                >不是正確的JSON格式，字串須加雙引號，陣列要以[ ]包起來，物件要以{ }包起來</div>
-                            </template>
-                        </b-col>
-                    </b-row>
-                    <b-row class="my-4">
-                        <b-col sm="2">
-                            <label for="textarea-large">是否顯示:</label>
-                        </b-col>
-                        <b-col sm="10">
-                            <b-form-checkbox v-model="modmodalcontent.showhide" switch>顯示</b-form-checkbox>
-                        </b-col>
-                    </b-row>
-                    <b-row class="my-4">
-                        <b-col sm="2">
-                            <label for="textarea-large">原附件:</label>
-                        </b-col>
-                        <b-col sm="10">
-                            <!-- <a :href="item" v-for="(item, key,index) in modmodalcontent.boardannex"
-                target="_blank"
-                            :key="index">{{key}}</a>-->
-                            <p v-if="Object.keys(modmodalcontent.boardannex).length === 0">無</p>
-                            <div
-                                v-else
-                                v-for="(item, key,index) in modmodalcontent.boardannex"
-                                :key="index"
-                                style="display:inline-block;position: relative;margin-right:15px;margin-bottom:10px"
-                            >
-                                <b-button
-                                    pill
-                                    variant="outline-secondary"
-                                    target="_blank"
-                                    @click.prevent="previewfile(item)"
-                                >{{key}}</b-button>
-                                <div class="deletefilebtn" @click.prevent="deletefile(key,item)"></div>
-                            </div>
-                        </b-col>
-                    </b-row>
-                    <b-row class="my-4">
-                        <b-col sm="2">
-                            <label for="textarea-large">
-                                附件:
-                                <br />(小於10MB)
-                            </label>
-                        </b-col>
-                        <b-col sm="10">
-                            <b-form-file
-                                v-model="modmodalcontent.files"
-                                multiple
-                                class="mb-2"
-                                type="file"
-                                ref="file"
-                                :file-name-formatter="formatNames"
-                                @change="fileChange"
-                                accept="image/*, .pdf, .zip"
-                            ></b-form-file>
-                        </b-col>
-                    </b-row>
-                    <b-row>
-                        <b-col lg="12" class="pb-2">
-                            <div class="w-100">
-                                <b-button
-                                    variant="light"
-                                    size="sm"
-                                    class="float-right"
-                                    @click.prevent="onModifyClose()"
-                                >Close</b-button>
-                            </div>
-                            <div class="text-right">
-                                <b-button
-                                    type="submit"
-                                    variant="success"
-                                    size="sm"
-                                    class="float-right"
-                                    @click="$v.modmodalcontent.$touch"
-                                    style="margin-right:5px"
-                                >修改</b-button>
-                                <!-- @click.prevent="onModify()" -->
-                            </div>
-                        </b-col>
-                    </b-row>
-                </b-form>
-            </template>
-        </b-modal>
-        {{getDate}}
-        <br />
-        <br />
-        <br />
-        {{depStaffRelation}}
+        </modal>
     </div>
 </template>
 
@@ -304,25 +427,30 @@
 import axios from "axios";
 import datepicker from "vue-datepicker/vue-datepicker-es6.vue";
 import commonQuery from "@/components/commonQuery.vue";
+import commonTable from "@/components/commonTable.vue";
+import modal from "@/components/modal.vue";
 import { mapGetters, mapActions } from "vuex";
 export default {
     name: "MeetingMinutes",
     data() {
         return {
-            now: "",
-            nowFormat: "",
-            thisweekday: [],
             tabIndex: 0,
+            addModalShow: false,
+            modModalShow: false,
+            addFolderModalShow: false,
+            commonqueryCollapseShow: false,
             form: {
                 date: { time: "" },
                 title: "",
                 filename: [],
                 files: [],
+                level: false,
+                root: null,
+                rootTree: [],
+                path: [],
+                pathTree: [],
             },
-            //upload form是否使用table checkbox
-            formcontentusetable: false,
-            //upload form是否使用pre checkbox
-            formcontentusepre: false,
+            slotList: ["title", "filename"],
             fields: [
                 {
                     key: "depID",
@@ -342,8 +470,9 @@ export default {
                 {
                     key: "filename",
                     label: "檔案列表",
-                    sortable: true,
+                    sortable: false,
                 },
+                { key: "Action", label: "Action", sortable: false },
             ],
             items: [],
             datepickerOptions: {
@@ -384,152 +513,129 @@ export default {
                 overlayOpacity: 0.5, // 0.5 as default
                 dismissible: true, // as true as default
             },
-            depConfig: {
-                1001: "資訊通訊部",
-                1002: "系統研發部",
-                1003: "雲端AI(智慧)平台部",
-            },
-            depStaffRelation: {},
-            categoryoptions: [
-                { value: "system", text: "系統" },
-                { value: "PC", text: "個人電腦" },
-                { value: "network", text: "網路" },
-            ],
-            RowClickedIndex: "",
-            modmodalcontent: {
-                seq: "",
-                category: "",
-                title: {
-                    key: "title",
-                    value: "",
-                    invalid: false,
-                },
-                content: {
-                    key: "content",
-                    value: "",
-                    invalid: false,
-                },
-                showhide: "",
-                boardannex: {},
-                files: "",
+            depStaffRelation: null,
+            modfrom: {
+                index: "",
+                date: { time: "" },
+                title: "",
+                old_filename: "",
                 filename: [],
+                files: [],
+                level: false,
+                path: "",
             },
-            //mod form是否使用talbe checkbox
-            modmodalcontentusetable: false,
-            //mod form是否使用pre checkbox
-            modmodalcontentusepre: false,
-            modBulletinModalShow: false,
-            delmodalcontent: {
-                seq: "",
-                filename: [],
+            smbPathList: [],
+            addFolderItem: {
+                name: null,
+                path: [],
+                pathTree: [],
             },
-            delBulletinModalShow: false,
         };
     },
     created: function () {
         let vm = this;
-        vm.now = vm.getDate.now;
-        vm.nowFormat = vm.getDate.nowFormat;
-        vm.thisweekday = vm.getDate.thisweekday;
-        vm.form.date.time = vm.getDate.nowFormat;
         vm.SetCommonQueryData();
         vm.getBelongDepStaff();
+
+        //設定commonTable SlotConfig
+        vm.settableSlotConfig({
+            slotConfig: {
+                depID: {
+                    value: "depID",
+                    conversiontable: Object.assign({}, vm.depDetail.config, {
+                        common: "共用",
+                    }),
+                },
+                date: { value: "time" },
+                filename: {
+                    value: "filename",
+                    download: {
+                        location: "onDownload",
+                        path: "./meetingminutesfiles/",
+                    },
+                },
+            },
+            actionConfig: {
+                edit: {
+                    authority: vm.pageAccess.meetingminutes.remark.dataHandleAuthority.includes(
+                        "modify"
+                    ),
+                    type: "modal",
+                    location: "toggleModModal",
+                    goback: true,
+                },
+                del: {
+                    authority: vm.pageAccess.meetingminutes.remark.dataHandleAuthority.includes(
+                        "delete"
+                    ),
+                    location: "delAction",
+                    delfield: ["seq", "filename", "path"],
+                },
+            },
+        });
     },
-    mounted: function () {},
+    mounted: function () {
+        this.togglealertModal(true);
+        // this.getDataList();
+        this.queryAgain();
+    },
     components: {
         datepicker,
         commonQuery,
+        modal,
+        commonTable,
     },
     computed: {
         ...mapGetters({
             axiosResult: "commonaxios/get_axiosResult",
+            pageAccess: "getlogin/get_pageAccess",
             loginData: "getlogin/get_loginData",
+            depDetail: "getlogin/get_depDetail",
             queryResponse: "commonquery/get_queryResponse",
             DEFAULT_inputData: "commonquery/get_DEFAULT_inputData",
             DEFAULT_apiParams: "commonquery/get_DEFAULT_apiParams",
-            tableBusy: "commonquery/get_tableBusy",
             getDate: "getdate/get_Date",
+            DEFAULT_commonModalConfig: "usemodal/get_DEFAULT_commonModalConfig",
+            tableResponse: "commontable/get_tableResponse",
         }),
     },
     watch: {
         queryResponse: {
             handler() {
                 var vm = this;
-                vm.reset(["tabIndex"]);
-                vm.formReset();
+                vm.togglealertModal(false);
+                vm.reset(["tabIndex", "depStaffRelation"]);
                 if (
                     vm.queryResponse == "查無資料" ||
                     vm.queryResponse == "時間尚未選擇"
                 ) {
                     vm.setTimeOutAlertMsg(vm.queryResponse);
                     vm.settimeoutalertModal();
+
                     return;
                 }
-                var itemsarray = [];
-                var categorytoCH = {};
-                categorytoCH = {
-                    network: "網路",
-                    PC: "個人電腦",
-                    system: "系統",
-                };
-                for (var i = 0; i < vm.queryResponse.length; i++) {
-                    var itemsobj = {};
-                    itemsobj["seq"] = vm.queryResponse[i]["seq"];
-                    itemsobj["category"] =
-                        categorytoCH[vm.queryResponse[i]["category"]];
-                    itemsobj["title"] = vm.queryResponse[i]["title"];
-                    itemsobj["releasedate"] =
-                        vm.queryResponse[i]["lastUpdateTime"];
-                    itemsobj["content"] = vm.queryResponse[i]["content"];
-                    if (vm.queryResponse[i]["showhide"] == 1) {
-                        itemsobj["showhide"] = true;
-                    } else {
-                        itemsobj["showhide"] = false;
-                    }
-                    itemsobj["creatorID"] = vm.queryResponse[i]["creatorID"];
-                    if (vm.queryResponse[i]["filename"] != "") {
-                        var thisfilename = vm.queryResponse[i][
-                            "filename"
-                        ].split(",");
-                        itemsobj["annex"] = thisfilename;
-                    }
-                    itemsarray.push(itemsobj);
-                }
-                if (itemsarray.length != 0) {
-                    vm.items = itemsarray;
-                }
+                console.log(vm.queryResponse);
+                console.log(JSON.stringify(vm.queryResponse));
+                vm.getDataList();
             },
         },
         tabIndex: {
-            handler() {
-                this.reset(["tabIndex"]);
-                this.formReset();
-                // this.setTimeOutAlertMsg("選擇查詢條件");
-                // this.settimeoutalertModal();
+            handler(value) {
+                console.log(value);
+                this.reset(["tabIndex", "depStaffRelation", "items"]);
+                if (value === 0) this.fields.splice(4, 1);
+                this.settableInWhichTabIndex(value);
+                this.settableDetail({
+                    items: this.items,
+                    fields: this.fields,
+                });
             },
         },
-        formcontentusetable: {
+        tableResponse: {
             handler() {
-                console.log(this.formcontentusetable);
-                console.log(this.form.content);
-                if (this.formcontentusetable) {
-                    this.form.content["jsonvalid"] = false;
-                } else {
-                    delete this.form.content.jsonvalid;
-                }
-                console.log(this.form.content);
-            },
-        },
-        modmodalcontentusetable: {
-            handler() {
-                console.log(this.modmodalcontentusetable);
-                console.log(this.modmodalcontent.content);
-                if (this.modmodalcontentusetable) {
-                    this.modmodalcontent.content["jsonvalid"] = false;
-                } else {
-                    delete this.modmodalcontent.content.jsonvalid;
-                }
-                console.log(this.modmodalcontent.content);
+                let vm = this;
+                console.log(vm.tableResponse);
+                vm[vm.tableResponse.function](vm.tableResponse.params);
             },
         },
     },
@@ -539,19 +645,50 @@ export default {
             setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             togglealertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
+            alertProgressModal: "alertmodal/toggle_alertProgressModal",
+            setalertMsgProgressValue: "alertmodal/set_alertMsgProgressValue",
             queryAgain: "commonquery/do_queryAgain",
             setinputData: "commonquery/set_inputData",
             setapiParams: "commonquery/set_apiParams",
+            togglecommonModal: "usemodal/toggle_commonModal",
+            setcommonModalConfig: "usemodal/set_commonModalConfig",
+            setSystemFormCompletedData: "systemform/set_completedData",
+            settableSlotConfig: "commontable/set_tableSlotConfig",
+            settableDetail: "commontable/set_tableDetail",
+            settableInWhichTabIndex: "commontable/set_tableInWhichTabIndex",
         }),
+
         SetCommonQueryData() {
             var vm = this;
-            var meetingminutesqueryselected = "ALL";
-            var meetingminutesqueryoptions = [
-                { text: "雲端AI(智慧)平台部", value: "1003" },
-                { text: "系統研發部", value: "1002" },
-                { text: "資訊通訊部", value: "1001" },
-                { text: "全選", value: "ALL" },
-            ];
+            var meetingminutesqueryoptions = [];
+            var meetingminutesqueryselected = "";
+            vm.pageAccess.meetingminutes.remark.commonQueryCondition.main.map(
+                (item) => {
+                    let thistext = "";
+                    if (vm.depDetail.config.hasOwnProperty(item)) {
+                        thistext = vm.depDetail.config[item];
+                    } else {
+                        thistext = "共用";
+                    }
+                    meetingminutesqueryoptions.push({
+                        text: thistext,
+                        value: String(item),
+                    });
+                }
+            );
+            if (
+                vm.pageAccess.meetingminutes.remark.commonQueryCondition.main
+                    .length === 4
+            ) {
+                meetingminutesqueryoptions.push({ text: "全選", value: "ALL" });
+                meetingminutesqueryselected = "ALL";
+            } else {
+                meetingminutesqueryselected = String(
+                    vm.pageAccess.meetingminutes.remark.commonQueryCondition
+                        .main[0]
+                );
+            }
+
             let obj = JSON.parse(JSON.stringify(vm.DEFAULT_inputData));
             obj.options = meetingminutesqueryoptions;
             obj.selected = meetingminutesqueryselected;
@@ -566,248 +703,189 @@ export default {
             commonApiParams.normal.intervaltime = {
                 date: [
                     [
-                        vm.thisweekday[0] + " 00:00:00",
-                        vm.thisweekday[1] + " 23:59:59",
+                        vm.getDate.thisweekday[0] + " 00:00:00",
+                        vm.getDate.thisweekday[1] + " 23:59:59",
                     ],
                 ],
             };
+            //若職位階級為員工則資料只抓取非機密資料
+            if (
+                vm.pageAccess.meetingminutes.remark.commonQueryCondition
+                    .secondary === "employee"
+            ) {
+                let thiswhere = 0;
+                commonApiParams.customized = {
+                    where: { level: [thiswhere] },
+                    symbols: { level: ["equal"] },
+                };
+            }
             vm.setapiParams(commonApiParams);
         },
+
         getBelongDepStaff() {
             let vm = this;
             var params = {};
             params["methods"] = "POST";
             params["whichFunction"] = "CommonSqlSyntaxQuery_";
-            let thiswhere = Object.keys(vm.depConfig);
-            let thissymbols = ["equal", "equal", "equal"];
+            console.log(vm.loginData);
             params["condition"] = {
                 condition_1: {
                     table: "user",
-                    fields: ["uID", "uName", "noumenonID", "noumenonType"],
-                    where: { noumenonID: thiswhere },
-                    orderby: ["desc", "lastUpdateTime"],
-                    limit: ["ALL"],
-                    symbols: { noumenonID: thissymbols },
+                    fields: ["noumenonID"],
+                    where: { uID: [vm.loginData.account] },
+                    orderby: "",
+                    limit: "",
+                    symbols: { uID: ["equal"] },
                 },
             };
             console.log(params);
             console.log(JSON.stringify(params["condition"]));
             let anyerror = false;
+            vm.axiosAction(params)
+                .then(() => {
+                    var result = vm.axiosResult;
+                    console.log(result);
+                    if (result["Response"] == "ok") {
+                        if (result["QueryTableData"].length == 0) {
+                            vm.setTimeOutAlertMsg("查無資料");
+                            anyerror = true;
+                        } else {
+                            vm.depStaffRelation =
+                                result["QueryTableData"][0]["noumenonID"];
+                        }
+                    } else {
+                        vm.setTimeOutAlertMsg(result["Response"]);
+                        anyerror = true;
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                    vm.setTimeOutAlertMsg(err);
+                    anyerror = true;
+                })
+                .finally(() => {
+                    // console.log("done");
+                    if (anyerror) vm.settimeoutalertModal();
+                });
+        },
 
+        getDataList() {
+            let vm = this;
+            vm.togglealertModal(true);
+            let itemsobj = {};
             let temp = [
                 {
-                    noumenonType: "dep",
-                    noumenonID: 1002,
-                    uID: 2587,
-                    uName: "王亦薇",
+                    seq: 3,
+                    lastUpdateTime: "2020-09-30 17:38:42",
+                    level: 0,
+                    title: "test5",
+                    filename: "廠商基本資料.xlsx",
+                    creatorID: 2493,
+                    path: "雲端AI(智慧)平台部/PaaS/ggg",
+                    date: "2020-09-30",
+                    depID: 1003,
+                    createTime: "2020-09-30 17:38:42",
                 },
                 {
-                    noumenonType: "dep",
-                    noumenonID: 1002,
-                    uID: 2596,
-                    uName: "林建忠",
+                    seq: 2,
+                    lastUpdateTime: "2020-09-30 17:38:25",
+                    level: 0,
+                    title: "test3",
+                    filename: "報價單.docx",
+                    creatorID: 2493,
+                    path: "雲端AI(智慧)平台部/PaaS",
+                    date: "2020-09-30",
+                    depID: 1003,
+                    createTime: "2020-09-30 17:38:25",
                 },
                 {
-                    noumenonType: "dep",
-                    noumenonID: 1002,
-                    uID: 2593,
-                    uName: "黃均珮",
+                    seq: 1,
+                    lastUpdateTime: "2020-09-30 17:38:14",
+                    level: 0,
+                    title: "test2",
+                    filename: "中獎.gif",
+                    creatorID: 2493,
+                    path: "雲端AI(智慧)平台部/MIS",
+                    date: "2020-09-30",
+                    depID: 1003,
+                    createTime: "2020-09-30 17:38:14",
                 },
                 {
-                    noumenonType: "dep",
-                    noumenonID: 1002,
-                    uID: 2583,
-                    uName: "詹竣傑",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1002,
-                    uID: 2584,
-                    uName: "龔承德",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1003,
-                    uID: 2493,
-                    uName: "蔡宜珊",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1002,
-                    uID: 2586,
-                    uName: "蔡令仕",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1001,
-                    uID: 2594,
-                    uName: "韓仁智",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1001,
-                    uID: 2580,
-                    uName: "劉哲良",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1003,
-                    uID: 2521,
-                    uName: "洪誌宏",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1003,
-                    uID: 2522,
-                    uName: "吳俊輝",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1003,
-                    uID: 2581,
-                    uName: "曾冠力",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1002,
-                    uID: 2406,
-                    uName: "吳炯德",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1001,
-                    uID: 2475,
-                    uName: "王嘉帷",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1001,
-                    uID: 2494,
-                    uName: "蔡靜宜",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1001,
-                    uID: 2500,
-                    uName: "張書瑋",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1002,
-                    uID: 2510,
-                    uName: "吳宗穎",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1001,
-                    uID: 2534,
-                    uName: "羅寶明",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1002,
-                    uID: 2547,
-                    uName: "吳文瑞",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1001,
-                    uID: 2549,
-                    uName: "劉騏輔",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1002,
-                    uID: 2554,
-                    uName: "龍姿伃",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1002,
-                    uID: 2559,
-                    uName: "蔡蕙如",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1002,
-                    uID: 2560,
-                    uName: "高秀蘋",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1002,
-                    uID: 2565,
-                    uName: "李芳伶",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1002,
-                    uID: 2574,
-                    uName: "黃國龍",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1002,
-                    uID: 2577,
-                    uName: "劉景裕",
-                },
-                {
-                    noumenonType: "dep",
-                    noumenonID: 1002,
-                    uID: 2588,
-                    uName: "林孟萱",
+                    seq: 0,
+                    lastUpdateTime: "2020-09-30 17:37:33",
+                    level: 1,
+                    title: "test",
+                    filename: "分機表1090824.pdf",
+                    creatorID: 2493,
+                    path: "雲端AI(智慧)平台部",
+                    date: "2020-09-30",
+                    depID: 1003,
+                    createTime: "2020-09-30 17:37:33",
                 },
             ];
-
-            let itemsobj = {};
-            temp.forEach((element) => {
-                itemsobj[element.uID] = String(element.noumenonID);
+            // temp.forEach((element) => {
+            vm.queryResponse.forEach((element) => {
+                itemsobj = {
+                    seq: element.seq,
+                    depID: element.depID,
+                    date: { time: element.date },
+                    title: element.title,
+                    filename: element.filename,
+                    path: element.path,
+                };
+                let thislevel = false;
+                if (element.level) thislevel = true;
+                itemsobj["level"] = thislevel;
+                if (
+                    vm.pageAccess.meetingminutes.remark.dataHandleAuthority ==
+                    "query"
+                ) {
+                    if (!element.level) {
+                        vm.items.push(itemsobj);
+                    }
+                } else {
+                    vm.items.push(itemsobj);
+                }
             });
-            vm.depStaffRelation = itemsobj;
-            // vm.axiosAction(params)
-            //     .then(() => {
-            //         var result = vm.axiosResult;
-            //         console.log(result);
-            //         console.log(JSON.stringify(result["QueryTableData"]));
-            //         if (result["Response"] == "ok") {
-            //             if (result["QueryTableData"].length == 0) {
-            //                 vm.setTimeOutAlertMsg("查無資料");
-            //                 anyerror = true;
-            //             } else {
-            //                 let itemsobj = {};
-            //                 result["QueryTableData"].forEach((element) => {
-            //                     itemsobj[element.uID] = String(
-            //                         element.noumenonID
-            //                     );
-            //                 });
-            //                 vm.depStaffRelation = itemsobj;
-            //             }
-            //         } else {
-            //             vm.setTimeOutAlertMsg(result["Response"]);
-            //             anyerror = true;
-            //         }
-            //     })
-            //     .catch(function (err) {
-            //         console.log(err);
-            //         vm.setTimeOutAlertMsg(err);
-            //         anyerror = true;
-            //     })
-            //     .finally(() => {
-            //         console.log("done");
-            //         if (anyerror) vm.settimeoutalertModal();
-            //     });
+
+            if (vm.tabIndex === 0) {
+                vm.fields.splice(4, 1);
+            }
+
+            console.log(vm.items);
+            vm.settableDetail({
+                items: vm.items,
+                fields: vm.fields,
+            });
+            vm.togglealertModal(false);
         },
-        //公告上傳
-        uploadFormSubmit() {
+
+        //上傳
+        addAction() {
             let vm = this;
             console.log("call api");
+            console.log(vm.form);
+
+            console.log(vm.form.path);
+            let thispath = vm.form.root;
+            if (this.form.files.length != 0) {
+                for (let i = 0; i < vm.form.path.length; i++) {
+                    const element = vm.form.path[i];
+                    if (element != null) {
+                        thispath += "/" + element;
+                    }
+                }
+            } else {
+                thispath = "";
+            }
+            console.log(thispath);
             let formData = new FormData();
             console.log(this.form.files);
             for (var i = 0; i < this.form.files.length; i++) {
                 let file = this.form.files[i];
                 console.log(file);
-                //檢察檔案大小是否大於10MB(1024*1024*10)，若大於就不傳到後端
-                if (file.size > 1024 * 1024 * 10) {
+                //檢察檔案大小是否大於10MB(1024*1024*1000)，若大於就不傳到後端
+                if (file.size > 1024 * 1024 * 1000) {
                     vm.setTimeOutAlertMsg("檔名:" + file.name + "檔案太大");
                     vm.settimeoutalertModal(1200);
                     return;
@@ -815,20 +893,32 @@ export default {
                 formData.append("fileToUpload[" + i + "]", file);
             }
 
+            let thislevel = 0;
+            if (vm.form.level) thislevel = 1;
+            let thisdepID = vm.depStaffRelation;
+            if (vm.form.root === "共用") thisdepID = "common";
             formData.append("title", vm.form.title);
             formData.append("date", vm.form.date.time);
             formData.append("filename", vm.form.filename);
-            formData.append("depID", vm.depStaffRelation[vm.loginData.account]);
+            formData.append("depID", thisdepID);
+            formData.append("level", thislevel);
+            formData.append("path", thispath);
             formData.append("account", vm.loginData.account);
 
-            vm.togglealertModal(true);
             let config = {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
             };
+            vm.alertProgressModal(true);
             const instance = axios.create({
                 withCredentials: true,
+                onUploadProgress: function (progressEvent) {
+                    let percentCompleted = Math.round(
+                        (progressEvent.loaded * 100) / progressEvent.total
+                    );
+                    vm.setalertMsgProgressValue(percentCompleted);
+                },
             });
             instance
                 .post(
@@ -839,17 +929,18 @@ export default {
                 .then(
                     function (response) {
                         const result = response.data;
+                        console.log(result);
                         vm.setTimeOutAlertMsg(result);
-                        // var altertime = 0;
-                        // if (result.length == 1) {
-                        //     altertime = 1200;
-                        // } else if (result.length < 4) {
-                        //     altertime = 1500;
-                        // } else {
-                        //     altertime = 2500;
-                        // }
-                        // vm.settimeoutalertModal(altertime);
-                        // vm.formReset();
+                        let altertime = 0;
+                        if (result.length == 1) {
+                            altertime = 1200;
+                        } else if (result.length < 4) {
+                            altertime = 1500;
+                        } else {
+                            altertime = 2500;
+                        }
+                        vm.settimeoutalertModal(altertime);
+                        vm.reset(["tabIndex", "depStaffRelation", "items"]);
                     }.bind(this)
                 )
                 .catch(function (err) {
@@ -866,396 +957,672 @@ export default {
                 })
                 .finally(() => {
                     console.log("done");
-                    setTimeout(() => {
-                        vm.togglealertModal(false);
-                    }, 1200);
+                    vm.alertProgressModal(false);
+                    vm.queryAgain();
                 });
         },
-        //set表單驗證error class
-        seterrorclass(val, tabindex) {
-            if (!val.$error) return val.$error;
-            if (!val.required) return val.$error;
-            if (tabindex == 0 && this.formcontentusetable) return val.$error;
-            if (tabindex == 1 && this.modmodalcontentusetable)
-                return val.$error;
-            return false;
-        },
+
         //檔名格式化
         formatNames(files) {
             var vm = this;
             for (var i = 0; i < files.length; i++) {
-                if (vm.tabIndex == 0) {
+                if (vm.addModalShow) {
                     vm.form.filename.push(files[i].name);
-                } else {
-                    vm.modmodalcontent.filename.push(files[i].name);
+                } else if (vm.modModalShow) {
+                    vm.modfrom.filename.push(files[i].name);
                 }
+
+                // if (vm.tabIndex == 0) {
+                //     vm.form.filename.push(files[i].name);
+                // } else {
+                //     vm.modfrom.filename.push(files[i].name);
+                // }
             }
+            console.log(vm.form.filename);
             if (files.length > 3) {
                 return `${files.length} files selected`;
             } else {
-                if (vm.tabIndex == 0) {
+                if (vm.addModalShow) {
                     return `${vm.form.filename}`;
-                } else {
-                    return `${vm.modmodalcontent.filename}`;
+                } else if (vm.modModalShow) {
+                    return `${vm.modfrom.filename}`;
                 }
+                // if (vm.tabIndex == 0) {
+                //     return `${vm.form.filename}`;
+                // } else {
+                //     return `${vm.modfrom.filename}`;
+                // }
             }
         },
-        fileChange() {
-            if (this.tabIndex == 0) {
-                this.form.filename.length = 0;
-            } else {
-                this.modmodalcontent.filename.length = 0;
-            }
-        },
-        //表格點擊
-        onRowClicked(items, index, event) {
-            var vm = this;
-            var categorytoEN = {};
-            categorytoEN = {
-                網路: "network",
-                個人電腦: "PC",
-                系統: "system",
-            };
-            if (vm.tabIndex == 1) {
-                console.log(items);
-                console.log(JSON.stringify(items));
-                console.log(index);
-                console.log(event);
-                vm.modmodalcontentusetable = false;
-                vm.modmodalcontentusepre = false;
-                vm.RowClickedIndex = index;
-                vm.modmodalcontent.seq = items.seq;
-                vm.modmodalcontent.title.value = items.title;
-                vm.modmodalcontent.category = categorytoEN[items.category];
-                if (vm.checkIsJsonData(items.content)) {
-                    let parsecontent = items.content;
-                    if (
-                        Object.prototype.toString.call(items.content) !=
-                        "[object Object]"
-                    )
-                        parsecontent = JSON.parse(parsecontent);
-                    console.log(parsecontent);
-                    if (parsecontent.hasOwnProperty("wordPreUp")) {
-                        if (typeof parsecontent.wordPreUp.content != "string") {
-                            vm.modmodalcontentusepre = true;
-                            parsecontent = parsecontent.wordPreUp.content.content.replace(
-                                /<br\s*[\/]?>/g,
-                                "\n"
-                            );
-                        }
-                    }
-                    if (!vm.modmodalcontentusepre)
-                        vm.modmodalcontentusetable = true;
-                    if (vm.modmodalcontentusepre) {
-                        console.log(parsecontent);
-                        vm.modmodalcontent.content.value = parsecontent;
-                    } else {
-                        if (parsecontent.hasOwnProperty("wordUp"))
-                            parsecontent.wordUp.content = parsecontent.wordUp.content
-                                .replace(/<br\s*[\/]?>/g, "\n")
-                                .replace(/&nbsp;/g, "");
-                        if (parsecontent.hasOwnProperty("wordDown"))
-                            parsecontent.wordDown.content = parsecontent.wordDown.content
-                                .replace(/<br\s*[\/]?>/g, "\n")
-                                .replace(/&nbsp;/g, "");
 
-                        console.log(parsecontent);
-                        vm.modmodalcontent.content.value = JSON.stringify(
-                            parsecontent
-                        );
-                    }
-                } else {
-                    items.content = items.content
-                        .replace(/<br\s*[\/]?>/g, "\n")
-                        .replace(/&nbsp;/g, "");
-                    vm.modmodalcontent.content.value = items.content;
-                }
-                vm.modmodalcontent.showhide = items.showhide;
-                if (typeof items.annex != "undefined") {
-                    for (var i = 0; i < items.annex.length; i++) {
-                        vm.modmodalcontent.boardannex[items.annex[i]] =
-                            "./misbulletinfiles/" + items.annex[i];
-                    }
-                }
-                vm.modBulletinModalShow = true;
-            } else {
-                vm.delmodalcontent.seq = items.seq;
-                if (typeof items.annex != "undefined") {
-                    vm.delmodalcontent.filename = items.annex;
-                } else {
-                    vm.delmodalcontent.filename = "";
-                }
-                vm.delBulletinModalShow = true;
+        //上傳file change
+        fileChange() {
+            let vm = this;
+            if (vm.addModalShow) {
+                vm.form.filename.length = 0;
+            } else if (vm.modModalShow) {
+                vm.modfrom.filename.length = 0;
             }
+            // if (this.tabIndex == 0) {
+            //     this.form.filename.length = 0;
+            // } else {
+            //     this.modfrom.filename.length = 0;
+            // }
         },
-        //檔案預覽開啟頁面
-        previewfile(filepath) {
-            window.open(
-                filepath,
-                "sapidoSystem",
-                "sapidoSystem",
-                "statusbar=no,scrollbars=yes,status=yes,resizable=yes"
-            );
-        },
-        //公告修改
-        modifyFormSubmit(evt) {
-            evt.preventDefault();
-            var vm = this;
-            if (Object.keys(vm.modmodalcontent.boardannex).length != 0) {
-                if (
-                    vm.modmodalcontent.filename.length >
-                    Object.keys(vm.modmodalcontent.boardannex).length
-                ) {
-                    vm.setTimeOutAlertMsg("上傳附件數量大於原附件數量");
-                    vm.settimeoutalertModal(1500);
-                    vm.modmodalcontent.files = "";
-                    vm.modmodalcontent.filename.length = 0;
-                    return;
-                }
-                for (var i = 0; i < vm.modmodalcontent.filename.length; i++) {
-                    if (
-                        Object.keys(vm.modmodalcontent.boardannex).indexOf(
-                            vm.modmodalcontent.filename[i]
-                        ) == -1
-                    ) {
-                        vm.setTimeOutAlertMsg(
-                            "上傳附件檔名:" +
-                                vm.modmodalcontent.filename[i] +
-                                "應與原附件名稱相同"
-                        );
-                        vm.settimeoutalertModal(1500);
-                        vm.modmodalcontent.files = "";
-                        vm.modmodalcontent.filename.length = 0;
-                        return;
+
+        // //檔案預覽開啟頁面
+        // previewfile(file) {
+        //     console.log("./meetingminutesfiles/" + file);
+        //     window.open(
+        //         "./meetingminutesfiles/" + file,
+        //         "sapidoSystem",
+        //         "sapidoSystem",
+        //         "statusbar=no,scrollbars=yes,status=yes,resizable=yes"
+        //     );
+        // },
+
+        //附件下載
+        onDownload(params) {
+            const file = params.data;
+            const path = params.data2;
+            let vm = this;
+            console.log(file);
+            let anyerror = false;
+            axios({
+                url: "/php/views/meetingminutes/meetingMinutesSMBAction.php",
+                method: "POST",
+                data: {
+                    whichFunction: "downloadFromSMB",
+                    data: { file: file, path: path },
+                },
+            })
+                .then((response) => {
+                    console.log(response);
+                    if (response.data == "ok") {
+                        JSdownloadfile(file);
+                    } else {
+                        vm.setTimeOutAlertMsg(response.data);
+                        anyerror = true;
                     }
-                }
-            }
-            let checkvalid = ["title", "content"];
-            let status = true;
-            console.log(checkvalid);
-            checkvalid.forEach((element) => {
-                console.log(element);
-                console.log(vm.modmodalcontent[element]);
-                if (!vm.modmodalcontent[element].invalid) {
-                    status = false;
-                } else {
-                    if (
-                        element === "content" &&
-                        vm.modmodalcontent["content"].hasOwnProperty(
-                            "jsonvalid"
-                        )
-                    ) {
-                        if (!vm.modmodalcontent["content"].jsonvalid)
-                            status = false;
-                    }
-                }
-            });
-            console.log(status);
-            if (status) {
-                let thiscontent;
-                thiscontent = vm.adjustContentData(vm.modmodalcontent.content);
-                if (!thiscontent) return;
-                console.log(thiscontent);
-                let formData = new FormData();
-                for (var i = 0; i < this.modmodalcontent.files.length; i++) {
-                    let file = this.modmodalcontent.files[i];
-                    //檢察檔案大小是否大於10MB(1024*1024*10)，若大於就不傳到後端
-                    if (file.size > 1024 * 1024 * 10) {
-                        vm.setTimeOutAlertMsg("檔名:" + file.name + "檔案太大");
-                        vm.settimeoutalertModal(1200);
-                        return;
-                    }
-                    formData.append("fileToUpload[" + i + "]", file);
-                }
-                console.log(Object.keys(vm.modmodalcontent.boardannex));
-                formData.append("deletefile", "");
-                formData.append("seq", vm.modmodalcontent.seq);
-                formData.append("title", vm.modmodalcontent.title.value);
-                formData.append("content", thiscontent);
-                formData.append("category", vm.modmodalcontent.category);
-                if (Object.keys(vm.modmodalcontent.boardannex).length == 0) {
-                    formData.append("filename", vm.modmodalcontent.filename);
-                } else {
-                    formData.append(
-                        "filename",
-                        Object.keys(vm.modmodalcontent.boardannex)
-                    );
-                }
-                formData.append("showhide", vm.modmodalcontent.showhide);
-                formData.append("account", vm.loginData.account);
-                let config = {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                };
-                const instance = axios.create({
-                    withCredentials: true,
+                })
+                .catch(function (err) {
+                    console.log(err);
+                    vm.setTimeOutAlertMsg(err);
+                    anyerror = true;
+                })
+                .finally(() => {
+                    if (anyerror) vm.settimeoutalertModal(1500);
                 });
-                instance
-                    .post(
-                        "/php/views/misbulletin/misBulletinMod.php",
-                        formData,
-                        config
-                    )
-                    .then(
-                        function (response) {
-                            const result = response.data;
-                            console.log(result);
-                            vm.setTimeOutAlertMsg(result);
-                            var altertime = 0;
-                            if (result.length == 1) {
-                                altertime = 1000;
-                            } else if (result.length < 4) {
-                                altertime = 1500;
-                            } else {
-                                altertime = 2500;
-                            }
-                            vm.settimeoutalertModal(altertime);
-                            vm.modmodalcontent = this.$options.data().modmodalcontent;
-                            vm.modBulletinModalShow = false;
-                        }.bind(this)
-                    )
+
+            var JSdownloadfile = (file) => {
+                console.log(file);
+                vm.alertProgressModal(true);
+                axios({
+                    url: "./meetingminutesfiles/" + file,
+                    method: "GET",
+                    responseType: "blob",
+                    onDownloadProgress: function (progressEvent) {
+                        let percentCompleted = Math.round(
+                            (progressEvent.loaded * 100) / progressEvent.total
+                        );
+                        vm.setalertMsgProgressValue(percentCompleted);
+                    },
+                })
+                    .then((response) => {
+                        console.log(response);
+                        var fileURL = window.URL.createObjectURL(
+                            new Blob([response.data])
+                        );
+                        var fileLink = document.createElement("a");
+                        fileLink.href = fileURL;
+                        fileLink.setAttribute("download", file);
+                        document.body.appendChild(fileLink);
+                        fileLink.click();
+                        document.body.removeChild(fileLink);
+                        vm.alertProgressModal(false);
+                        deldownloadfile(file);
+                    })
                     .catch(function (err) {
                         console.log(err);
                         console.log(err.response.status);
-                        if (err.response.status === 413) {
-                            vm.setTimeOutAlertMsg(
-                                "Error 413: Request entity too large，檔案太大"
-                            );
-                        } else {
-                            vm.setTimeOutAlertMsg(err);
-                        }
-                        vm.settimeoutalertModal();
-                    })
-                    .finally(() => {
-                        console.log("done");
-                        setTimeout(() => {
-                            vm.queryAgain();
-                        }, 1200);
+                        vm.alertProgressModal(false);
+                        vm.setTimeOutAlertMsg(err);
+                        vm.settimeoutalertModal(1500);
                     });
+            };
+
+            var deldownloadfile = (file) => {
+                axios({
+                    url:
+                        "/php/views/meetingminutes/meetingMinutesSMBAction.php",
+                    method: "POST",
+                    data: {
+                        whichFunction: "deleteFileFromLocalhost",
+                        data: file,
+                    },
+                })
+                    .then((response) => {
+                        console.log(response);
+                    })
+                    .catch(function (err) {
+                        console.log(err);
+                    });
+            };
+        },
+
+        //修改
+        modAction() {
+            var vm = this;
+            console.log(vm.modfrom);
+            if (vm.modfrom.files.length != 0) {
+                if (vm.modfrom.old_filename != "") {
+                    if (
+                        vm.modfrom.filename.length >
+                        vm.modfrom.old_filename.split(",").length
+                    ) {
+                        vm.setTimeOutAlertMsg("上傳附件數量大於原附件數量");
+                        vm.settimeoutalertModal(1500);
+                        vm.modfrom.files = "";
+                        vm.modfrom.filename.length = 0;
+                        return;
+                    }
+                    for (var i = 0; i < vm.modfrom.filename.length; i++) {
+                        if (
+                            vm.modfrom.old_filename
+                                .split(",")
+                                .indexOf(vm.modfrom.filename[i]) == -1
+                        ) {
+                            vm.setTimeOutAlertMsg(
+                                "上傳附件檔名:" +
+                                    vm.modfrom.filename[i] +
+                                    "應與原附件名稱相同"
+                            );
+                            vm.settimeoutalertModal(1500);
+                            vm.modfrom.files = "";
+                            vm.modfrom.filename.length = 0;
+                            return;
+                        }
+                    }
+                }
             }
+
+            let formData = new FormData();
+            for (var i = 0; i < vm.modfrom.files.length; i++) {
+                let file = vm.modfrom.files[i];
+                //檢察檔案大小是否大於10MB(1024*1024*1000)，若大於就不傳到後端
+                if (file.size > 1024 * 1024 * 1000) {
+                    vm.setTimeOutAlertMsg("檔名:" + file.name + "檔案太大");
+                    vm.settimeoutalertModal(1200);
+                    return;
+                }
+                formData.append("fileToUpload[" + i + "]", file);
+            }
+            formData.append("deletefile", "");
+            formData.append("seq", vm.modfrom.seq);
+            formData.append("title", vm.modfrom.title);
+            formData.append("date", vm.modfrom.date.time);
+            let thislevel = 0;
+            if (vm.modfrom.level) thislevel = 1;
+            console.log(thislevel);
+            formData.append("level", thislevel);
+            formData.append("path", vm.modfrom.path);
+            if (vm.modfrom.old_filename == "") {
+                formData.append("filename", vm.modfrom.filename);
+            } else {
+                console.log(vm.modfrom.old_filename.split(","));
+                formData.append("filename", vm.modfrom.old_filename);
+            }
+            formData.append("account", vm.loginData.account);
+            let config = {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            };
+            vm.alertProgressModal(true);
+            const instance = axios.create({
+                withCredentials: true,
+                onUploadProgress: function (progressEvent) {
+                    let percentCompleted = Math.round(
+                        (progressEvent.loaded * 100) / progressEvent.total
+                    );
+                    vm.setalertMsgProgressValue(percentCompleted);
+                },
+            });
+            instance
+                .post(
+                    "/php/views/meetingminutes/meetingMinutesMod.php",
+                    formData,
+                    config
+                )
+                .then(
+                    function (response) {
+                        console.log(response);
+                        const result = response.data;
+                        console.log(result);
+                        vm.setTimeOutAlertMsg(result);
+                        var altertime = 0;
+                        if (result.length == 1) {
+                            altertime = 1000;
+                        } else if (result.length < 4) {
+                            altertime = 1500;
+                        } else {
+                            altertime = 2500;
+                        }
+                        vm.settimeoutalertModal(altertime);
+                        vm.reset(["tabIndex", "depStaffRelation", "items"]);
+                    }.bind(this)
+                )
+                .catch(function (err) {
+                    console.log(err);
+                    console.log(err.response.status);
+                    // if (err.response.status === 413) {
+                    //     vm.setTimeOutAlertMsg(
+                    //         "Error 413: Request entity too large，檔案太大"
+                    //     );
+                    // } else {
+                    //     vm.setTimeOutAlertMsg(err);
+                    // }
+                    // vm.settimeoutalertModal();
+                })
+                .finally(() => {
+                    // console.log("done");
+                    vm.alertProgressModal(false);
+                    vm.queryAgain();
+                });
         },
-        //公告修改close
-        onModifyClose() {
-            var vm = this;
-            vm.modmodalcontent = this.$options.data().modmodalcontent;
-            vm.modBulletinModalShow = !vm.modBulletinModalShow;
-        },
+
         //修改畫面刪除檔案
-        deletefile(filename, filepath) {
+        deletefile(filename) {
+            console.log(filename);
             var vm = this;
-            var oldfilelist = Object.keys(vm.modmodalcontent.boardannex);
+            var oldfilelist = vm.modfrom.old_filename.split(",");
+            console.log(oldfilelist);
             oldfilelist.splice(oldfilelist.indexOf(filename), 1);
             var newfilestr = oldfilelist.join(",");
+            console.log(newfilestr);
             let formData = new FormData();
-            formData.append("seq", vm.modmodalcontent.seq);
+            formData.append("seq", vm.modfrom.seq);
             formData.append("deletefile", filename);
+            formData.append("path", vm.modfrom.path);
             formData.append("remainfile", newfilestr);
             let config = {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
             };
+            vm.togglealertModal(true);
             const instance = axios.create({
                 withCredentials: true,
             });
             instance
                 .post(
-                    "/php/views/misbulletin/misBulletinMod.php",
+                    "/php/views/meetingminutes/meetingMinutesMod.php",
                     formData,
                     config
                 )
                 .then(
                     function (response) {
+                        console.log(response);
                         const result = response.data;
-                        var oldfileobj = vm.modmodalcontent.boardannex;
-                        delete oldfileobj[filename];
-                        this.$data.modmodalcontent.boardannex = Object.assign(
-                            {},
-                            oldfileobj
-                        );
-                        //remove vm.items裡的vm.items
-                        var thisrowindex = vm.RowClickedIndex;
-                        var thisrowitems = vm.items;
-                        thisrowitems[thisrowindex].annex.splice(
-                            thisrowitems[thisrowindex].annex.indexOf(vm.items),
-                            1
-                        );
+                        console.log(result);
+                        vm.modfrom.old_filename = newfilestr;
+                        console.log(vm.modfrom.index);
+                        vm.items[vm.modfrom.index].filename = newfilestr;
                         vm.setTimeOutAlertMsg(result);
                         vm.settimeoutalertModal(1000);
                     }.bind(this)
                 )
                 .catch(function (err) {
                     console.log(err);
+                })
+                .finally(() => {
+                    vm.togglealertModal(false);
                 });
         },
-        //刪除畫面刪除檔案
-        onDelete() {
+
+        //刪除
+        delAction(params) {
+            let filename = params.data.filename;
+            if (filename != "") {
+                filename = filename.split(",");
+            }
+            const seq = params.data.seq;
+            const path = params.data.path;
+            console.log(filename);
+            console.log(seq);
+            console.log(path);
             var vm = this;
-            let params = {};
-            params["filename"] = vm.delmodalcontent.filename;
-            params["seq"] = vm.delmodalcontent.seq;
+            vm.togglealertModal(true);
+            let apiparams = {};
+            apiparams["filename"] = filename;
+            apiparams["seq"] = seq;
+            apiparams["path"] = path;
+            console.log(apiparams);
             axios
-                .post("/php/views/misbulletin/misBulletinDel.php", params)
+                .post(
+                    "/php/views/meetingminutes/meetingMinutesDel.php",
+                    apiparams
+                )
                 .then(
                     function (response) {
+                        console.log(response);
                         const result = response.data;
                         vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(1000);
-                        vm.delBulletinModalShow = false;
-                        vm.queryAgain();
+                        vm.settimeoutalertModal();
                     }.bind(this)
                 )
                 .catch(function (err) {
                     console.log(err);
+                })
+                .finally(() => {
+                    // console.log("done");
+                    vm.togglealertModal(false);
+                    vm.togglecommonModal(false);
+                    vm.queryAgain();
                 });
         },
-        //validation表單reset
-        formReset() {
-            let vm = this;
-            //reset valid_data
-            vm.form = {
-                title: {
-                    key: "title",
-                    value: "",
-                    invalid: false,
-                },
 
-                content: {
-                    key: "content",
-                    value: "",
-                    invalid: false,
+        toggleAddModal() {
+            let vm = this;
+            //根目錄更新(抓取有哪些根目錄可選擇)
+            console.log(
+                vm.pageAccess.meetingminutes.remark.commonQueryCondition
+            );
+            vm.pageAccess.meetingminutes.remark.commonQueryCondition.main.map(
+                (item) => {
+                    let thistext = "";
+                    if (vm.depDetail.config.hasOwnProperty(item)) {
+                        thistext = vm.depDetail.config[item];
+                    } else {
+                        thistext = "共用";
+                    }
+                    vm.form.rootTree.push({
+                        text: thistext,
+                        value: thistext,
+                    });
+                }
+            );
+            console.log(vm.form.rootTree);
+            vm.addModalShow = true;
+            vm.form.date.time = vm.getDate.nowFormat;
+        },
+
+        //新建資料夾
+        addFolder() {
+            let vm = this;
+            let thispath = vm.form.root;
+            console.log(vm.addFolderItem.path);
+            console.log(vm.addFolderItem.name);
+            if (vm.addFolderItem.name == "" || vm.addFolderItem.name === null) {
+                vm.setTimeOutAlertMsg("資料夾名稱不可為空");
+                vm.settimeoutalertModal();
+                return;
+            }
+            for (let i = 0; i < vm.addFolderItem.path.length; i++) {
+                const element = vm.addFolderItem.path[i];
+                if (element === null) {
+                    if (vm.smbPathList.indexOf(vm.addFolderItem.name) != -1) {
+                        vm.setTimeOutAlertMsg("資料夾名稱不可重複");
+                        vm.settimeoutalertModal();
+                        return;
+                    }
+                } else {
+                    thispath += "/" + element;
+                }
+            }
+            // thispath += vm.addFolderName;
+            console.log(thispath);
+            let anyerror = false;
+            axios({
+                url: "/php/views/meetingminutes/meetingMinutesSMBAction.php",
+                method: "POST",
+                data: {
+                    whichFunction: "addNewSMBFolder",
+                    data: { path: thispath, foldername: vm.addFolderItem.name },
                 },
-                category: "system",
-                filename: [],
-                files: [],
-            };
-            vm.modmodalcontent = {
-                seq: "",
-                category: "",
-                title: {
-                    key: "title",
-                    value: "",
-                    invalid: false,
-                },
-                content: {
-                    key: "content",
-                    value: "",
-                    invalid: false,
-                },
-                showhide: "",
-                boardannex: {},
-                files: "",
-                filename: [],
-            };
-            vm.formcontentusetable = false;
-            vm.formcontentusepre = false;
-            vm.modmodalcontentusetable = false;
-            vm.modmodalcontentusepre = false;
-            vm.$nextTick(() => {
-                vm.$v.$reset();
+            })
+                .then((response) => {
+                    console.log(response);
+                    vm.setTimeOutAlertMsg(response.data);
+                    if (response.data == "ok") {
+                        console.log(response.data);
+                        vm.form.path.length = 0;
+                        vm.form.pathTree.length = 0;
+                        vm.smbPathList.length = 0;
+                        let path = vm.form.root;
+                        const asyncGetFolder = async () => {
+                            return await vm.getSMBFolderList(path, true);
+                        };
+                        asyncGetFolder()
+                            .then((value) => {
+                                console.log(value);
+                                if (value == "ok") {
+                                    vm.setTimeOutAlertMsg("新增資料夾成功");
+                                } else {
+                                    vm.setTimeOutAlertMsg(value);
+                                }
+                            })
+                            .catch((response) => {
+                                console.log(response);
+                                vm.setTimeOutAlertMsg(response);
+                            })
+                            .finally(() => {
+                                vm.settimeoutalertModal();
+                            });
+                    } else {
+                        anyerror = true;
+                        vm.setTimeOutAlertMsg(response.data);
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                    anyerror = true;
+                    vm.setTimeOutAlertMsg(err);
+                })
+                .finally(() => {
+                    if (anyerror) vm.settimeoutalertModal(1500);
+                    vm.toggleAddSMBFolderModal(false);
+                });
+        },
+
+        //toggle 新建資料夾modal
+        toggleAddSMBFolderModal(status) {
+            let vm = this;
+            console.log(vm.form.root);
+            if (vm.form.root === null) {
+                vm.setTimeOutAlertMsg("請先選擇根目錄");
+                vm.settimeoutalertModal();
+                return;
+            }
+            if (status) {
+                vm.addFolderItem.path = JSON.parse(
+                    JSON.stringify(vm.form)
+                ).path.map(() => {
+                    return null;
+                });
+                vm.addFolderItem.pathTree = JSON.parse(
+                    JSON.stringify(vm.form)
+                ).pathTree;
+            } else {
+                vm.addFolderItem.name = null;
+                vm.addFolderItem.path = [];
+                vm.addFolderItem.pathTree = [];
+            }
+            vm.addFolderModalShow = status;
+            vm.togglecommonModal(status);
+        },
+
+        //抓取smb server 資料夾列表
+        getSMBFolderList(path, which) {
+            console.log(path);
+            let vm = this;
+            return new Promise((resolve, reject) => {
+                axios({
+                    url:
+                        "/php/views/meetingminutes/meetingMinutesSMBAction.php",
+                    method: "POST",
+                    data: {
+                        whichFunction: "getSMBFoldersList",
+                        data: path,
+                    },
+                })
+                    .then((response) => {
+                        console.log(response);
+                        if (response.data.Response == "ok") {
+                            console.log(response.data.data);
+                            let smbFolder = [];
+                            //去掉前後兩個不是內部資料的訊息
+                            for (
+                                let i = 2;
+                                i < response.data.data.length - 2;
+                                i++
+                            ) {
+                                //去掉為""的data
+                                const filterList = response.data.data[i].filter(
+                                    function (item) {
+                                        if (item != "") {
+                                            return item;
+                                        }
+                                    }
+                                );
+                                //擷取檔名、檔案型態
+                                filterList.splice(
+                                    filterList.length - 6,
+                                    filterList.length
+                                );
+                                if (filterList[filterList.length - 1] == "D") {
+                                    //若檔名有空格會先被拆開，此時將其還原
+                                    if (filterList.length != 2) {
+                                        let fileType =
+                                            filterList[filterList.length - 1];
+                                        filterList.splice(
+                                            filterList.length - 1,
+                                            1
+                                        );
+                                        let filename = filterList.join(" ");
+                                        smbFolder.push({
+                                            text: filename,
+                                            value: filename,
+                                        });
+                                        vm.smbPathList.push(filename);
+                                    } else {
+                                        smbFolder.push({
+                                            text: filterList[0],
+                                            value: filterList[0],
+                                        });
+                                        vm.smbPathList.push(filterList[0]);
+                                    }
+                                }
+                            }
+                            if (which) {
+                                vm.form.path.push(null);
+                                vm.form.pathTree.push(smbFolder);
+                            } else {
+                                vm.addFolderItem.path.push(null);
+                                vm.addFolderItem.pathTree.push(smbFolder);
+                            }
+                            resolve("ok");
+                        } else if (response.data.Response == "無資料夾") {
+                            // console.log(response.data.Response);
+                            resolve("ok");
+                        } else {
+                            reject(response.data.Response);
+                        }
+                    })
+                    .catch(function (err) {
+                        reject(err);
+                    });
             });
         },
+
+        rootChange(path) {
+            let vm = this;
+            //抓此根目錄下有的資料夾
+            let anyerror = false;
+            console.log(path);
+            vm.form.path = [];
+            vm.form.pathTree = [];
+            vm.smbPathList = [];
+            console.log(vm.form.path);
+            console.log(vm.form.pathTree);
+            console.log(vm.smbPathList);
+            const asyncGetFolder = async () => {
+                return await vm.getSMBFolderList(path, true);
+            };
+            asyncGetFolder()
+                .then((value) => {
+                    console.log(value);
+                })
+                .catch((response) => {
+                    console.log(response);
+                    vm.setTimeOutAlertMsg(response);
+                    vm.settimeoutalertModal();
+                });
+        },
+
+        pathChange(which, event, key) {
+            console.log(event);
+            console.log(key);
+            let vm = this;
+            let temp = [];
+            let temp2 = [];
+            let thispath = vm.form.root;
+            if (which) {
+                temp = vm.form.path;
+                temp2 = vm.form.pathTree;
+            } else {
+                temp = vm.addFolderItem.path;
+                temp2 = vm.addFolderItem.pathTree;
+            }
+            temp.splice(key + 1, temp.length - key);
+            temp2.splice(key + 1, temp2.length - key);
+            console.log(temp);
+            console.log(temp2);
+            for (let i = 0; i < temp.length; i++) {
+                const element = temp[i];
+                if (element != null) {
+                    thispath += "/" + element;
+                }
+            }
+            console.log(thispath);
+            const asyncGetFolder = async () => {
+                return await vm.getSMBFolderList(thispath, which);
+            };
+            asyncGetFolder()
+                .then((value) => {
+                    console.log(value);
+                    if (value == "ok") {
+                    }
+                })
+                .catch((response) => {
+                    console.log(response);
+                });
+        },
+
+        toggleModModal(params) {
+            const item = params.data;
+            const index = params.data2;
+            console.log(item);
+            console.log(index);
+            const thisitem = JSON.parse(JSON.stringify(item));
+            let vm = this;
+            vm.modfrom.index = index;
+            vm.modfrom.seq = thisitem.seq;
+            vm.modfrom.title = thisitem.title;
+            vm.modfrom.date = thisitem.date;
+            vm.modfrom.old_filename = thisitem.filename;
+            let thislevel = false;
+            if (thisitem.level) thislevel = true;
+            vm.modfrom.level = thislevel;
+            vm.modfrom.path = thisitem.path;
+            vm.modModalShow = true;
+            console.log(vm.modfrom);
+        },
+
+        getCellSlot(key) {
+            return `cell(${key})`;
+        },
+
         //資料reset
         reset(keep) {
             console.log(this.$options);
@@ -1266,228 +1633,6 @@ export default {
             }
             Object.assign(this.$data, def);
             //https://codepen.io/karimcossutti/pen/ObXyKq
-        },
-        adjustContentData(content) {
-            let status = false;
-            let thiscontent;
-            let vm = this;
-            let wordtype = ["wordUp", "wordDown", "wordPreUp", "wordPreDown"];
-            //有勾選『自定義文字格式或使用表格』checkbox
-            if (content.hasOwnProperty("jsonvalid")) {
-                let parsecontentvalue = JSON.parse(content.value);
-                console.log(parsecontentvalue);
-                if (parsecontentvalue.hasOwnProperty("table")) {
-                    status = true;
-                    let tablekey = ["fields", "items"];
-                    //檢查key是否有fields,items
-                    for (let i = 0; i < tablekey.length; i++) {
-                        if (
-                            !parsecontentvalue.table.hasOwnProperty(tablekey[i])
-                        ) {
-                            vm.setTimeOutAlertMsg(
-                                "公告內容若要使用表格顯示，table的value物件必須有key必需有fields、items兩個key"
-                            );
-                            vm.settimeoutalertModal(1200);
-                            return;
-                        }
-                        console.log(
-                            Array.isArray(parsecontentvalue.table[tablekey[i]])
-                        );
-                        if (
-                            !Array.isArray(parsecontentvalue.table[tablekey[i]])
-                        ) {
-                            vm.setTimeOutAlertMsg(
-                                "key:table -> " + tablekey[i] + "必須為陣列"
-                            );
-                            vm.settimeoutalertModal(1500);
-                            return false;
-                        }
-                        parsecontentvalue.table[tablekey[i]].forEach(
-                            (element) => {
-                                if (
-                                    Object.prototype.toString.call(element) !=
-                                        "[object Object]" ||
-                                    Object.keys(element) == 0
-                                ) {
-                                    vm.setTimeOutAlertMsg(
-                                        "key->table的的陣列內容必須為物件且不為空物件"
-                                    );
-                                    vm.settimeoutalertModal(1500);
-                                    return false;
-                                }
-                            }
-                        );
-                    }
-                }
-                for (let i = 0; i < wordtype.length; i++) {
-                    if (parsecontentvalue.hasOwnProperty(wordtype[i])) {
-                        console.log(wordtype[i]);
-                        console.log(parsecontentvalue[wordtype[i]]);
-                        status = true;
-                        console.log(
-                            Object.prototype.toString.call(
-                                parsecontentvalue[wordtype[i]]
-                            )
-                        );
-                        console.log(
-                            Object.keys(parsecontentvalue[wordtype[i]])
-                        );
-                        if (
-                            Object.prototype.toString.call(
-                                parsecontentvalue[wordtype[i]]
-                            ) != "[object Object]" ||
-                            Object.keys(parsecontentvalue[wordtype[i]]) == 0
-                        ) {
-                            console.log(parsecontentvalue[wordtype[i]]);
-                            vm.setTimeOutAlertMsg(
-                                "key->" +
-                                    wordtype[i] +
-                                    "的value必須為物件且不為空物件"
-                            );
-                            vm.settimeoutalertModal(1500);
-                            return false;
-                        }
-                        console.log(
-                            parsecontentvalue[wordtype[i]].hasOwnProperty(
-                                "content"
-                            )
-                        );
-                        if (
-                            !parsecontentvalue[wordtype[i]].hasOwnProperty(
-                                "content"
-                            ) ||
-                            typeof parsecontentvalue[wordtype[i]]["content"] !=
-                                "string"
-                        ) {
-                            vm.setTimeOutAlertMsg([
-                                "key->" +
-                                    wordtype[i] +
-                                    "的value物件缺少key:content",
-                                "且必須為字串",
-                            ]);
-                            vm.settimeoutalertModal(1500);
-                            return false;
-                        }
-                        if (
-                            wordtype[i] != "wordPreUp" &&
-                            wordtype[i] != "wordPreDown"
-                        ) {
-                            parsecontentvalue[wordtype[i]][
-                                "content"
-                            ] = vm.replaceContentData(
-                                parsecontentvalue[wordtype[i]]["content"]
-                            );
-                        }
-                    }
-                }
-                if (!status) {
-                    vm.setTimeOutAlertMsg([
-                        "key:至少要有下列其中一個",
-                        '["wordUp", "wordDown", "wordPreUp", "wordPreDown"]',
-                    ]);
-                    vm.settimeoutalertModal(1500);
-                    return false;
-                }
-                console.log(parsecontentvalue);
-                console.log(JSON.stringify(parsecontentvalue));
-                thiscontent = JSON.stringify(parsecontentvalue);
-            } else {
-                let tempObj = {};
-                thiscontent = content.value;
-                //有勾選『自定義格式內容』checkbox
-                if (vm.modmodalcontentusepre || vm.formcontentusepre) {
-                    tempObj["wordPreUp"] = {
-                        content: {
-                            content: thiscontent.replace(/\n/g, "<br/>"),
-                        },
-                    };
-                    thiscontent = JSON.stringify(tempObj);
-                } else {
-                    thiscontent = vm.replaceContentData(thiscontent);
-                }
-                console.log(thiscontent);
-            }
-            return thiscontent;
-        },
-        //content value 資料處理
-        replaceContentData(content) {
-            console.log(content);
-            return (
-                content // .replace(/\r\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
-                    .replace(/\r\n/g, "<br/>")
-                    // .replace(/\n/g, "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
-                    .replace(/\n/g, "<br/>")
-                    .replace(/\s/g, "&nbsp;")
-            );
-        },
-        //Tooltip的使用範例
-        usetableTooltipExample() {
-            return `<p>以物件傳入key為<span style="color:black;font-weight:bold;font-size:large">table</span>、<span style="color:black;font-weight:bold;font-size:large">wordUp</span>、<span style="color:black;font-weight:bold;font-size:large">wordDown</span>、<span style="color:black;font-weight:bold;font-size:large">wordPreUp</span>、<span style="color:black;font-weight:bold;font-size:large">wordPreDown</span>(選填)</p>
-            <p>key若為其他，系統則不做判斷顯示，順序為wordPreUp，wordUp，wordDown，wordPreDown</p>
-            <div style="border:1px solid #ccc;padding:5px;border-radius:10px;margin-bottom:5px">
-            <p style="font-size:larger;font-weight:bold;text-decoration:underline">key : table的value為物件且必須有fields、items兩個key</p>
-            <ul style="padding-left:20px;margin-bottom:0">
-            <li><span style="font-size:large;font-weight:bold;text-decoration:underline">fields</span>為表格的表頭，以陣列包物件格式傳入</li>
-            <ol style="padding-left:20px;margin-bottom:0">
-            <li>每一筆物件就是一個表頭，物件順序跟顯示順序有關係</li>
-            <li>物件的key有：key(須以items內每一筆資料的key相同，必填)、label(顯示的名稱，選填)、sortable(是否排序true/false，選填)</li>
-            <li>格式若錯誤系統無法顯示</li>
-            <li>example:[{"key":"category","label": "類別","sortable": true},{"key":"title","label": "標題","sortable": false}]</li>
-            </ol>
-            <li><span style="font-size:large;font-weight:bold;text-decoration:underline">items</span>為表格的資料內容，以陣列包物件格式傳入</li>
-            <ol style="padding-left:20px;margin-bottom:0">
-            <li>每一筆物件就是一列資料</li>
-            <li>各物件內的key都要相同</li>
-            <li>若要指定列的顏色</li>
-            <ul style="padding-left:20px">
-            <li>使用參數key : "_rowVariant"</li>
-            <li>value : primary,secondary,success,warning,danger,info,light,dark</li>
-            </ul>
-            <li>若要指定資料格的顏色</li>
-            <ul style="padding-left:20px">
-            <li>使用參數key : "_cellVariants"</li>
-            <li>格式為{"表頭":"color"}，color -> primary,secondary,success,warning,danger,info,light,dark</li>
-            </ul>
-            <li>格式若錯誤系統無法顯示</li>
-            <li>example:{ "category": "值", "title": "值" ,"_rowVariant":"info", "_cellVariants":"danger"}</li>
-            </ol>
-            </ul>
-            </div>
-            <div style="border:1px solid #ccc;padding:5px;border-radius:10px">
-            <p style="font-size:larger;font-weight:bold;text-decoration:underline">key : wordUp、wordDown的value以物件傳入</p>
-            <ol style="padding-left:20px;margin-bottom:0">
-            <li>wordUp代表在表格上方的文字、wordDown代表表格下方的文字</li>
-            <li>物件格式為{"content":"文字內容(必填，若要換行輸入\\n換行符號)","color":"文字顏色","size":"文字大小","align":"文字位置(left,center,right)"}</li>
-            <li>以上參數須符合css才能正常顯示，content為必填，其他參數為選填</li>
-            </ol>
-            </div>
-            <div style="border:1px solid #ccc;padding:5px;border-radius:10px">
-            <p style="font-size:larger;font-weight:bold;text-decoration:underline">key : wordPreUp、wordPreDown的value以物件傳入</p>
-            <ol style="padding-left:20px;margin-bottom:0">
-            <li>wordPreUp代表在表格上方的文字、wordPreDown代表在表格下方的文字</li>
-            <li>物件格式為{"content":"文字內容(必填，若要換行輸入\\n換行符號)","color":"文字顏色","size":"文字大小"}</li>
-            <li>資料內容將以html的&lt;pre&gt;標籤顯示</li>
-            </ol>
-            </div>`;
-        },
-        usepreTooltipExample() {
-            return `<p>直接輸入文字內容，公告區顯示時的空格換行與格式會與輸入時一致</p>
-            <p>資料內容將以html的&lt;pre&gt;標籤顯示</p>
-            `;
-        },
-        //檢查是否為JSON Data
-        checkIsJsonData(jsonData) {
-            let status = true;
-            if (Object.prototype.toString.call(jsonData) != "[object Object]") {
-                try {
-                    JSON.parse(jsonData);
-                } catch (e) {
-                    //console.log('Error data', e);
-                    status = false;
-                }
-            }
-            console.log(status);
-            return status;
         },
     },
 };
@@ -1505,11 +1650,14 @@ export default {
 h5 {
     margin: 0 auto;
 }
+.hide {
+    display: none;
+}
 /*刪除圖示*/
 .deletefilebtn {
     position: absolute;
-    left: -10px;
-    top: -15px;
+    left: -13px;
+    top: -10px;
     width: 25px;
     height: 25px;
     background: silver;
@@ -1546,6 +1694,14 @@ h5 {
 }
 ::v-deep .tooltip-inner p {
     margin-bottom: 5px !important;
+}
+.downloadfilebtn {
+    position: absolute;
+    top: 20px;
+    cursor: pointer;
+    right: -10px;
+    width: 21.328px;
+    height: 21.328px;
 }
 </style>
 
