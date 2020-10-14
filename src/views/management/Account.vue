@@ -267,49 +267,61 @@ export default {
                     if (vm.systemFormCompletedData.pwd == "") {
                         msg.push("密碼尚未輸入");
                     }
+
                     if (
-                        vm.systemFormCompletedData.accessList.todolist
-                            .authority &&
-                        vm.systemFormCompletedData.accessList.todolist.remark
-                            .commonQueryCondition.main === null
-                    ) {
-                        msg.push("權限:『待辦事項』需選擇指定部門");
-                    }
-                    if (
-                        vm.systemFormCompletedData.accessList.weeklyreport
-                            .authority &&
-                        vm.systemFormCompletedData.accessList.weeklyreport
-                            .remark.commonQueryCondition.main === null
-                    ) {
-                        msg.push("權限:『工作週報』需選擇指定部門");
-                    }
-                    if (
-                        vm.systemFormCompletedData.accessList.meetingminutes
-                            .authority
+                        vm.systemFormCompletedData.accessList.report.authority
                     ) {
                         if (
-                            vm.systemFormCompletedData.accessList.meetingminutes
-                                .remark.commonQueryCondition.main.length === 0
-                        )
-                            msg.push("權限:『會議記錄』需選擇指定查詢條件");
-                        if (
-                            vm.systemFormCompletedData.accessList.meetingminutes
-                                .remark.commonQueryCondition.secondary === null
-                        )
-                            msg.push("權限:『會議記錄』需選擇指定員工階級");
-                        if (
-                            vm.systemFormCompletedData.accessList.meetingminutes
-                                .remark.dataHandleAuthority.length === 0
+                            vm.systemFormCompletedData.accessList.report
+                                .children.todolist.authority &&
+                            vm.systemFormCompletedData.accessList.report
+                                .children.todolist.remark.commonQueryCondition
+                                .main === null
                         ) {
-                            msg.push("權限:『會議記錄』需選擇指定執行權限");
-                        } else if (
-                            !vm.systemFormCompletedData.accessList.meetingminutes.remark.dataHandleAuthority.includes(
-                                "query"
-                            )
+                            msg.push("權限:『待辦事項』需選擇指定部門");
+                        }
+                        if (
+                            vm.systemFormCompletedData.accessList.report
+                                .children.weeklyreport.authority &&
+                            vm.systemFormCompletedData.accessList.report
+                                .children.weeklyreport.remark
+                                .commonQueryCondition.main === null
                         ) {
-                            msg.push(
-                                "權限:『會議記錄』- 指定執行權限至少要有查詢"
-                            );
+                            msg.push("權限:『工作週報』需選擇指定部門");
+                        }
+                        if (
+                            vm.systemFormCompletedData.accessList.report
+                                .children.meetingminutes.authority
+                        ) {
+                            if (
+                                vm.systemFormCompletedData.accessList.report
+                                    .children.meetingminutes.remark
+                                    .commonQueryCondition.main.length === 0
+                            ) {
+                                msg.push("權限:『會議記錄』需選擇指定查詢條件");
+                            }
+                            if (
+                                vm.systemFormCompletedData.accessList.report
+                                    .children.meetingminutes.remark
+                                    .commonQueryCondition.secondary === null
+                            ) {
+                                msg.push("權限:『會議記錄』需選擇指定員工階級");
+                            }
+                            if (
+                                vm.systemFormCompletedData.accessList.report
+                                    .children.meetingminutes.remark
+                                    .dataHandleAuthority.length === 0
+                            ) {
+                                msg.push("權限:『會議記錄』需選擇指定執行權限");
+                            } else if (
+                                !vm.systemFormCompletedData.accessList.report.children.meetingminutes.remark.dataHandleAuthority.includes(
+                                    "query"
+                                )
+                            ) {
+                                msg.push(
+                                    "權限:『會議記錄』- 指定執行權限至少要有查詢"
+                                );
+                            }
                         }
                     }
                     console.log(msg);

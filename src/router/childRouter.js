@@ -1,22 +1,23 @@
 import index from "@/views/Index";
 import home from "@/views/Home";
-import misbulletinboard from "@/views/MISBulletinBoard";
-import misbulletinmanage from "@/views/MISBulletinManage";
-import department from "@/views/Department";
-import account from "@/views/Account";
-import todolist from "@/views/TodoList";
-import weeklyreport from "@/views/WeeklyReport";
-import meetingminutes from "@/views/MeetingMinutes";
-import structure from "@/views/Structure";
-import server from "@/views/Server";
-import storage from "@/views/Storage";
+import board from "@/views/bulletin/BulletinBoard";
+import manage from "@/views/bulletin/BulletinManage";
+import department from "@/views/management/Department";
+import account from "@/views/management/Account";
+import todolist from "@/views/report/TodoList";
+import weeklyreport from "@/views/report/WeeklyReport";
+import meetingminutes from "@/views/report/MeetingMinutes";
+import sop from "@/views/report/SOP";
+import structure from "@/views/architecture/Structure";
+import server from "@/views/architecture/Server";
+import storage from "@/views/architecture/Storage";
 // import pagenotfound from "@/views/PageNotFound";
 
 export const childRouter = [
     {
         path: "/index",
         // redirect: '/index/home',
-        redirect: "/index/MISBulletinBoard",
+        redirect: "/index/bulletin/board",
         component: index,
         children: [
             {
@@ -27,70 +28,77 @@ export const childRouter = [
                 }
             },
             {
-                path: "misbulletinboard",
-                component: misbulletinboard,
+                path: "bulletin/board",
+                component: board,
                 meta: {
                     needLogin: true
                 }
             },
             {
-                path: "misbulletinmanage",
-                component: misbulletinmanage,
+                path: "bulletin/manage",
+                component: manage,
                 meta: {
                     needLogin: true
                 }
             },
             {
-                path: "department",
+                path: "management/department",
                 component: department,
                 meta: {
                     needLogin: true
                 }
             },
             {
-                path: "account",
+                path: "management/account",
                 component: account,
                 meta: {
                     needLogin: true
                 }
             },
             {
-                path: "todolist",
+                path: "report/todolist",
                 component: todolist,
                 meta: {
                     needLogin: true
                 }
             },
             {
-                path: "weeklyreport",
+                path: "report/weeklyreport",
                 component: weeklyreport,
                 meta: {
                     needLogin: true
                 }
             },
             {
-                path: "meetingminutes",
+                path: "report/meetingminutes",
                 component: meetingminutes,
                 meta: {
                     needLogin: true
                 }
             },
             {
-                path: "structure",
+                path: "report/sop",
+                component: sop,
+                meta: {
+                    needLogin: true
+                }
+            },
+            {
+                path: "architecture/structure",
                 component: structure,
                 meta: {
                     needLogin: true
                 }
             },
             {
-                path: "server",
+                path: "architecture/server",
                 component: server,
                 meta: {
                     needLogin: true
                 }
             },
             {
-                path: "storage",
+                path: "architecture/storage",
                 component: storage,
                 meta: {
                     needLogin: true

@@ -3,9 +3,9 @@ header('Access-Control-Allow-Origin: *');
 include("../../globalvar.php");
 $this_seq = $_POST['seq'];
 $this_path = $_POST['path'];
-$smbRootDir = "100.智能製造事業群/01.共用資源/01會議記錄/" . $this_path;
+$smbRootDir = "01.公告區/" . $this_path;
 
-$url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/meetingMinutes?uid=@sapido@PaaS";
+$url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/SOP?uid=@sapido@PaaS";
 $targetDir = "../../../tempfiles/";
 if (!file_exists($targetDir)) {
     mkdir($targetDir, 0777);
@@ -16,7 +16,7 @@ $nofileupload = false;
 
 if ($_POST['deletefile'] == "") {
     $this_title = $_POST['title'];
-    $this_date = $_POST['date'];
+    $this_application = $_POST['application'];
     $this_filename = $_POST['filename'];
     $this_level = $_POST['level'];
     $this_account = $_POST['account'];
@@ -58,7 +58,7 @@ if ($_POST['deletefile'] == "") {
         $data = array(
             "old_seq" => ["$this_seq"],
             "title" => ["$this_title"],
-            "date" => ["$this_date"],
+            "application" => ["$this_application"],
             "filename" => ["$this_filename"],
             "level" => ["$this_level"],
             "creatorID" => ["$this_account"],
@@ -67,7 +67,7 @@ if ($_POST['deletefile'] == "") {
         $data = array(
             "old_seq" => ["$this_seq"],
             "title" => ["$this_title"],
-            "date" => ["$this_date"],
+            "application" => ["$this_application"],
             "level" => ["$this_level"],
             "creatorID" => ["$this_account"],
         );

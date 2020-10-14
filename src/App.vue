@@ -46,8 +46,18 @@ export default {
                 );
                 vm.change_loginData(obj);
                 let trueList = [];
-                Object.entries(access).forEach(element => {
-                    if(element[1]["authority"]) trueList.push(element[0])
+                Object.entries(access).forEach((element) => {
+                    if (element[1]["authority"]) {
+                        if (element[1].hasOwnProperty("children")) {
+                            Object.keys(element[1].children).map((item) => {
+                                if (element[1].children[item].authority) {
+                                    trueList.push(element[0] + "/" + item);
+                                }
+                            });
+                        } else {
+                            trueList.push(element[0]);
+                        }
+                    }
                 });
                 console.log(trueList);
                 trueList.push("home");

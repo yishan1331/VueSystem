@@ -40,115 +40,313 @@
                         ></b-form-textarea>
                         <div
                             v-else-if="item1[0] == 'accesscheckbox'"
-                            v-for="(item2, key2) in pageAccessConfig"
-                            :key="key2"
-                            :class="{
-                                haveremark: !form[key1][key2].hasOwnProperty(
-                                    'remark'
-                                ),
-                            }"
+                            v-for="(item2, key2, index2) in pageAccessConfig"
+                            :key="index2"
+                            class="mt-1"
                         >
-                            <b-form-checkbox
-                                v-model="form[key1][key2]['authority']"
-                                style="margin-right: 10px"
-                                class="haveremark"
-                                @change="
-                                    accesscheckboxClick(
-                                        $event,
-                                        form[key1][key2]
-                                    )
-                                "
-                            >
-                                {{ pageAccessCH[key2] }}
-                            </b-form-checkbox>
-                            <template
-                                v-if="form[key1][key2].hasOwnProperty('remark')"
-                            >
-                                <div
-                                    v-for="(item3, key3) in Object.keys(
-                                        item2.remark.commonQueryCondition
-                                    )"
-                                    :key="key3"
-                                    class="haveremark"
-                                    style="
-                                        margin-right: 10px;
-                                        height: 28px !important;
-                                    "
-                                >
-                                    <v-select
-                                        label="text"
-                                        v-model="
-                                            form[key1][key2].remark
-                                                .commonQueryCondition[item3]
+                            <b-row>
+                                <b-col sm="1">
+                                    <b-form-checkbox
+                                        class="mt-1 fatherCB"
+                                        v-model="form[key1][key2]['authority']"
+                                        @change="
+                                            accessCBFatherClick(
+                                                $event,
+                                                form[key1][key2]
+                                            )
                                         "
-                                        :reduce="(options) => options.value"
-                                        :options="
-                                            item2.remark.commonQueryCondition[
-                                                item3
-                                            ].options
-                                        "
-                                        style="
-                                            min-width: 150px !important;
-                                            height: 28px !important;
-                                        "
-                                        :multiple="
-                                            item2.remark.commonQueryCondition[
-                                                item3
-                                            ].multiple
-                                        "
-                                        :placeholder="
-                                            item2.remark.commonQueryCondition[
-                                                item3
-                                            ].placeholder
-                                        "
-                                        :searchable="false"
-                                        :close-on-select="
-                                            !item2.remark.commonQueryCondition[
-                                                item3
-                                            ].multiple
-                                        "
-                                    ></v-select>
-                                </div>
-                                <template
-                                    v-if="
-                                        form[key1][key2].remark.hasOwnProperty(
-                                            'dataHandleAuthority'
-                                        )
-                                    "
-                                    )
-                                >
-                                    <v-select
-                                        label="text"
-                                        v-model="
-                                            form[key1][key2].remark
-                                                .dataHandleAuthority
-                                        "
-                                        :reduce="(options) => options.value"
-                                        :options="
-                                            item2.remark.dataHandleAuthority
-                                                .options
-                                        "
-                                        style="
-                                            min-width: 150px !important;
-                                            height: 28px !important;
-                                        "
-                                        :multiple="
-                                            item2.remark.dataHandleAuthority
-                                                .multiple
-                                        "
-                                        :placeholder="
-                                            item2.remark.dataHandleAuthority
-                                                .placeholder
-                                        "
-                                        :searchable="false"
-                                        :close-on-select="
-                                            !item2.remark.dataHandleAuthority
-                                                .multiple
-                                        "
-                                        class="haveremark"
-                                    ></v-select>
-                                </template>
-                            </template>
+                                        button
+                                        button-variant="outline-secondary"
+                                    >
+                                        {{ item2.label }}
+                                    </b-form-checkbox>
+                                </b-col>
+                                <b-col sm="11">
+                                    <template
+                                        v-if="item2.hasOwnProperty('children')"
+                                    >
+                                        <div
+                                            v-for="(item3, key3) in Object.keys(
+                                                item2.children
+                                            )"
+                                            :key="key3"
+                                            style="
+                                                display: inline-block;
+                                                vertical-align: top;
+                                            "
+                                        >
+                                            <b-form-checkbox
+                                                class="ml-4 mt-2"
+                                                style="
+                                                    display: inline-block;
+                                                    vertical-align: top;
+                                                "
+                                                v-model="
+                                                    form[key1][key2].children[
+                                                        item3
+                                                    ]['authority']
+                                                "
+                                                @change="
+                                                    accessCBChildrenClick(
+                                                        $event,
+                                                        form[key1][key2],
+                                                        item3
+                                                    )
+                                                "
+                                            >
+                                                {{
+                                                    item2.children[item3].label
+                                                }}
+                                            </b-form-checkbox>
+                                            <template
+                                                v-if="
+                                                    item2.children[
+                                                        item3
+                                                    ].hasOwnProperty('remark')
+                                                "
+                                            >
+                                                <div
+                                                    v-for="(item4,
+                                                    key4) in Object.keys(
+                                                        item2.children[item3]
+                                                            .remark
+                                                            .commonQueryCondition
+                                                    )"
+                                                    :key="key4"
+                                                    class="haveremark"
+                                                    style="
+                                                        margin-right: 10px;
+                                                        height: 28px !important;
+                                                    "
+                                                >
+                                                    <v-select
+                                                        label="text"
+                                                        v-model="
+                                                            form[key1][key2]
+                                                                .children[item3]
+                                                                .remark
+                                                                .commonQueryCondition[
+                                                                item4
+                                                            ]
+                                                        "
+                                                        :reduce="
+                                                            (options) =>
+                                                                options.value
+                                                        "
+                                                        :options="
+                                                            item2.children[
+                                                                item3
+                                                            ].remark
+                                                                .commonQueryCondition[
+                                                                item4
+                                                            ].options
+                                                        "
+                                                        style="
+                                                            min-width: 150px !important;
+                                                            height: 28px !important;
+                                                        "
+                                                        :multiple="
+                                                            item2.children[
+                                                                item3
+                                                            ].remark
+                                                                .commonQueryCondition[
+                                                                item4
+                                                            ].multiple
+                                                        "
+                                                        :placeholder="
+                                                            item2.children[
+                                                                item3
+                                                            ].remark
+                                                                .commonQueryCondition[
+                                                                item4
+                                                            ].placeholder
+                                                        "
+                                                        :searchable="false"
+                                                        :close-on-select="
+                                                            !item2.children[
+                                                                item3
+                                                            ].remark
+                                                                .commonQueryCondition[
+                                                                item4
+                                                            ].multiple
+                                                        "
+                                                    ></v-select>
+                                                </div>
+                                                <template
+                                                    v-if="
+                                                        item2.children[
+                                                            item3
+                                                        ].remark.hasOwnProperty(
+                                                            'dataHandleAuthority'
+                                                        )
+                                                    "
+                                                    )
+                                                >
+                                                    <v-select
+                                                        label="text"
+                                                        v-model="
+                                                            form[key1][key2]
+                                                                .children[item3]
+                                                                .remark
+                                                                .dataHandleAuthority
+                                                        "
+                                                        :reduce="
+                                                            (options) =>
+                                                                options.value
+                                                        "
+                                                        :options="
+                                                            item2.children[
+                                                                item3
+                                                            ].remark
+                                                                .dataHandleAuthority
+                                                                .options
+                                                        "
+                                                        style="
+                                                            min-width: 150px !important;
+                                                            height: 28px !important;
+                                                        "
+                                                        :multiple="
+                                                            item2.children[
+                                                                item3
+                                                            ].remark
+                                                                .dataHandleAuthority
+                                                                .multiple
+                                                        "
+                                                        :placeholder="
+                                                            item2.children[
+                                                                item3
+                                                            ].remark
+                                                                .dataHandleAuthority
+                                                                .placeholder
+                                                        "
+                                                        :searchable="false"
+                                                        :close-on-select="
+                                                            !item2.children[
+                                                                item3
+                                                            ].remark
+                                                                .dataHandleAuthority
+                                                                .multiple
+                                                        "
+                                                        class="haveremark"
+                                                    ></v-select>
+                                                </template>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <template v-else>
+                                        <template
+                                            v-if="
+                                                item2.hasOwnProperty('remark')
+                                            "
+                                        >
+                                            <div
+                                                v-for="(item3,
+                                                key3) in Object.keys(
+                                                    item2.remark
+                                                        .commonQueryCondition
+                                                )"
+                                                :key="key3"
+                                                class="haveremark"
+                                                style="
+                                                    margin-right: 10px;
+                                                    height: 28px !important;
+                                                "
+                                            >
+                                                <v-select
+                                                    label="text"
+                                                    v-model="
+                                                        form[key1][key2][item2]
+                                                            .remark
+                                                            .commonQueryCondition[
+                                                            item3
+                                                        ]
+                                                    "
+                                                    :reduce="
+                                                        (options) =>
+                                                            options.value
+                                                    "
+                                                    :options="
+                                                        item2.remark
+                                                            .commonQueryCondition[
+                                                            item3
+                                                        ].options
+                                                    "
+                                                    style="
+                                                        min-width: 150px !important;
+                                                        height: 28px !important;
+                                                    "
+                                                    :multiple="
+                                                        item2.remark
+                                                            .commonQueryCondition[
+                                                            item3
+                                                        ].multiple
+                                                    "
+                                                    :placeholder="
+                                                        item2.remark
+                                                            .commonQueryCondition[
+                                                            item3
+                                                        ].placeholder
+                                                    "
+                                                    :searchable="false"
+                                                    :close-on-select="
+                                                        !item2.remark
+                                                            .commonQueryCondition[
+                                                            item3
+                                                        ].multiple
+                                                    "
+                                                ></v-select>
+                                            </div>
+                                            <template
+                                                v-if="
+                                                    item2.remark.hasOwnProperty(
+                                                        'dataHandleAuthority'
+                                                    )
+                                                "
+                                                )
+                                            >
+                                                <v-select
+                                                    label="text"
+                                                    v-model="
+                                                        form[key1][key2][item2]
+                                                            .remark
+                                                            .dataHandleAuthority
+                                                    "
+                                                    :reduce="
+                                                        (options) =>
+                                                            options.value
+                                                    "
+                                                    :options="
+                                                        item2.remark
+                                                            .dataHandleAuthority
+                                                            .options
+                                                    "
+                                                    style="
+                                                        min-width: 150px !important;
+                                                        height: 28px !important;
+                                                    "
+                                                    :multiple="
+                                                        item2.remark
+                                                            .dataHandleAuthority
+                                                            .multiple
+                                                    "
+                                                    :placeholder="
+                                                        item2.remark
+                                                            .dataHandleAuthority
+                                                            .placeholder
+                                                    "
+                                                    :searchable="false"
+                                                    :close-on-select="
+                                                        !item2.remark
+                                                            .dataHandleAuthority
+                                                            .multiple
+                                                    "
+                                                    class="haveremark"
+                                                ></v-select>
+                                            </template>
+                                        </template>
+                                    </template>
+                                </b-col>
+                            </b-row>
                         </div>
                         <b-form-checkbox
                             switch
@@ -196,6 +394,7 @@
 
 <script>
 import { mapGetters, mapActions } from "vuex";
+import { mergeWith } from "lodash";
 export default {
     name: "systemForm",
     data() {
@@ -213,7 +412,6 @@ export default {
             selectOptions: "systemform/get_selectOptions",
             pageAccessConfig: "getlogin/get_pageAccessConfig",
             DEFAULT_pageAccess: "getlogin/get_DEFAULT_pageAccess",
-            pageAccessCH: "getlogin/get_pageAccessCH",
             systemFormResponse: "systemform/get_systemFormResponse",
         }),
         // styleObject() {
@@ -243,7 +441,13 @@ export default {
             var formdata = JSON.parse(JSON.stringify(vm.vforData));
             console.log(formdata);
             var formdataitem = {};
-            // var formdatastyle = {};
+
+            function customizer(objValue, srcValue) {
+                if (_.isArray(objValue)) {
+                    return objValue.concat(srcValue);
+                }
+            }
+
             for (var i = 0; i < Object.keys(formdata).length; i++) {
                 if (Object.values(formdata)[i].length == 2) {
                     if (Object.values(formdata)[i][0] == "accesscheckbox") {
@@ -264,26 +468,14 @@ export default {
                 } else if (Object.values(formdata)[i].length == 3) {
                     if (Object.values(formdata)[i][0] == "accesscheckbox") {
                         if (Object.keys(formdata)[i] === "accessList") {
-                            // if (Object.values(formdata)[i][2] === "ALL") {
-                            //     Object.keys(pageAccessobj).forEach(function (
-                            //         key
-                            //     ) {
-                            //         if (key == "todolist") {
-                            //             pageAccessobj[key]["status"] = true;
-                            //             pageAccessobj[key]["remark"] = "ALL";
-                            //         } else {
-                            //             pageAccessobj[key]["status"] = true;
-                            //         }
-                            //         pageAccessobj[key] = true;
-                            //     });
-                            //     formdataitem[
-                            //         Object.keys(formdata)[i]
-                            //     ] = pageAccessobj;
-                            // } else {
+                            mergeWith(
+                                pageAccessobj,
+                                Object.values(formdata)[i][2],
+                                customizer
+                            );
                             formdataitem[
                                 Object.keys(formdata)[i]
-                            ] = Object.values(formdata)[i][2];
-                            // }
+                            ] = pageAccessobj;
                         }
                     } else {
                         formdataitem[Object.keys(formdata)[i]] = Object.values(
@@ -314,9 +506,50 @@ export default {
             console.log(vm.form.accessList);
         },
 
-        accesscheckboxClick(event, item) {
+        accessCBFatherClick(event, item) {
             console.log(event);
             console.log(item);
+            let vm = this;
+            if (item.hasOwnProperty("children")) {
+                Object.keys(item.children).map((element) => {
+                    item.children[element].authority = event;
+                    vm.getThisAccessItem(event, item.children[element]);
+                });
+            } else {
+                item.authority = event;
+                vm.getThisAccessItem(event, item);
+            }
+        },
+
+        accessCBChildrenClick(event, fatheritem, thisitem) {
+            let vm = this;
+            if (fatheritem.hasOwnProperty("children")) {
+                //若打勾則將爸爸打勾
+                if (event) {
+                    fatheritem.authority = true;
+                } else {
+                    Object.keys(fatheritem.children).map((element) => {
+                        if (fatheritem.children[element].authority) {
+                        }
+                    });
+                    this.$nextTick(() => {
+                        const trueList = Object.keys(fatheritem.children)
+                            .map((item) => fatheritem.children[item])
+                            .filter(function (item, index) {
+                                console.log(item.authority);
+                                if (item.authority) {
+                                    return item.authority;
+                                }
+                            });
+                        console.log(trueList);
+                        if (trueList.length === 0) fatheritem.authority = false;
+                    });
+                }
+                vm.getThisAccessItem(event, fatheritem.children[thisitem]);
+            }
+        },
+
+        getThisAccessItem(event, item) {
             if (!event) {
                 if (item.hasOwnProperty("remark")) {
                     if (
@@ -350,7 +583,6 @@ export default {
                         item.remark.dataHandleAuthority = ["query"];
                 }
             }
-            console.log(item);
         },
 
         submit() {
@@ -385,5 +617,6 @@ export default {
 .haveremark {
     display: inline-block;
     margin-top: 5px;
+    margin-left: 5px;
 }
 </style>

@@ -3,7 +3,7 @@
         <div id="bluebg" class="mb-2">
             <b-row>
                 <b-col sm="1">
-                    <img src="../assets/todolist.png" />
+                    <img src="../../assets/todolist.png" />
                 </b-col>
                 <b-col class="title" sm="8">工作週報</b-col>
                 <b-col sm="3">
@@ -87,7 +87,7 @@
                             id="input-list-Group"
                             :options="
                                 getDataListFromDBTable['Group'][
-                                    pageAccess.weeklyreport.remark
+                                    pageAccess.report.children.weeklyreport.remark
                                         .commonQueryCondition.main
                                 ]
                             "
@@ -108,7 +108,7 @@
                             id="input-list-Item"
                             :options="
                                 getDataListFromDBTable['Item'][
-                                    pageAccess.weeklyreport.remark
+                                    pageAccess.report.children.weeklyreport.remark
                                         .commonQueryCondition.main
                                 ]
                             "
@@ -371,7 +371,7 @@
                                         :id="'input-list' + index"
                                         :options="
                                             getDataListFromDBTable[index][
-                                                pageAccess.weeklyreport.remark
+                                                pageAccess.report.children.weeklyreport.remark
                                                     .commonQueryCondition.main
                                             ]
                                         "
@@ -1054,7 +1054,7 @@ export default {
             var weeklyreportqueryoptions = [];
             var weeklyreportqueryselected = "ALL";
             if (
-                vm.pageAccess.weeklyreport.remark.commonQueryCondition.main ==
+                vm.pageAccess.report.children.weeklyreport.remark.commonQueryCondition.main ==
                 "ALL"
             ) {
                 weeklyreportqueryoptions = [
@@ -1073,26 +1073,26 @@ export default {
                     {
                         text:
                             vm.depConfig[
-                                vm.pageAccess.weeklyreport.remark
+                                vm.pageAccess.report.children.weeklyreport.remark
                                     .commonQueryCondition.main
                             ],
                         value: String(
-                            vm.pageAccess.weeklyreport.remark
+                            vm.pageAccess.report.children.weeklyreport.remark
                                 .commonQueryCondition.main
                         ),
                     },
                 ];
                 weeklyreportqueryselected =
-                    vm.pageAccess.weeklyreport.remark.commonQueryCondition.main;
+                    vm.pageAccess.report.children.weeklyreport.remark.commonQueryCondition.main;
                 vm.depOptions = [
                     {
                         text:
                             vm.depConfig[
-                                vm.pageAccess.weeklyreport.remark
+                                vm.pageAccess.report.children.weeklyreport.remark
                                     .commonQueryCondition.main
                             ],
                         value: String(
-                            vm.pageAccess.weeklyreport.remark
+                            vm.pageAccess.report.children.weeklyreport.remark
                                 .commonQueryCondition.main
                         ),
                     },
@@ -1204,14 +1204,14 @@ export default {
             let thiswhere = [];
             let thissymbols = [];
             if (
-                vm.pageAccess.weeklyreport.remark.commonQueryCondition.main ==
+                vm.pageAccess.report.children.weeklyreport.remark.commonQueryCondition.main ==
                 "ALL"
             ) {
                 thiswhere = Object.keys(vm.depConfig);
                 thissymbols = ["equal", "equal", "equal"];
             } else {
                 thiswhere.push(
-                    vm.pageAccess.weeklyreport.remark.commonQueryCondition.main
+                    vm.pageAccess.report.children.weeklyreport.remark.commonQueryCondition.main
                 );
                 thissymbols = ["equal"];
             }
@@ -1239,7 +1239,7 @@ export default {
                         } else {
                             //抓todoList
                             if (
-                                vm.pageAccess.weeklyreport.remark
+                                vm.pageAccess.report.children.weeklyreport.remark
                                     .commonQueryCondition.main != "ALL"
                             ) {
                                 vm.togglealertModal(true);
@@ -1275,7 +1275,7 @@ export default {
                     //console.log("done");
                     if (anyerror) vm.settimeoutalertModal();
                     if (
-                        vm.pageAccess.weeklyreport.remark.commonQueryCondition
+                        vm.pageAccess.report.children.weeklyreport.remark.commonQueryCondition
                             .main == "ALL"
                     )
                         vm.togglealertModal(false);
@@ -2319,7 +2319,7 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped src="../../public/css/vuelidateYS.css"></style>
+<style scoped src="../../../public/css/vuelidateYS.css"></style>
 <style scoped>
 #bluebg {
     min-height: 70px;

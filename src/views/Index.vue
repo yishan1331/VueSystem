@@ -33,107 +33,177 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
-                    <li class="nav-item">
-                        <router-link
-                            class="nav-link"
-                            v-show="pageAccess.misbulletinboard.authority"
-                            :to="'misbulletinboard'"
-                            >MIS公告區</router-link
-                        >
-                    </li>
-                    <li class="nav-item">
-                        <router-link
-                            class="nav-link"
-                            v-show="pageAccess.misbulletinmanage.authority"
-                            :to="'misbulletinmanage'"
-                            >MIS公告管理</router-link
-                        >
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a
-                            class="nav-link dropdown"
-                            role="button"
-                            v-show="
-                                pageAccess.structure.authority ||
-                                pageAccess.server.authority ||
-                                pageAccess.storage.authority
-                            "
-                            >系統架構</a
-                        >
+                    <li
+                        class="nav-item dropdown"
+                        v-if="
+                            pageAccess.hasOwnProperty('bulletin') &&
+                            pageAccess.bulletin.authority
+                        "
+                    >
+                        <a class="nav-link dropdown" role="button">系統公告</a>
                         <div class="dropdown-menu">
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.structure.authority"
-                                :to="'structure'"
+                                v-if="
+                                    pageAccess.bulletin.children.hasOwnProperty(
+                                        'board'
+                                    ) &&
+                                    pageAccess.bulletin.children.board.authority
+                                "
+                                :to="'/index/bulletin/board'"
+                                >公告區</router-link
+                            >
+                            <router-link
+                                class="nav-link"
+                                v-if="
+                                    pageAccess.bulletin.children.hasOwnProperty(
+                                        'manage'
+                                    ) &&
+                                    pageAccess.bulletin.children.manage
+                                        .authority
+                                "
+                                :to="'/index/bulletin/manage'"
+                                >公告管理</router-link
+                            >
+                        </div>
+                    </li>
+                    <li
+                        class="nav-item dropdown"
+                        v-if="
+                            pageAccess.hasOwnProperty('architecture') &&
+                            pageAccess.architecture.authority
+                        "
+                    >
+                        <a class="nav-link dropdown" role="button">系統架構</a>
+                        <div class="dropdown-menu">
+                            <router-link
+                                class="nav-link"
+                                v-if="
+                                    pageAccess.architecture.children.hasOwnProperty(
+                                        'structure'
+                                    ) &&
+                                    pageAccess.architecture.children.structure
+                                        .authority
+                                "
+                                :to="'/index/architecture/structure'"
                                 >架構圖</router-link
                             >
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.server.authority"
-                                :to="'server'"
+                                v-if="
+                                    pageAccess.architecture.children.hasOwnProperty(
+                                        'server'
+                                    ) &&
+                                    pageAccess.architecture.children.server
+                                        .authority
+                                "
+                                :to="'/index/architecture/server'"
                                 >伺服器狀態</router-link
                             >
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.storage.authority"
-                                :to="'storage'"
+                                v-if="
+                                    pageAccess.architecture.children.hasOwnProperty(
+                                        'storage'
+                                    ) &&
+                                    pageAccess.architecture.children.storage
+                                        .authority
+                                "
+                                :to="'/index/architecture/storage'"
                                 >儲存設備狀態</router-link
                             >
                         </div>
                     </li>
-                    <li class="nav-item dropdown">
-                        <a
-                            class="nav-link dropdown"
-                            role="button"
-                            v-show="
-                                pageAccess.todolist.authority ||
-                                pageAccess.weeklyreport.authority ||
-                                pageAccess.meetingminutes.authority
-                            "
-                            >報告</a
-                        >
+                    <li
+                        class="nav-item dropdown"
+                        v-if="
+                            pageAccess.hasOwnProperty('report') &&
+                            pageAccess.report.authority
+                        "
+                    >
+                        <a class="nav-link dropdown" role="button">報告</a>
                         <div class="dropdown-menu">
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.todolist.authority"
-                                :to="'todolist'"
+                                v-if="
+                                    pageAccess.report.children.hasOwnProperty(
+                                        'todolist'
+                                    ) &&
+                                    pageAccess.report.children.todolist
+                                        .authority
+                                "
+                                :to="'/index/report/todolist'"
                                 >待辦事項</router-link
                             >
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.weeklyreport.authority"
-                                :to="'weeklyreport'"
+                                v-if="
+                                    pageAccess.report.children.hasOwnProperty(
+                                        'weeklyreport'
+                                    ) &&
+                                    pageAccess.report.children.weeklyreport
+                                        .authority
+                                "
+                                :to="'/index/report/weeklyreport'"
                                 >工作週報</router-link
                             >
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.meetingminutes.authority"
-                                :to="'meetingminutes'"
+                                v-if="
+                                    pageAccess.report.children.hasOwnProperty(
+                                        'meetingminutes'
+                                    ) &&
+                                    pageAccess.report.children.meetingminutes
+                                        .authority
+                                "
+                                :to="'/index/report/meetingminutes'"
                                 >會議記錄</router-link
+                            >
+                            <router-link
+                                class="nav-link"
+                                v-if="
+                                    pageAccess.report.children.hasOwnProperty(
+                                        'sop'
+                                    ) &&
+                                    pageAccess.report.children.sop
+                                        .authority
+                                "
+                                :to="'/index/report/sop'"
+                                >SOP文件</router-link
                             >
                         </div>
                     </li>
-                    <li class="nav-item dropdown">
-                        <a
-                            class="nav-link dropdown"
-                            role="button"
-                            v-show="
-                                pageAccess.department.authority ||
-                                pageAccess.account.authority
-                            "
-                            >系統管理</a
-                        >
+                    <li
+                        class="nav-item dropdown"
+                        v-if="
+                            pageAccess.hasOwnProperty('management') &&
+                            pageAccess.management.authority
+                        "
+                    >
+                        <a class="nav-link dropdown" role="button">系統管理</a>
                         <div class="dropdown-menu">
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.department.authority"
-                                :to="'department'"
+                                v-if="
+                                    pageAccess.management.children.hasOwnProperty(
+                                        'department'
+                                    ) &&
+                                    pageAccess.management.children.department
+                                        .authority
+                                "
+                                :to="'/index/management/department'"
                                 >部門</router-link
                             >
                             <router-link
                                 class="nav-link"
-                                v-show="pageAccess.account.authority"
-                                :to="'account'"
+                                v-if="
+                                    pageAccess.management.children.hasOwnProperty(
+                                        'account'
+                                    ) &&
+                                    pageAccess.management.children.account
+                                        .authority
+                                "
+                                :to="'/index/management/account'"
                                 >帳號</router-link
                             >
                         </div>
@@ -300,6 +370,7 @@ export default {
     created: function () {
         this.getNow();
         console.log(this.pageAccess);
+        console.log(this.$router);
     },
     components: {
         modal,

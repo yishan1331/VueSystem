@@ -12,7 +12,7 @@ echo json_encode($postdata);
 function downloadFromSMB($data)
 {
     $targetDir = "../../../tempfiles/";
-    $smbRootDir = "100.智能製造事業群/01.共用資源/01會議記錄/" . $data->path;
+    $smbRootDir = "01.公告區/" . $data->path;
     //先去88.100下載回本機
     exec("smbclient -c 'lcd $targetDir;get \"$data->file\"' //192.168.88.100/sapidofile/ -D \"$smbRootDir\" -U mis_system%sapido123", $output, $return_var);
     if (!$return_var) {
@@ -39,7 +39,7 @@ function deleteFileFromLocalhost($data)
 
 function getSMBFoldersList($data)
 {
-    $smbRootDir = "100.智能製造事業群/01.共用資源/01會議記錄/" . $data;
+    $smbRootDir = "01.公告區/" . $data;
     $returnObj = new stdClass();
     exec("smbclient -c 'ls' //192.168.88.100/sapidofile/ -D \"$smbRootDir\" -U mis_system%sapido123", $output, $return_var);
     if (!$return_var) {
@@ -63,7 +63,7 @@ function getSMBFoldersList($data)
 
 function addNewSMBFolder($data)
 {
-    $smbRootDir = "100.智能製造事業群/01.共用資源/01會議記錄/" . $data->path;
+    $smbRootDir = "01.公告區/" . $data->path;
     $newFolderName = $data->foldername;
     exec("smbclient -c 'mkdir \"$newFolderName\"' //192.168.88.100/sapidofile/ -D \"$smbRootDir\" -U mis_system%sapido123", $output, $return_var);
     if (!$return_var) {

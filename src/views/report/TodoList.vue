@@ -3,7 +3,7 @@
         <div id="bluebg" class="mb-2">
             <b-row>
                 <b-col sm="1">
-                    <img src="../assets/todolist.png" />
+                    <img src="../../assets/todolist.png" />
                 </b-col>
                 <b-col class="title" sm="8">待辦事項清單</b-col>
                 <b-col sm="3">
@@ -733,7 +733,7 @@ export default {
             var todolistqueryoptions = [];
             var todolistqueryselected = "ALL";
             if (
-                vm.pageAccess.todolist.remark.commonQueryCondition.main == "ALL"
+                vm.pageAccess.report.children.todolist.remark.commonQueryCondition.main == "ALL"
             ) {
                 todolistqueryoptions = [
                     { text: "雲端AI(智慧)平台部", value: "1003" },
@@ -746,17 +746,17 @@ export default {
                     {
                         text:
                             vm.depConfig[
-                                vm.pageAccess.todolist.remark
+                                vm.pageAccess.report.children.todolist.remark
                                     .commonQueryCondition.main
                             ],
                         value: String(
-                            vm.pageAccess.todolist.remark.commonQueryCondition
+                            vm.pageAccess.report.children.todolist.remark.commonQueryCondition
                                 .main
                         ),
                     },
                 ];
                 todolistqueryselected =
-                    vm.pageAccess.todolist.remark.commonQueryCondition.main;
+                    vm.pageAccess.report.children.todolist.remark.commonQueryCondition.main;
             }
             let obj = JSON.parse(JSON.stringify(vm.DEFAULT_inputData));
             obj.options = todolistqueryoptions;
@@ -823,13 +823,13 @@ export default {
             let thiswhere = [];
             let thissymbols = [];
             if (
-                vm.pageAccess.todolist.remark.commonQueryCondition.main == "ALL"
+                vm.pageAccess.report.children.todolist.remark.commonQueryCondition.main == "ALL"
             ) {
                 thiswhere = Object.keys(vm.depConfig);
                 thissymbols = ["equal", "equal", "equal"];
             } else {
                 thiswhere.push(
-                    vm.pageAccess.todolist.remark.commonQueryCondition.main
+                    vm.pageAccess.report.children.todolist.remark.commonQueryCondition.main
                 );
                 thissymbols = ["equal"];
             }
@@ -857,7 +857,7 @@ export default {
                         } else {
                             //抓todoList
                             if (
-                                vm.pageAccess.todolist.remark
+                                vm.pageAccess.report.children.todolist.remark
                                     .commonQueryCondition.main != "ALL"
                             ) {
                                 vm.togglealertModal(true);
@@ -894,7 +894,7 @@ export default {
                     console.log("done");
                     if (anyerror) vm.settimeoutalertModal();
                     if (
-                        vm.pageAccess.todolist.remark.commonQueryCondition
+                        vm.pageAccess.report.children.todolist.remark.commonQueryCondition
                             .main == "ALL"
                     )
                         vm.togglealertModal(false);
@@ -1288,7 +1288,7 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped src="../../public/css/vuelidateYS.css"></style>
+<style scoped src="../../../public/css/vuelidateYS.css"></style>
 <style scoped>
 #bluebg {
     min-height: 70px;

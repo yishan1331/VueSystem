@@ -84,107 +84,161 @@ export default {
         }),
         checkUser(e) {
             var vm = this;
-            // if (vm.user.uID === "") {
-            //     vm.setTimeOutAlertMsg("帳號尚未輸入");
-            //     vm.settimeoutalertModal();
-            //     return;
-            // }
-            // vm.togglealertModal(true);
-            // var params = {};
-            // params["methods"] = "GET";
-            // params["whichFunction"] = "Login";
-            // params["uID"] = vm.user.uID;
-            // vm.axiosAction(params).then(() => {
-            //     vm.togglealertModal(false);
-            //     var result = vm.axiosResult;
-            //     console.log(result);
-            //     console.log(result["QueryTableData"][0].accessList);
-            //     console.log(JSON.stringify(result));
-            //     if (result["Response"] != "ok") {
-            //         vm.setTimeOutAlertMsg(result["Response"]);
-            //         vm.settimeoutalertModal();
-            //     } else {
-            //         if (result["QueryTableData"].length === 0) {
-            //             vm.setTimeOutAlertMsg("查無此帳號");
-            //             vm.settimeoutalertModal();
-            //             return;
-            //         }
-            //         if (vm.user.pwd === result["QueryTableData"][0].pwd) {
-            //             vm.setTimeOutAlertMsg("登入成功");
-            //             vm.settimeoutalertModal();
-            //             var obj = {};
-            //             obj.account = vm.user.uID;
-            //             obj.status = true;
-            //             obj.username = result["QueryTableData"][0].uName;
-            //             obj.accesslist = result["QueryTableData"][0].accessList;
-            //             var access = result["QueryTableData"][0].accessList;
-            //             let trueList = [];
-            //             Object.entries(access).forEach((element) => {
-            //                 console.log(element);
-            //                 if (element[1]["authority"]) trueList.push(element[0]);
-            //             });
-            //             console.log(trueList);
-            //             trueList.push("home");
-            //             childRouter[0].children = childRouter[0].children.filter(
-            //                 (item) => trueList.includes(item.path)
-            //             );
-            //             vm.change_pageAccess(access);
-            //             console.log(childRouter);
-            //             vm.$router.addRoutes(childRouter);
-            //             vm.change_loginData(obj);
-            //             console.log(vm.$router);
-            //             setTimeout(function () {
-            //                 vm.$router.push("/index");
-            //             }, 900);
-            //         } else {
-            //             vm.setTimeOutAlertMsg("帳號或密碼錯誤");
-            //             vm.settimeoutalertModal();
-            //         }
-            //     }
-            // });
+            if (vm.user.uID === "") {
+                vm.setTimeOutAlertMsg("帳號尚未輸入");
+                vm.settimeoutalertModal();
+                return;
+            }
+            vm.togglealertModal(true);
+            var params = {};
+            params["methods"] = "GET";
+            params["whichFunction"] = "Login";
+            params["uID"] = vm.user.uID;
+            vm.axiosAction(params).then(() => {
+                vm.togglealertModal(false);
+                var result = vm.axiosResult;
+                console.log(result);
+                console.log(result["QueryTableData"][0].accessList);
+                console.log(JSON.stringify(result));
+                if (result["Response"] != "ok") {
+                    vm.setTimeOutAlertMsg(result["Response"]);
+                    vm.settimeoutalertModal();
+                } else {
+                    if (result["QueryTableData"].length === 0) {
+                        vm.setTimeOutAlertMsg("查無此帳號");
+                        vm.settimeoutalertModal();
+                        return;
+                    }
+                    if (vm.user.pwd === result["QueryTableData"][0].pwd) {
+                        vm.setTimeOutAlertMsg("登入成功");
+                        vm.settimeoutalertModal();
+                        var obj = {};
+                        obj.account = vm.user.uID;
+                        obj.status = true;
+                        obj.username = result["QueryTableData"][0].uName;
+                        obj.accesslist = result["QueryTableData"][0].accessList;
+                        var access = result["QueryTableData"][0].accessList;
+                        let trueList = [];
+                        Object.entries(access).forEach((element) => {
+                            if (element[1]["authority"]) {
+                                if (element[1].hasOwnProperty("children")) {
+                                    Object.keys(element[1].children).map(
+                                        (item) => {
+                                            if (
+                                                element[1].children[item]
+                                                    .authority
+                                            ) {
+                                                trueList.push(
+                                                    element[0] + "/" + item
+                                                );
+                                            }
+                                        }
+                                    );
+                                } else {
+                                    trueList.push(element[0]);
+                                }
+                            }
+                        });
+                        console.log(trueList);
+                        trueList.push("home");
+                        childRouter[0].children = childRouter[0].children.filter(
+                            (item) => trueList.includes(item.path)
+                        );
+                        vm.change_pageAccess(access);
+                        console.log(childRouter);
+                        vm.$router.addRoutes(childRouter);
+                        vm.change_loginData(obj);
+                        console.log(vm.$router);
+                        setTimeout(function () {
+                            vm.$router.push("/index");
+                        }, 900);
+                    } else {
+                        vm.setTimeOutAlertMsg("帳號或密碼錯誤");
+                        vm.settimeoutalertModal();
+                    }
+                }
+            });
             //===========================測試用===========================//
-            var obj = {};
-            obj.account = 2493;
-            obj.status = true;
-            obj.username = "admin";
-            obj.accesslist = {
-                misbulletinboard: { authority: true },
-                department: { authority: true },
-                account: { authority: true },
-                misbulletinmanage: { authority: true },
-                structure: { authority: true },
-                server: { authority: true },
-                storage: { authority: true },
-                todolist: {
-                    authority: true,
-                    remark: {
-                        commonQueryCondition: "ALL",
-                        dataHandleAuthority: [
-                            "query",
-                            "modify",
-                            "delete",
-                            "add",
-                        ],
-                    },
-                },
-                weeklyreport: { authority: true, remark: "1003" },
-                meetingminutes: {
-                    authority: true,
-                    remark: {
-                        commonQueryCondition: { main: ["1003","common"], secondary: "supervisor" },
-                        dataHandleAuthority: ["query", "delete", "add"],
-                    },
-                },
-            };
-            vm.change_loginData(obj);
-            vm.change_pageAccess(obj.accesslist);
-            console.log(childRouter);
-            vm.$router.addRoutes(childRouter);
-            vm.change_loginData(obj);
-            console.log(vm.$router);
-            setTimeout(function () {
-                vm.$router.push("/index");
-            }, 900);
+            // var obj = {};
+            // obj.account = 2493;
+            // obj.status = true;
+            // obj.username = "admin";
+            // obj.accesslist = {
+            //     bulletin: {
+            //         authority: true,
+            //         children: {
+            //             board: { authority: true },
+            //             manage: { authority: true },
+            //         },
+            //     },
+            //     management: {
+            //         authority: true,
+            //         children: {
+            //             department: { authority: true },
+            //             account: { authority: true },
+            //         },
+            //     },
+            //     architecture: {
+            //         authority: true,
+            //         children: {
+            //             structure: { authority: true },
+            //             server: { authority: true },
+            //             storage: { authority: true },
+            //         },
+            //     },
+            //     report: {
+            //         authority: true,
+            //         children: {
+            //             todolist: {
+            //                 authority: true,
+            //                 remark: { commonQueryCondition: { main: "ALL" } },
+            //             },
+            //             weeklyreport: {
+            //                 authority: true,
+            //                 remark: { commonQueryCondition: { main: "ALL" } },
+            //             },
+            //             meetingminutes: {
+            //                 authority: true,
+            //                 remark: {
+            //                     commonQueryCondition: {
+            //                         main: ["1003", "1002", "1001", "common"],
+            //                         secondary: "supervisor",
+            //                     },
+            //                     dataHandleAuthority: [
+            //                         "query",
+            //                         "modify",
+            //                         "delete",
+            //                         "add",
+            //                     ],
+            //                 },
+            //             },
+            //             sop: {
+            //                 authority: true,
+            //                 remark: {
+            //                     commonQueryCondition: {
+            //                         main: "1003",
+            //                         secondary: "supervisor",
+            //                     },
+            //                     dataHandleAuthority: [
+            //                         "query",
+            //                         "modify",
+            //                         "delete",
+            //                         "add",
+            //                     ],
+            //                 },
+            //             },
+            //         },
+            //     },
+            // };
+            // vm.change_loginData(obj);
+            // vm.change_pageAccess(obj.accesslist);
+            // console.log(childRouter);
+            // vm.$router.addRoutes(childRouter);
+            // vm.change_loginData(obj);
+            // console.log(vm.$router);
+            // setTimeout(function () {
+            //     vm.$router.push("/index");
+            // }, 900);
             //===========================測試用===========================//
         },
     },

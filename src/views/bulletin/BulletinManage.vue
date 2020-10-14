@@ -1,5 +1,5 @@
 <template>
-    <div class="MISBulletinManage container">
+    <div class="BulletinManage container">
         <commonQuery v-if="tabIndex != 0" />
         <b-card no-body>
             <b-tabs card v-model="tabIndex">
@@ -375,7 +375,7 @@ const jsonvalidator = (jsonData) => {
     return status;
 };
 export default {
-    name: "MISBulletinManage",
+    name: "BulletinManage",
     data() {
         return {
             tabIndex: 0,
@@ -1373,7 +1373,7 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped src="../../public/css/vuelidateYS.css"></style>
+<style scoped src="../../../public/css/vuelidateYS.css"></style>
 <style scoped>
 .custom-select {
     width: 200px !important;

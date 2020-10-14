@@ -8,7 +8,7 @@
                 <b-button
                     pill
                     v-if="
-                        pageAccess.meetingminutes.remark.dataHandleAuthority.includes(
+                        pageAccess.report.children.meetingminutes.remark.dataHandleAuthority.includes(
                             'add'
                         )
                     "
@@ -36,7 +36,7 @@
         <b-tabs v-model="tabIndex">
             <b-tab
                 v-if="
-                    pageAccess.meetingminutes.remark.dataHandleAuthority.includes(
+                    pageAccess.report.children.meetingminutes.remark.dataHandleAuthority.includes(
                         'query'
                     )
                 "
@@ -50,10 +50,10 @@
             </b-tab>
             <b-tab
                 v-if="
-                    pageAccess.meetingminutes.remark.dataHandleAuthority.includes(
+                    pageAccess.report.children.meetingminutes.remark.dataHandleAuthority.includes(
                         'modify'
                     ) ||
-                    pageAccess.meetingminutes.remark.dataHandleAuthority.includes(
+                    pageAccess.report.children.meetingminutes.remark.dataHandleAuthority.includes(
                         'delete'
                     )
                 "
@@ -551,13 +551,13 @@ export default {
                     value: "filename",
                     download: {
                         location: "onDownload",
-                        path: "./meetingminutesfiles/",
+                        path: "./tempfiles/",
                     },
                 },
             },
             actionConfig: {
                 edit: {
-                    authority: vm.pageAccess.meetingminutes.remark.dataHandleAuthority.includes(
+                    authority: vm.pageAccess.report.children.meetingminutes.remark.dataHandleAuthority.includes(
                         "modify"
                     ),
                     type: "modal",
@@ -565,7 +565,7 @@ export default {
                     goback: true,
                 },
                 del: {
-                    authority: vm.pageAccess.meetingminutes.remark.dataHandleAuthority.includes(
+                    authority: vm.pageAccess.report.children.meetingminutes.remark.dataHandleAuthority.includes(
                         "delete"
                     ),
                     location: "delAction",
@@ -662,7 +662,7 @@ export default {
             var vm = this;
             var meetingminutesqueryoptions = [];
             var meetingminutesqueryselected = "";
-            vm.pageAccess.meetingminutes.remark.commonQueryCondition.main.map(
+            vm.pageAccess.report.children.meetingminutes.remark.commonQueryCondition.main.map(
                 (item) => {
                     let thistext = "";
                     if (vm.depDetail.config.hasOwnProperty(item)) {
@@ -677,15 +677,15 @@ export default {
                 }
             );
             if (
-                vm.pageAccess.meetingminutes.remark.commonQueryCondition.main
-                    .length === 4
+                vm.pageAccess.report.children.meetingminutes.remark
+                    .commonQueryCondition.main.length === 4
             ) {
                 meetingminutesqueryoptions.push({ text: "全選", value: "ALL" });
                 meetingminutesqueryselected = "ALL";
             } else {
                 meetingminutesqueryselected = String(
-                    vm.pageAccess.meetingminutes.remark.commonQueryCondition
-                        .main[0]
+                    vm.pageAccess.report.children.meetingminutes.remark
+                        .commonQueryCondition.main[0]
                 );
             }
 
@@ -710,8 +710,8 @@ export default {
             };
             //若職位階級為員工則資料只抓取非機密資料
             if (
-                vm.pageAccess.meetingminutes.remark.commonQueryCondition
-                    .secondary === "employee"
+                vm.pageAccess.report.children.meetingminutes.remark
+                    .commonQueryCondition.secondary === "employee"
             ) {
                 let thiswhere = 0;
                 commonApiParams.customized = {
@@ -837,8 +837,8 @@ export default {
                 if (element.level) thislevel = true;
                 itemsobj["level"] = thislevel;
                 if (
-                    vm.pageAccess.meetingminutes.remark.dataHandleAuthority ==
-                    "query"
+                    vm.pageAccess.report.children.meetingminutes.remark
+                        .dataHandleAuthority == "query"
                 ) {
                     if (!element.level) {
                         vm.items.push(itemsobj);
@@ -869,6 +869,11 @@ export default {
             console.log(vm.form.path);
             let thispath = vm.form.root;
             if (this.form.files.length != 0) {
+                if (thispath === null) {
+                    vm.setTimeOutAlertMsg("尚未選擇根目錄");
+                    vm.settimeoutalertModal();
+                    return;
+                }
                 for (let i = 0; i < vm.form.path.length; i++) {
                     const element = vm.form.path[i];
                     if (element != null) {
@@ -1012,9 +1017,9 @@ export default {
 
         // //檔案預覽開啟頁面
         // previewfile(file) {
-        //     console.log("./meetingminutesfiles/" + file);
+        //     console.log("./tempfiles/" + file);
         //     window.open(
-        //         "./meetingminutesfiles/" + file,
+        //         "./tempfiles/" + file,
         //         "sapidoSystem",
         //         "sapidoSystem",
         //         "statusbar=no,scrollbars=yes,status=yes,resizable=yes"
@@ -1058,7 +1063,7 @@ export default {
                 console.log(file);
                 vm.alertProgressModal(true);
                 axios({
-                    url: "./meetingminutesfiles/" + file,
+                    url: "./tempfiles/" + file,
                     method: "GET",
                     responseType: "blob",
                     onDownloadProgress: function (progressEvent) {
@@ -1326,9 +1331,10 @@ export default {
             let vm = this;
             //根目錄更新(抓取有哪些根目錄可選擇)
             console.log(
-                vm.pageAccess.meetingminutes.remark.commonQueryCondition
+                vm.pageAccess.report.children.meetingminutes.remark
+                    .commonQueryCondition
             );
-            vm.pageAccess.meetingminutes.remark.commonQueryCondition.main.map(
+            vm.pageAccess.report.children.meetingminutes.remark.commonQueryCondition.main.map(
                 (item) => {
                     let thistext = "";
                     if (vm.depDetail.config.hasOwnProperty(item)) {
@@ -1514,12 +1520,14 @@ export default {
                                     }
                                 }
                             }
-                            if (which) {
-                                vm.form.path.push(null);
-                                vm.form.pathTree.push(smbFolder);
-                            } else {
-                                vm.addFolderItem.path.push(null);
-                                vm.addFolderItem.pathTree.push(smbFolder);
+                            if (smbFolder.length != 0) {
+                                if (which) {
+                                    vm.form.path.push(null);
+                                    vm.form.pathTree.push(smbFolder);
+                                } else {
+                                    vm.addFolderItem.path.push(null);
+                                    vm.addFolderItem.pathTree.push(smbFolder);
+                                }
                             }
                             resolve("ok");
                         } else if (response.data.Response == "無資料夾") {
@@ -1639,7 +1647,6 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped src="../../public/css/vuelidateYS.css"></style>
 <style scoped>
 .custom-select {
     width: 200px !important;

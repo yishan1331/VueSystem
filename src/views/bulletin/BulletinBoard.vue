@@ -1,5 +1,5 @@
 <template>
-    <div class="MISBulletinBoard container">
+    <div class="BulletinBoard container">
         <commonQuery />
         <br />
         <div id="board" style="width:100%;min-height:260px" v-if="boardtitle || items.length != 0">
@@ -114,7 +114,7 @@ import axios from "axios";
 import commonQuery from "@/components/commonQuery.vue";
 import { mapGetters, mapActions } from "vuex";
 export default {
-    name: "MISBulletinBoard",
+    name: "BulletinBoard",
     data() {
         return {
             fields: [
