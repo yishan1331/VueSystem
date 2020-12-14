@@ -95,7 +95,6 @@
                                 :disabled="VMItems[row.item.seq].length == 0"
                                 >查看VM</b-button
                             >
-                            <!-- :disabled="VMItems[row.item.seq].length != 0" -->
                             <b-tooltip
                                 :target="
                                     String(row.item.seq) +
@@ -404,7 +403,7 @@ export default {
             breadcrumbWhich: "Server",
             breadcrumbList: [
                 {
-                    text: "Server",
+                    text: "伺服器",
                     active: true,
                 },
             ],
@@ -446,7 +445,13 @@ export default {
                 "remark",
             ],
             serverFields: [
-                { key: "seq", label: "編號", sortable: true },
+                {
+                    key: "seq",
+                    label: "編號",
+                    sortable: true,
+                    tdClass: "w67px",
+                    thClass: "w67px",
+                },
                 { key: "status", label: "狀態", sortable: true },
                 { key: "type", label: "Type", sortable: true },
                 { key: "manufacturer", label: "製造商", sortable: false },
@@ -458,12 +463,18 @@ export default {
                 { key: "OS", label: "作業系統", sortable: false },
                 { key: "PM", label: "實體機", sortable: false },
                 { key: "note", label: "Note", sortable: false },
-                { key: "Action", label: "Action", sortable: false },
+                { key: "Action", label: "功能", sortable: false },
             ],
             serverItems: [],
             VMFields: [
                 // { key: "seq", label: "編號", sortable: true },
-                { key: "noumenonID", label: "隸屬server編號", sortable: true },
+                // {
+                //     key: "noumenonID",
+                //     label: "隸屬server編號",
+                //     sortable: true,
+                //     tdClass: "w67px",
+                //     thClass: "w67px",
+                // },
                 { key: "name", label: "VM名稱", sortable: false },
                 { key: "application", label: "用途", sortable: false },
                 { key: "OS", label: "作業系統", sortable: false },
@@ -488,7 +499,7 @@ export default {
                 { key: "systemLocation", label: "系統位置", sortable: false },
                 { key: "DM", label: "Disk保護機制", sortable: false },
                 { key: "remark", label: "備註", sortable: false },
-                { key: "Action", label: "Action", sortable: false },
+                { key: "Action", label: "功能", sortable: false },
             ],
             VMItems: {},
             vmList: [],
@@ -1153,14 +1164,14 @@ export default {
 
                 vm.fields = vm.VMFields;
                 vm.breadcrumbList[0]["active"] = false;
-                vm.breadcrumbList[0]["text"] = "Server_" + thisseq;
+                vm.breadcrumbList[0]["text"] = "伺服器_" + thisseq;
                 vm.breadcrumbList.push({ text: "VM", active: true });
                 vm.breadcrumbWhich = "VM";
             } else {
                 vm.items = vm.serverItems;
                 vm.fields = vm.serverFields;
                 vm.breadcrumbList[0]["active"] = true;
-                vm.breadcrumbList[0]["text"] = "Server";
+                vm.breadcrumbList[0]["text"] = "伺服器";
                 vm.breadcrumbList.splice(1, 1);
                 vm.breadcrumbWhich = "Server";
                 vm.thisVMBelong = null;
@@ -1174,11 +1185,11 @@ export default {
         breadcrumbClick(item, active, index) {
             let vm = this;
             console.log(item, active, index);
-            if (item.split("_")[0] == "Server") {
+            if (item.split("_")[0] == "伺服器") {
                 vm.items = vm.serverItems;
                 vm.fields = vm.serverFields;
                 vm.breadcrumbList[0]["active"] = true;
-                vm.breadcrumbList[0]["text"] = "Server";
+                vm.breadcrumbList[0]["text"] = "伺服器";
                 vm.breadcrumbList.splice(1, 1);
                 vm.breadcrumbWhich = "Server";
                 vm.thisVMBelong = null;
@@ -1375,7 +1386,7 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style scoped lang="scss">
 h5 {
     margin: 0 auto;
 }
@@ -1419,5 +1430,9 @@ h5 {
     transform: rotate(-45deg);
     top: 5px;
     left: 2px;
+}
+::v-deep .w67px {
+    width: 67px !important;
+    min-width: 67px !important;
 }
 </style>

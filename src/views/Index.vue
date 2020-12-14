@@ -12,7 +12,7 @@
             style="background-color: #7c93b6"
         >
             <div>
-                <router-link :to="'home'">
+                <router-link :to="'#'">
                     <img
                         class="navbar-brand"
                         src="../assets/sapidoLOGOw.png"
@@ -165,11 +165,33 @@
                                     pageAccess.report.children.hasOwnProperty(
                                         'sop'
                                     ) &&
-                                    pageAccess.report.children.sop
-                                        .authority
+                                    pageAccess.report.children.sop.authority
                                 "
                                 :to="'/index/report/sop'"
                                 >SOP文件</router-link
+                            >
+                        </div>
+                    </li>
+                    <li
+                        class="nav-item dropdown"
+                        v-if="
+                            pageAccess.hasOwnProperty('tool') &&
+                            pageAccess.tool.authority
+                        "
+                    >
+                        <a class="nav-link dropdown" role="button">工具</a>
+                        <div class="dropdown-menu">
+                            <router-link
+                                class="nav-link"
+                                v-if="
+                                    pageAccess.tool.children.hasOwnProperty(
+                                        'fileupdownload'
+                                    ) &&
+                                    pageAccess.tool.children.fileupdownload
+                                        .authority
+                                "
+                                :to="'/index/tool/fileupdownload'"
+                                >檔案上傳下載</router-link
                             >
                         </div>
                     </li>
@@ -334,6 +356,7 @@
                 </div>
             </template>
         </modal>
+
         <alertModal />
     </div>
 </template>
@@ -468,6 +491,7 @@ export default {
                 weekday: weekdays[time.getDay()],
             };
         },
+
         logout() {
             var vm = this;
             var obj = {};

@@ -81,6 +81,12 @@ const state = {
             }
 
         },
+        tool: {
+            authority: false,
+            children: {
+                fileupdownload: { "authority": false }
+            }
+        },
     },
     DEFAULT_pageAccess: {
         bulletin: {
@@ -144,6 +150,12 @@ const state = {
                         dataHandleAuthority: []
                     },
                 },
+            }
+        },
+        tool: {
+            authority: false,
+            children: {
+                fileupdownload: { "authority": false }
             }
         },
     },
@@ -279,6 +291,12 @@ const state = {
                 },
             }
         },
+        tool: {
+            label: "工具",
+            children: {
+                fileupdownload: { label: "暫時檔案上傳下載" }
+            }
+        }
     },
 };
 const getters = {

@@ -87,8 +87,8 @@
                             id="input-list-Group"
                             :options="
                                 getDataListFromDBTable['Group'][
-                                    pageAccess.report.children.weeklyreport.remark
-                                        .commonQueryCondition.main
+                                    pageAccess.report.children.weeklyreport
+                                        .remark.commonQueryCondition.main
                                 ]
                             "
                             v-model.trim="row.item.Group"
@@ -108,8 +108,8 @@
                             id="input-list-Item"
                             :options="
                                 getDataListFromDBTable['Item'][
-                                    pageAccess.report.children.weeklyreport.remark
-                                        .commonQueryCondition.main
+                                    pageAccess.report.children.weeklyreport
+                                        .remark.commonQueryCondition.main
                                 ]
                             "
                             v-model.trim="row.item.Item"
@@ -137,9 +137,10 @@
                     </div>
                 </template>
                 <template v-slot:cell(Status)="row">
-                    <div :class="{ hide: activeItemsSeq == row.item.seq }">
-                        {{ row.item.Status }}
-                    </div>
+                    <div
+                        :class="{ hide: activeItemsSeq == row.item.seq }"
+                        v-html="row.item.Status"
+                    ></div>
                     <div :class="{ hide: activeItemsSeq != row.item.seq }">
                         <b-form-input
                             class="input-text"
@@ -164,9 +165,10 @@
                     </div>
                 </template>
                 <template v-slot:cell(Action)="row">
-                    <div :class="{ hide: activeItemsSeq == row.item.seq }">
-                        {{ row.item.Action }}
-                    </div>
+                    <div
+                        :class="{ hide: activeItemsSeq == row.item.seq }"
+                        v-html="row.item.Action"
+                    ></div>
                     <div :class="{ hide: activeItemsSeq != row.item.seq }">
                         <b-form-input
                             class="input-text"
@@ -371,7 +373,8 @@
                                         :id="'input-list' + index"
                                         :options="
                                             getDataListFromDBTable[index][
-                                                pageAccess.report.children.weeklyreport.remark
+                                                pageAccess.report.children
+                                                    .weeklyreport.remark
                                                     .commonQueryCondition.main
                                             ]
                                         "
@@ -570,6 +573,7 @@
                 </div>
             </template>
         </b-modal>
+
         <!-- edit LongData modal -->
         <b-modal
             centered
@@ -958,6 +962,7 @@ export default {
                 }
             },
         },
+
         queryResponse: {
             handler() {
                 var vm = this;
@@ -995,6 +1000,7 @@ export default {
                 vm.getTaskList();
             },
         },
+
         addTaskWhich: {
             handler() {
                 var vm = this;
@@ -1054,8 +1060,8 @@ export default {
             var weeklyreportqueryoptions = [];
             var weeklyreportqueryselected = "ALL";
             if (
-                vm.pageAccess.report.children.weeklyreport.remark.commonQueryCondition.main ==
-                "ALL"
+                vm.pageAccess.report.children.weeklyreport.remark
+                    .commonQueryCondition.main == "ALL"
             ) {
                 weeklyreportqueryoptions = [
                     { text: "雲端AI(智慧)平台部", value: "1003" },
@@ -1073,8 +1079,8 @@ export default {
                     {
                         text:
                             vm.depConfig[
-                                vm.pageAccess.report.children.weeklyreport.remark
-                                    .commonQueryCondition.main
+                                vm.pageAccess.report.children.weeklyreport
+                                    .remark.commonQueryCondition.main
                             ],
                         value: String(
                             vm.pageAccess.report.children.weeklyreport.remark
@@ -1083,13 +1089,14 @@ export default {
                     },
                 ];
                 weeklyreportqueryselected =
-                    vm.pageAccess.report.children.weeklyreport.remark.commonQueryCondition.main;
+                    vm.pageAccess.report.children.weeklyreport.remark
+                        .commonQueryCondition.main;
                 vm.depOptions = [
                     {
                         text:
                             vm.depConfig[
-                                vm.pageAccess.report.children.weeklyreport.remark
-                                    .commonQueryCondition.main
+                                vm.pageAccess.report.children.weeklyreport
+                                    .remark.commonQueryCondition.main
                             ],
                         value: String(
                             vm.pageAccess.report.children.weeklyreport.remark
@@ -1168,15 +1175,17 @@ export default {
                         Group: element.groupID,
                         Item: element.item,
                         Date: { time: element.date },
-                        Status: vm.replaceContentData(
-                            String(element.status),
-                            false
-                        ),
+                        Status: element.status,
+                        // Status: vm.replaceContentData(
+                        //     String(element.status),
+                        //     false
+                        // ),
                         Progress: element.progress,
-                        Action: vm.replaceContentData(
-                            String(element.action),
-                            false
-                        ),
+                        Action: element.action,
+                        // Action: vm.replaceContentData(
+                        //     String(element.action),
+                        //     false
+                        // ),
                         Remark: element.remark,
                         Priority: element.priority,
                         Owner: String(element.owner),
@@ -1200,18 +1209,19 @@ export default {
             let vm = this;
             var params = {};
             params["methods"] = "POST";
-            params["whichFunction"] = "CommonSqlSyntaxQuery_";
+            params["whichFunction"] = "CommonSqlSyntaxQuery";
             let thiswhere = [];
             let thissymbols = [];
             if (
-                vm.pageAccess.report.children.weeklyreport.remark.commonQueryCondition.main ==
-                "ALL"
+                vm.pageAccess.report.children.weeklyreport.remark
+                    .commonQueryCondition.main == "ALL"
             ) {
                 thiswhere = Object.keys(vm.depConfig);
                 thissymbols = ["equal", "equal", "equal"];
             } else {
                 thiswhere.push(
-                    vm.pageAccess.report.children.weeklyreport.remark.commonQueryCondition.main
+                    vm.pageAccess.report.children.weeklyreport.remark
+                        .commonQueryCondition.main
                 );
                 thissymbols = ["equal"];
             }
@@ -1239,8 +1249,8 @@ export default {
                         } else {
                             //抓todoList
                             if (
-                                vm.pageAccess.report.children.weeklyreport.remark
-                                    .commonQueryCondition.main != "ALL"
+                                vm.pageAccess.report.children.weeklyreport
+                                    .remark.commonQueryCondition.main != "ALL"
                             ) {
                                 vm.togglealertModal(true);
                                 vm.queryAgain();
@@ -1275,8 +1285,8 @@ export default {
                     //console.log("done");
                     if (anyerror) vm.settimeoutalertModal();
                     if (
-                        vm.pageAccess.report.children.weeklyreport.remark.commonQueryCondition
-                            .main == "ALL"
+                        vm.pageAccess.report.children.weeklyreport.remark
+                            .commonQueryCondition.main == "ALL"
                     )
                         vm.togglealertModal(false);
                 });
@@ -1705,6 +1715,14 @@ export default {
                     delete item.seq;
                     delete item.depID;
                     item.Date = item.Date.time;
+                    item.Status = vm.replaceContentData(
+                        String(item.Status),
+                        false
+                    );
+                    item.Action = vm.replaceContentData(
+                        String(item.Action),
+                        false
+                    );
                     // item.depID = vm.depConfig[item.depID];
                     // //console.log(item.Owner);
                     let thisOwner = item.Owner.split(",");
@@ -1781,7 +1799,14 @@ export default {
                     thisdep = vm.depConfig[vm.inputData.selected];
                 }
                 //console.log(thisdep);
-                const fileName = thisdep + "的WeeklyReport_" + vm.nowFormat;
+                // const fileName = thisdep + "的WeeklyReport_" + vm.nowFormat;
+                const fileName =
+                    "Weekly Report_" +
+                    vm.thisweekday.join("-") +
+                    "_" +
+                    thisdep +
+                    "_" +
+                    vm.loginData.username;
                 vm.exportTitle = thisdep;
 
                 if (filetype === "CSV") {
@@ -2204,7 +2229,7 @@ export default {
                         //console.log(err);
                     });
             });
-            return body;
+            // return body;
         },
 
         getDivideNumber(countNum, indexNum, division, index) {

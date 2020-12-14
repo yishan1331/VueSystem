@@ -1,26 +1,67 @@
 <template>
     <div class="BulletinBoard container">
-        <commonQuery />
-        <br />
-        <div id="board" style="width:100%;min-height:260px" v-if="boardtitle || items.length != 0">
+        <b-row class="mb-3">
+            <b-col sm="3">
+                <h4>公告區</h4>
+            </b-col>
+            <b-col sm="9" class="text-right">
+                <div style="opacity: 0.5">
+                    <template v-if="collapseVisible">
+                        <b-icon
+                            icon="arrows-collapse"
+                            scale="1.5"
+                            @click="collapseVisible = !collapseVisible"
+                        ></b-icon>
+                    </template>
+                    <template v-else>
+                        <b-icon
+                            icon="arrows-expand"
+                            scale="1.5"
+                            @click="collapseVisible = !collapseVisible"
+                        ></b-icon>
+                    </template>
+                </div>
+            </b-col>
+        </b-row>
+        <b-collapse v-model="collapseVisible">
+            <b-row>
+                <b-col sm="12">
+                    <commonQuery />
+                </b-col>
+            </b-row>
+        </b-collapse>
+
+        <div
+            id="board"
+            style="width: 100%; min-height: 260px"
+            v-if="boardtitle || items.length != 0"
+        >
             <div class="card text-center">
-                <div class="card-header" style="font-size:20px">公告內容</div>
-                <div class="card-body" style="min-height:260px">
+                <div class="card-header" style="font-size: 20px">公告內容</div>
+                <div class="card-body" style="min-height: 260px">
                     <h5 class="card-title">{{ boardtitle }}</h5>
                     <pre
                         v-if="boardcontentPREUP != ''"
                         v-html="boardcontentPREUP.content"
-                        :style="[Object.keys(boardcontentPREUP).length !=1 ? checkContentStyle(boardcontentPREUP):{}]"
-                        style="font-size:1rem;text-align:left !important"
+                        :style="[
+                            Object.keys(boardcontentPREUP).length != 1
+                                ? checkContentStyle(boardcontentPREUP)
+                                : {},
+                        ]"
+                        style="font-size: 1rem; text-align: left !important"
                     ></pre>
                     <!-- :style condition https://stackoverflow.com/questions/48455909/condition-in-v-bindstyle-vuejs -->
                     <p
-                        v-for="(item,index) in boardcontentUP.content"
+                        v-for="(item, index) in boardcontentUP.content"
                         v-html="item"
                         :key="index"
                         class="card-text"
-                        :style="[Object.keys(boardcontentUP).length !=1 ? checkContentStyle(boardcontentUP):{}]"
-                        :class="{ textleft: item.length> 110 }"
+                        :style="[
+                            Object.keys(boardcontentUP).length != 1
+                                ? checkContentStyle(boardcontentUP)
+                                : {},
+                        ]"
+                        :class="{ textleft: item.length > 110 }"
                     ></p>
                     <b-table
                         responsive
@@ -30,47 +71,66 @@
                         :fields="contenfields"
                         :items="contentitems"
                         v-if="contentitems.length != 0"
-                        style="text-align:left"
+                        style="text-align: left"
                     ></b-table>
                     <p
-                        v-for="(item,index) in boardcontentDOWN.content"
+                        v-for="(item, index) in boardcontentDOWN.content"
                         v-html="item"
-                        :key="index+'_'"
+                        :key="index + '_'"
                         class="card-text"
-                        :style="[Object.keys(boardcontentDOWN).length !=1 ? checkContentStyle(boardcontentDOWN):{}]"
-                        :class="{ textleft: item.length> 110 }"
-                    >{{index}}</p>
+                        :style="[
+                            Object.keys(boardcontentDOWN).length != 1
+                                ? checkContentStyle(boardcontentDOWN)
+                                : {},
+                        ]"
+                        :class="{ textleft: item.length > 110 }"
+                    >
+                        {{ index }}
+                    </p>
                     <pre
                         v-if="boardcontentPREDOWN != ''"
                         v-html="boardcontentPREDOWN.content"
-                        :style="[Object.keys(boardcontentPREDOWN).length !=1 ? checkContentStyle(boardcontentPREDOWN):{}]"
-                        style="font-size:1rem;text-align:left !important"
+                        :style="[
+                            Object.keys(boardcontentPREDOWN).length != 1
+                                ? checkContentStyle(boardcontentPREDOWN)
+                                : {},
+                        ]"
+                        style="font-size: 1rem; text-align: left !important"
                     ></pre>
                 </div>
                 <div class="card-footer text-muted">
                     <div v-show="Object.keys(boardannex).length > 0">
                         <span>附件:</span>
                         <div
-                            v-for="(item, key,index) in boardannex"
+                            v-for="(item, key, index) in boardannex"
                             :key="index"
-                            style="display:inline-block;position: relative;margin-right:15px;margin-bottom:10px"
+                            style="
+                                display: inline-block;
+                                position: relative;
+                                margin-right: 15px;
+                                margin-bottom: 10px;
+                            "
                         >
                             <b-button
                                 pill
                                 variant="outline-info"
                                 target="_blank"
                                 @click.prevent="previewfile(item)"
-                            >{{key}}</b-button>
+                                >{{ key }}</b-button
+                            >
                             <div
                                 class="downloadfilebtn"
-                                @click="onDownload(item,key)"
+                                @click="onDownload(item, key)"
                                 target="_blank"
                             >
-                                <font-awesome-icon :icon="['fas', 'download']" size="lg" />
+                                <font-awesome-icon
+                                    :icon="['fas', 'download']"
+                                    size="lg"
+                                />
                             </div>
                         </div>
                     </div>
-                    <small class="mt-2">發佈日期: {{boardtime}}</small>
+                    <small class="mt-2">發佈日期: {{ boardtime }}</small>
                 </div>
             </div>
         </div>
@@ -152,6 +212,7 @@ export default {
                 PC: "個人電腦",
                 system: "系統",
             },
+            collapseVisible: false,
         };
     },
     created: function () {
@@ -210,6 +271,7 @@ export default {
                 }
                 vm.items = itemsarray;
                 vm.totalRows = itemsarray.length;
+                vm.collapseVisible = false;
             },
         },
     },
@@ -245,6 +307,7 @@ export default {
             commonApiParams.normal.attr = "category";
             vm.setapiParams(commonApiParams);
         },
+
         //查詢最新五筆
         LatestBulletinDataQuery() {
             var vm = this;
@@ -252,7 +315,7 @@ export default {
             vm.changetableBusy();
             var params = {};
             params["methods"] = "POST";
-            params["whichFunction"] = "CommonSqlSyntaxQuery_";
+            params["whichFunction"] = "CommonSqlSyntaxQuery";
             params["condition"] = {
                 condition_1: {
                     table: "misBulletin",
@@ -318,6 +381,7 @@ export default {
                     vm.settimeoutalertModal();
                 });
         },
+
         //表格點擊
         onRowClicked(items) {
             var vm = this;
@@ -340,6 +404,7 @@ export default {
             //     behavior: "smooth",
             // });
         },
+
         //附件下載
         onDownload(path, filename) {
             axios({
@@ -358,6 +423,7 @@ export default {
                 document.body.removeChild(fileLink);
             });
         },
+
         //檔案預覽開啟頁面
         previewfile(filepath) {
             window.open(
@@ -367,6 +433,7 @@ export default {
                 "statusbar=no,scrollbars=yes,status=yes,resizable=yes"
             );
         },
+
         //push到最新公告區
         setLatestBulletin(data) {
             console.log(data);
@@ -383,6 +450,7 @@ export default {
                 }
             }
         },
+
         //data reset
         reset(keep) {
             var def = this.$options.data();
@@ -392,6 +460,7 @@ export default {
             Object.assign(this.$data, def);
             //https://codepen.io/karimcossutti/pen/ObXyKq
         },
+
         setLatestBulletinContent(items) {
             let vm = this;
             console.log(items.content);
@@ -431,6 +500,7 @@ export default {
                 vm.boardcontentUP = temp;
             }
         },
+
         checkIsJsonData(jsonData) {
             let status = true;
             console.log(jsonData);
@@ -446,6 +516,7 @@ export default {
             console.log(status);
             return status;
         },
+
         checkContentStyle(style) {
             let temp = {};
             console.log(style);

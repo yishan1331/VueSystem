@@ -8,146 +8,28 @@
                 <b-button pill @click="toggleAddModal(true)" variant="success"
                     >新增</b-button
                 >
-                <!-- 將『選擇條件』功能隱藏，直接預設搜尋所有server join vm的資料 -->
-                <!-- <b-button
-                    v-show="false"
-                    class="ml-1"
-                    pill
-                    v-b-toggle.collapse-1
-                    variant="light"
-                >選擇條件</b-button>
-                <b-collapse id="collapse-1" v-model="commonqueryCollapseShow" class="mt-2">-->
                 <commonQuery v-show="false" />
-                <!-- </b-collapse> -->
             </b-col>
         </b-row>
+        <b-breadcrumb>
+            <b-breadcrumb-item
+                v-for="(item, index) in breadcrumbList"
+                :key="index"
+                :active="item.active"
+                @click="breadcrumbClick(item.text, item.active, index)"
+                >{{ item.text }}</b-breadcrumb-item
+            >
+        </b-breadcrumb>
         <b-tabs v-model="tabIndex">
             <b-tab title="查詢" active>
                 <h5 v-if="items.length == 0" class="mt-2">查無資料</h5>
                 <commonTable v-else></commonTable>
-                <!-- <b-table
-                    v-else
-                    ref="queryTable"
-                    id="queryTable"
-                    sticky-header="650px"
-                    responsive
-                    :items="items"
-                    :fields="fields"
-                    head-variant="light"
-                    class="mt-2"
-                >
-                    <template
-                        v-slot:[getHeaderSlot(data)]="row"
-                        v-for="(data, key) in slotList"
-                    >
-                        <div :key="key" style="position: relative">
-                            {{ row.label }}
-                            <div
-                                class="deletefilebtn"
-                                v-if="slotList.length > 1"
-                                @click.prevent="removeHeaderFields(key)"
-                            ></div>
-                        </div>
-                    </template>
-                    <template
-                        v-slot:[getCellSlot(data)]="row"
-                        v-for="(data, key) in slotList"
-                    >
-                        <div
-                            :key="String(row.item.seq) + '_' + String(key)"
-                            v-html="row.item[data]"
-                        ></div>
-                    </template>
-                </b-table> -->
             </b-tab>
-            <b-tab title="編輯">
+            <b-tab title="編輯" v-if="breadcrumbWhich != 'Species'">
                 <h5 v-if="items.length == 0" class="card-title mt-2">
                     查無資料
                 </h5>
                 <commonTable v-else></commonTable>
-                <!-- <b-table
-                    v-else
-                    ref="editTable"
-                    id="editTable"
-                    sticky-header="550px"
-                    responsive
-                    :items="items"
-                    :fields="fields"
-                    head-variant="light"
-                    class="mt-2"
-                >
-                    Yishan 09162020 Dynamic Slot https://stackoverflow.com/questions/58140842/vue-and-bootstrap-vue-dynamically-use-slots/58143362#58143362
-                    <template
-                        v-slot:[getCellSlot(data)]="row"
-                        v-for="(data, key) in slotList"
-                    >
-                        <div
-                            :key="String(row.item.seq) + '_' + String(key)"
-                            :class="{ hide: activeItemsSeq == row.item.seq }"
-                            v-html="row.item[data]"
-                        ></div>
-                        <div
-                            :key="String(row.item.seq) + '__' + String(key)"
-                            :class="{ hide: activeItemsSeq != row.item.seq }"
-                        >
-                            <b-form-input
-                                v-if="data == 'size' || data == 'subSize'"
-                                type="number"
-                                v-model="row.item[data]"
-                                min="0"
-                                step="20"
-                            ></b-form-input>
-                            <b-form-input
-                                v-else
-                                class="input-text"
-                                type="text"
-                                v-model="row.item[data]"
-                                @click="editLongData(row, data, true)"
-                            ></b-form-input>
-                        </div>
-                    </template>
-                    <template v-slot:cell(Action)="row">
-                        <template v-if="activeItemsSeq != row.item.seq">
-                            <b-button
-                                v-if="activeItemsSeq == null"
-                                @click="
-                                    activeItemsSeq = row.item.seq;
-                                    tempOldItemAction(true, row.item);
-                                "
-                                >編輯</b-button
-                            >
-                            <b-button v-else disabled>編輯</b-button>
-                            <b-button
-                                v-if="activeItemsSeq == null"
-                                variant="danger"
-                                @click="toggleDelModal(true, row.item.seq)"
-                                style="margin-left: 10px"
-                                >刪除</b-button
-                            >
-                            <b-button
-                                v-else
-                                disabled
-                                variant="danger"
-                                style="margin-left: 10px"
-                                >刪除</b-button
-                            >
-                        </template>
-                        <template v-else-if="activeItemsSeq == row.item.seq">
-                            <b-button @click="modAction(row.item)"
-                                >完成編輯</b-button
-                            >
-                            <b-button
-                                variant="light"
-                                @click="
-                                    activeItemsSeq = null;
-                                    tempOldItemAction(false, row.item);
-                                "
-                                style="margin-left: 10px"
-                                >取消</b-button
-                            >
-                        </template>
-                    </template>
-                </b-table> -->
             </b-tab>
         </b-tabs>
 
@@ -167,70 +49,6 @@
                         class="float-right"
                         @click.prevent="toggleAddModal(false)"
                         >Close</b-button
-                    >
-                </div>
-            </template>
-        </modal>
-
-        <!-- edit LongData modal -->
-        <modal v-if="editActionModalShow">
-            <template v-slot:default>
-                <div class="d-block text-center">
-                    <b-form-textarea
-                        ref="editlongdata"
-                        v-model="editActionItems.Data"
-                        rows="6"
-                        max-rows="12"
-                    ></b-form-textarea>
-                </div>
-            </template>
-            <template v-slot:modalfooter>
-                <div class="w-100">
-                    <b-button
-                        variant="light"
-                        size="sm"
-                        class="float-right"
-                        @click.prevent="
-                            editActionModalShow = false;
-                            togglecommonModal(false);
-                        "
-                        >Close</b-button
-                    >
-                    <b-button
-                        variant="success"
-                        size="sm"
-                        class="float-right"
-                        style="margin-right: 10px"
-                        @click.prevent="editLongData(null, null, false)"
-                        >確定</b-button
-                    >
-                </div>
-            </template>
-        </modal>
-
-        <!-- 刪除事項modal -->
-        <modal v-if="delModalShow">
-            <template v-slot:default>
-                <div class="d-block text-center">
-                    <h3>確定要刪除嗎？</h3>
-                </div>
-            </template>
-            <template v-slot:modalfooter>
-                <div class="w-100">
-                    <b-button
-                        variant="light"
-                        size="sm"
-                        class="float-right"
-                        @click.prevent="toggleDelModal(false, null)"
-                        >Close</b-button
-                    >
-                    <b-button
-                        variant="success"
-                        size="sm"
-                        class="float-right"
-                        style="margin-right: 10px"
-                        @click.prevent="delAction()"
-                        >確定刪除</b-button
                     >
                 </div>
             </template>
@@ -259,19 +77,7 @@ export default {
     data() {
         return {
             tabIndex: 0,
-            commonqueryCollapseShow: false,
             addModalShow: false,
-            delModalShow: false,
-            vmListModalShow: false,
-            slotList: [
-                "species",
-                "type",
-                "name",
-                "size",
-                "subSize",
-                "note",
-                "IP",
-            ],
             fields: [
                 // { key: "seq", label: "編號", sortable: true },
                 { key: "species", label: "種類", sortable: true },
@@ -281,18 +87,24 @@ export default {
                 { key: "subSize", label: "SUB SIZE(GB)", sortable: false },
                 { key: "note", label: "內容說明", sortable: false },
                 { key: "IP", label: "對應的server IP", sortable: false },
-                { key: "Action", label: "Action", sortable: false },
+                {
+                    key: "Action",
+                    label: "功能",
+                    sortable: false,
+                    tdClass: "w150px",
+                    thClass: "w150px",
+                },
             ],
             items: [],
-            activeItemsSeq: null,
-            delItemSeq: null,
-            tempThisOldItem: {},
-            editActionModalShow: false,
-            editActionItems: {
-                seq: null,
-                Data: "",
-                which: "",
-            },
+            speciesItem: {},
+            childrenLen: {},
+            breadcrumbWhich: "Species",
+            breadcrumbList: [
+                {
+                    text: "種類",
+                    active: true,
+                },
+            ],
             commonTableSlotConfig: {
                 slotConfig: {
                     species: {
@@ -353,15 +165,22 @@ export default {
                     },
                 },
                 actionConfig: {
+                    query: {
+                        location: "toggleItems",
+                        Species: { havedata: "查看", nodata: "查無資料" },
+                    },
                     edit: {
+                        authority: true,
                         type: "self",
                         location: "modAction",
                     },
                     del: {
+                        authority: true,
                         location: "delAction",
                         delfield: ["seq"],
                     },
                 },
+                selectable: false,
             },
         };
     },
@@ -402,27 +221,20 @@ export default {
     watch: {
         tabIndex: {
             handler(value) {
-                this.reset(["tabIndex", "items"]);
-                if (value === 0) this.fields.splice(7, 1);
-                this.settableInWhichTabIndex(value);
-                this.settableDetail({
-                    items: this.items,
-                    fields: this.fields,
+                this.reset([
+                    "tabIndex",
+                    "speciesItem",
+                    "childrenLen",
+                    "items",
+                    "fields",
+                    "breadcrumbWhich",
+                    "breadcrumbList",
+                ]);
+                console.log(this.breadcrumbWhich);
+                this.settableInWhichTab({
+                    index: value,
+                    which: this.breadcrumbWhich,
                 });
-                // this.$nextTick(() => {
-                //     //等渲染完畢才執行
-                //     if (this.items.length != 0) {
-                //         if (value === 0) {
-                //             //表格scroll移至最左
-                //             this.$refs.commonTable.$el.scrollLeft = 0;
-                //         } else {
-                //             //表格scroll移至最右
-                //             this.$refs.commonTable.$el.scrollLeft = document.getElementById(
-                //                 "commonTable"
-                //             ).scrollWidth;
-                //         }
-                //     }
-                // });
             },
         },
         systemFormCompletedData: {
@@ -439,7 +251,7 @@ export default {
                 var vm = this;
                 vm.togglealertModal(false);
                 console.log("////////////////////////////");
-                vm.reset(["tabIndex"]);
+                vm.reset(["tabIndex", "breadcrumbWhich", "breadcrumbList"]);
                 // // vm.changetableBusy();
                 if (
                     vm.queryResponse == "查無資料" ||
@@ -479,7 +291,7 @@ export default {
             setcommonModalConfig: "usemodal/set_commonModalConfig",
             settableSlotConfig: "commontable/set_tableSlotConfig",
             settableDetail: "commontable/set_tableDetail",
-            settableInWhichTabIndex: "commontable/set_tableInWhichTabIndex",
+            settableInWhichTab: "commontable/set_tableInWhichTab",
             setactiveItemsSeq: "commontable/set_activeItemsSeq",
         }),
 
@@ -674,7 +486,6 @@ export default {
                     //console.log("done");
                     vm.togglealertModal(false);
                     vm.settimeoutalertModal();
-                    vm.toggleDelModal(false, null);
                     vm.queryAgain();
                 });
         },
@@ -683,10 +494,12 @@ export default {
             let vm = this;
             vm.togglealertModal(true);
             let itemsobj = {};
+            let speciesitemsobj = {};
+            let children = {};
             let temp = [
                 {
                     name: "Temp",
-                    lastUpdateTime: "2020-09-25 11:20:08",
+                    lastUpdateTime: "2020-09-29 10:47:33",
                     IP: "",
                     subSize: 0,
                     species: "NAS",
@@ -882,20 +695,6 @@ export default {
                     seq: 1,
                     size: 200,
                 },
-                {
-                    name: "VM&nbsp;storage(88-20-VMStorage)",
-                    lastUpdateTime: "2020-09-25 11:20:08",
-                    IP: "192.168.88.20",
-                    subSize: 0,
-                    species: "NAS",
-                    note:
-                        "含VM(IP-192.168.88.10)長榮保全測試主機及其他儲存資料",
-                    creatorID: 2521,
-                    type: "LUN",
-                    createTime: "2020-09-22 18:22:37",
-                    seq: 0,
-                    size: 1000,
-                },
             ];
             // temp.forEach((element) => {
             vm.queryResponse.forEach((element) => {
@@ -914,6 +713,12 @@ export default {
                 //         );
                 //     }
                 // });
+
+                if (!speciesitemsobj.hasOwnProperty(String(element.species))) {
+                    speciesitemsobj[String(element.species)] = [];
+                    children[String(element.species)] = 0;
+                }
+
                 itemsobj = {
                     seq: element.seq,
                     species: element.species,
@@ -924,16 +729,44 @@ export default {
                     note: element.note,
                     IP: element.IP,
                 };
-                vm.items.push(itemsobj);
+                speciesitemsobj[String(element.species)].push(itemsobj);
+                children[String(element.species)] += 1;
+                // vm.items.push(itemsobj);
             });
+            console.log(speciesitemsobj);
+            console.log(children);
+            vm.speciesItem = JSON.parse(JSON.stringify(speciesitemsobj));
+            vm.childrenLen = JSON.parse(JSON.stringify(children));
 
-            if (vm.tabIndex === 0) {
-                vm.fields.splice(7, 1);
+            let thischildren = {};
+            if (!vm.speciesItem.hasOwnProperty(vm.breadcrumbWhich))
+                vm.breadcrumbWhich = "Species";
+
+            if (vm.breadcrumbWhich === "Species") {
+                vm.fields.splice(1, 6);
+                console.log(vm.fields);
+                Object.keys(vm.speciesItem).forEach((element) => {
+                    vm.items.push({ species: element });
+                });
+                console.log(vm.items);
+                thischildren = vm.childrenLen;
+                vm.breadcrumbList[0]["active"] = true;
+                vm.breadcrumbList.splice(1, 1);
+            } else {
+                vm.fields.splice(0, 1);
+                vm.items = vm.speciesItem[vm.breadcrumbWhich];
             }
-
+            console.log(thischildren);
             vm.settableDetail({
                 items: vm.items,
                 fields: vm.fields,
+                which: vm.breadcrumbWhich,
+                children: thischildren,
+            });
+
+            vm.settableInWhichTab({
+                index: vm.tabIndex,
+                which: vm.breadcrumbWhich,
             });
             vm.togglealertModal(false);
         },
@@ -946,58 +779,49 @@ export default {
             return `cell(${key})`;
         },
 
-        //紀錄舊的temp item data,若取消編輯可恢復資料
-        tempOldItemAction(status, item) {
-            console.log(status);
+        toggleItems(params) {
             let vm = this;
-            if (status) {
-                Object.assign(vm.tempThisOldItem, item);
+            console.log(params);
+            vm.reset([
+                "tabIndex",
+                "speciesItem",
+                "childrenLen",
+                "breadcrumbWhich",
+            ]);
+            let thiswhich = "Species";
+            let children = {};
+            if (params.data != "backtrack") {
+                vm.fields.splice(0, 1);
+                console.log(vm.speciesItem);
+                console.log(vm.speciesItem[params.data]);
+                console.log(vm.fields);
+                vm.items = vm.speciesItem[params.data];
+                thiswhich = params.data;
+                vm.breadcrumbList[0]["active"] = false;
+                vm.breadcrumbList.push({ text: params.data, active: true });
+                vm.breadcrumbWhich = params.data;
             } else {
-                Object.assign(item, vm.tempThisOldItem);
-                vm.tempThisOldItem = {};
-            }
-            console.log(vm.tempThisOldItem);
-        },
-
-        editLongData(row, which, status) {
-            let vm = this;
-            console.log(row);
-            console.log(which);
-            console.log(status);
-            if (status) {
-                let commonModalConfig = JSON.parse(
-                    JSON.stringify(vm.DEFAULT_commonModalConfig)
-                );
-                commonModalConfig.size = "xl";
-                commonModalConfig.hideModalHeader = true;
-                commonModalConfig.hideModalHeaderClose = true;
-                vm.setcommonModalConfig(commonModalConfig);
-
-                vm.editActionItems.seq = row.item.seq;
-                vm.editActionItems.which = which;
-                vm.editActionItems.Data = vm.replaceContentData(
-                    String(row.item[which]),
-                    false
-                );
-                console.log(vm.editActionItems.Data);
-            } else {
-                vm.items.filter(function (element) {
-                    if (element.seq == vm.editActionItems.seq) {
-                        let thisdata = vm.editActionItems.Data;
-                        thisdata = vm.replaceContentData(
-                            String(thisdata),
-                            true
-                        );
-                        console.log(thisdata);
-                        element[vm.editActionItems.which] = thisdata;
-                    }
+                vm.fields.splice(1, 6);
+                console.log(vm.fields);
+                Object.keys(vm.speciesItem).forEach((element) => {
+                    vm.items.push({ species: element });
                 });
+                vm.breadcrumbList[0]["active"] = true;
+                vm.breadcrumbList.splice(1, 1);
+                vm.breadcrumbWhich = "Species";
+                children = vm.childrenLen;
             }
-            vm.editActionModalShow = status;
-            vm.togglecommonModal(status);
-            setTimeout(() => {
-                this.$nextTick(() => this.$refs.editlongdata.focus());
-            }, 0);
+            console.log(children);
+            vm.settableDetail({
+                items: vm.items,
+                fields: vm.fields,
+                which: thiswhich,
+                children: children,
+            });
+            vm.settableInWhichTab({
+                index: vm.tabIndex,
+                which: vm.breadcrumbWhich,
+            });
         },
 
         replaceContentData(content, status) {
@@ -1031,21 +855,6 @@ export default {
             vm.togglecommonModal(status);
         },
 
-        toggleDelModal(status, thisseq) {
-            let vm = this;
-            if (status) {
-                let commonModalConfig = JSON.parse(
-                    JSON.stringify(vm.DEFAULT_commonModalConfig)
-                );
-                commonModalConfig.hideModalHeader = true;
-                commonModalConfig.hideModalHeaderClose = true;
-                vm.setcommonModalConfig(commonModalConfig);
-            }
-            vm.delItemSeq = thisseq;
-            vm.delModalShow = status;
-            vm.togglecommonModal(status);
-        },
-
         removeHeaderFields(params) {
             let vm = this;
             const key = params.data;
@@ -1062,7 +871,20 @@ export default {
             vm.settableDetail({
                 items: vm.items,
                 fields: vm.fields,
+                which: vm.breadcrumbWhich,
             });
+            vm.settableInWhichTab({
+                index: vm.tabIndex,
+                which: vm.breadcrumbWhich,
+            });
+        },
+
+        breadcrumbClick(item, active, index) {
+            let vm = this;
+            console.log(item, active, index);
+            if (item === "種類") {
+                vm.toggleItems({ data: "backtrack" });
+            }
         },
 
         //資料reset

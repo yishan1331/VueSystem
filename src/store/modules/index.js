@@ -8,6 +8,7 @@ import systemform from './systemForm'
 import exportfile from './exportFile'
 import getdate from './getDate'
 import sort from './sort'
+import adjustdata from './adjustData'
 import commontable from './commonTable'
 
 export default {
@@ -21,5 +22,6 @@ export default {
     exportfile,
     getdate,
     sort,
+    adjustdata,
     commontable
 }

@@ -229,6 +229,12 @@ export default {
             //             },
             //         },
             //     },
+            //     tool: {
+            //         authority: true,
+            //         children: {
+            //             fileupdownload: { authority: true },
+            //         },
+            //     },
             // };
             // vm.change_loginData(obj);
             // vm.change_pageAccess(obj.accesslist);

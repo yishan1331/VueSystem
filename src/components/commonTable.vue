@@ -5,11 +5,15 @@
             id="commonTable"
             sticky-header="550px"
             responsive
-            hover
+            :hover="!tableSlotConfig.selectable"
             :items="tableDetail.items"
             :fields="tableDetail.fields"
             head-variant="light"
             v-if="tableDetail.items.length != 0"
+            :selectable="tableSlotConfig.selectable"
+            select-mode="multi"
+            @row-selected="onRowSelected"
+            selected-variant="success"
             class="mt-2"
         >
             <!-- table header -->
@@ -22,7 +26,8 @@
                     <div
                         v-if="
                             data.hasOwnProperty('removeHeader') &&
-                            tableInWhichTabIndex == 0
+                            tableInWhichTab.index == 0 &&
+                            tableDetail.fields.length > 2
                         "
                         class="deletefilebtn"
                         @click.prevent="removeHeaderFields(key)"
@@ -37,13 +42,16 @@
                 <div
                     :key="String(row.item.seq) + '_' + String(index)"
                     :class="{
-                        hide: activeItemsSeq == row.item.seq,
+                        hide:
+                            row.item.seq != null &&
+                            activeItemsSeq == row.item.seq,
                     }"
                 >
                     <template v-if="data.hasOwnProperty('conversiontable')">
                         {{ data.conversiontable[row.item[key]] }}
                     </template>
                     <template v-else-if="data.hasOwnProperty('v-html')">
+                        <!-- {{ row.item[data.value] }} -->
                         <div v-html="row.item[data.value]"></div>
                     </template>
                     <template v-else-if="data.hasOwnProperty('download')">
@@ -69,7 +77,7 @@
                             >
                             <div
                                 class="downloadfilebtn"
-                                v-if="tableInWhichTabIndex == 0"
+                                v-if="tableInWhichTab.index == 0"
                             >
                                 <b-icon
                                     icon="cloud-download-fill"
@@ -91,58 +99,124 @@
                     </template>
                 </div>
 
-                <div
-                    :key="String(row.item.seq) + '__' + String(index)"
-                    v-if="
-                        tableInWhichTabIndex == 1 &&
-                        tableSlotConfig.actionConfig.edit.type == 'self'
-                    "
-                    :class="{
-                        hide: activeItemsSeq != row.item.seq,
-                    }"
-                >
-                    <b-form-input
-                        v-if="data.edit.type == 'number'"
-                        type="number"
-                        v-model="row.item[data.value]"
-                        min="0"
-                        step="20"
-                    ></b-form-input>
-                    <b-form-input
-                        v-else-if="data.edit.type == 'input'"
-                        class="input-text"
-                        type="text"
-                        v-model="row.item[data.value]"
-                        @click="editLongData(row, key, true)"
-                    ></b-form-input>
-                </div>
+                <template v-if="tableSlotConfig.hasOwnProperty('actionConfig')">
+                    <div
+                        :key="String(row.item.seq) + '__' + String(index)"
+                        v-if="
+                            tableInWhichTab.index == 1 &&
+                            tableSlotConfig.actionConfig.edit.type == 'self'
+                        "
+                        :class="{
+                            hide:
+                                row.item.seq != null &&
+                                activeItemsSeq != row.item.seq,
+                        }"
+                    >
+                        <b-form-input
+                            v-if="data.edit.type == 'number'"
+                            type="number"
+                            v-model="row.item[data.value]"
+                            min="0"
+                            step="20"
+                        ></b-form-input>
+                        <b-form-input
+                            v-else-if="data.edit.type == 'input'"
+                            class="input-text"
+                            type="text"
+                            v-model="row.item[data.value]"
+                            @click="editLongData(row, key, true)"
+                        ></b-form-input>
+                    </div>
+                </template>
             </template>
+
             <!-- table 編輯按鈕欄位 -->
-            <template
-                v-slot:cell(Action)="row"
-                v-if="tableInWhichTabIndex == 1"
-            >
-                <template
-                    v-if="tableSlotConfig.actionConfig.edit.type == 'self'"
-                >
-                    <template v-if="activeItemsSeq != row.item.seq">
+            <template v-slot:cell(Action)="row">
+                <template v-if="tableInWhichTab.index == 1">
+                    <template
+                        v-if="tableSlotConfig.actionConfig.edit.type == 'self'"
+                    >
+                        <template
+                            v-if="
+                                row.item.seq != null &&
+                                activeItemsSeq != row.item.seq
+                            "
+                        >
+                            <b-button
+                                :disabled="
+                                    activeItemsSeq != null ||
+                                    !tableSlotConfig.actionConfig.edit.authority
+                                "
+                                @click="
+                                    setactiveItemsSeq(row.item.seq);
+                                    tempOldItemAction(true, row.item);
+                                "
+                                >編輯</b-button
+                            >
+                            <b-button
+                                :disabled="
+                                    activeItemsSeq != null ||
+                                    !tableSlotConfig.actionConfig.del.authority
+                                "
+                                variant="danger"
+                                @click="
+                                    toggleDelModal(
+                                        true,
+                                        row.item,
+                                        tableSlotConfig.actionConfig.del
+                                    )
+                                "
+                                style="margin-left: 10px"
+                                >刪除</b-button
+                            >
+                        </template>
+                        <template
+                            v-else-if="
+                                row.item.seq != null &&
+                                activeItemsSeq == row.item.seq
+                            "
+                        >
+                            <b-button
+                                @click="
+                                    modAction(
+                                        row.item,
+                                        row.index,
+                                        tableSlotConfig.actionConfig.edit
+                                            .location
+                                    )
+                                "
+                                >完成編輯</b-button
+                            >
+                            <b-button
+                                variant="light"
+                                @click="
+                                    setactiveItemsSeq(null);
+                                    tempOldItemAction(false, row.item);
+                                "
+                                style="margin-left: 10px"
+                                >取消</b-button
+                            >
+                        </template>
+                    </template>
+                    <template v-else>
                         <b-button
                             :disabled="
-                                activeItemsSeq != null ||
                                 !tableSlotConfig.actionConfig.edit.authority
                             "
                             @click="
-                                setactiveItemsSeq(row.item.seq);
-                                tempOldItemAction(true, row.item);
+                                modAction(
+                                    row.item,
+                                    row.index,
+                                    tableSlotConfig.actionConfig.edit.location
+                                )
                             "
                             >編輯</b-button
                         >
                         <b-button
+                            variant="danger"
                             :disabled="
-                                activeItemsSeq != null ||
                                 !tableSlotConfig.actionConfig.del.authority
                             "
-                            variant="danger"
                             @click="
                                 toggleDelModal(
                                     true,
@@ -154,56 +228,105 @@
                             >刪除</b-button
                         >
                     </template>
-                    <template v-else-if="activeItemsSeq == row.item.seq">
-                        <b-button
-                            @click="
-                                modAction(
-                                    row.item,
-                                    row.index,
-                                    tableSlotConfig.actionConfig.edit.location
-                                )
-                            "
-                            >完成編輯</b-button
-                        >
-                        <b-button
-                            variant="light"
-                            @click="
-                                setactiveItemsSeq(null);
-                                tempOldItemAction(false, row.item);
-                            "
-                            style="margin-left: 10px"
-                            >取消</b-button
-                        >
-                    </template>
                 </template>
                 <template v-else>
-                    <b-button
-                        :disabled="!tableSlotConfig.actionConfig.edit.authority"
-                        @click="
-                            modAction(
-                                row.item,
-                                row.index,
-                                tableSlotConfig.actionConfig.edit.location
+                    <span
+                        v-if="
+                            tableSlotConfig.actionConfig.query.hasOwnProperty(
+                                tableDetail.which
                             )
                         "
-                        >編輯</b-button
                     >
+                        <b-button
+                            :disabled="
+                                tableDetail.children[
+                                    row.item[tableDetail.which.toLowerCase()]
+                                ] === 0
+                            "
+                            @click="
+                                settableResponse({
+                                    function:
+                                        tableSlotConfig.actionConfig.query
+                                            .location,
+                                    params: {
+                                        data:
+                                            row.item[
+                                                tableDetail.which.toLowerCase()
+                                            ],
+                                    },
+                                })
+                            "
+                            :id="String(row.index)"
+                        >
+                            {{
+                                tableSlotConfig.actionConfig.query[
+                                    tableDetail.which
+                                ].havedata
+                            }}
+                        </b-button>
+                        <b-tooltip :target="String(row.index)">
+                            <span
+                                v-if="
+                                    tableDetail.children[
+                                        row.item[
+                                            tableDetail.which.toLowerCase()
+                                        ]
+                                    ] === 0
+                                "
+                                >{{
+                                    tableSlotConfig.actionConfig.query[
+                                        tableDetail.which
+                                    ].nodata
+                                }}</span
+                            >
+                            <span v-else
+                                >共有{{
+                                    tableDetail.children[
+                                        row.item[
+                                            tableDetail.which.toLowerCase()
+                                        ]
+                                    ]
+                                }}個</span
+                            >
+                        </b-tooltip>
+                    </span>
                     <b-button
-                        variant="danger"
-                        :disabled="!tableSlotConfig.actionConfig.del.authority"
+                        v-else
                         @click="
-                            toggleDelModal(
-                                true,
-                                row.item,
-                                tableSlotConfig.actionConfig.del
-                            )
+                            settableResponse({
+                                function:
+                                    tableSlotConfig.actionConfig.query.location,
+                                params: {
+                                    data: 'backtrack',
+                                },
+                            })
                         "
-                        style="margin-left: 10px"
-                        >刪除</b-button
+                    >
+                        返回</b-button
                     >
                 </template>
             </template>
         </b-table>
+
+        <!-- table for seleted Action -->
+        <template v-if="tableSlotConfig.selectable">
+            <div class="clearfix">
+                <b-button size="sm" @click="selectAllRows">全選</b-button>
+                <b-button
+                    class="ml-2"
+                    size="sm"
+                    variant="danger"
+                    @click="clearSelected"
+                    >取消全選</b-button
+                >
+                <b-button
+                    class="float-right"
+                    variant="success"
+                    @click="transferData"
+                    >{{ tableSlotConfig.selectlebel }}</b-button
+                >
+            </div>
+        </template>
 
         <!-- edit LongData modal -->
         <modal v-if="editActionModalShow">
@@ -287,6 +410,7 @@ export default {
             },
             delItem: {},
             delModalShow: false,
+            selected: [],
         };
     },
     mounted: function () {
@@ -299,13 +423,13 @@ export default {
         ...mapGetters({
             tableDetail: "commontable/get_tableDetail",
             tableSlotConfig: "commontable/get_tableSlotConfig",
-            tableInWhichTabIndex: "commontable/get_tableInWhichTabIndex",
+            tableInWhichTab: "commontable/get_tableInWhichTab",
             activeItemsSeq: "commontable/get_activeItemsSeq",
             DEFAULT_commonModalConfig: "usemodal/get_DEFAULT_commonModalConfig",
         }),
     },
     watch: {
-        tableInWhichTabIndex: {
+        "tableInWhichTab.index": {
             handler(value) {
                 this.$nextTick(() => {
                     //等渲染完畢才執行
@@ -446,6 +570,7 @@ export default {
                     data: vm.delItem.data,
                 },
             });
+            vm.toggleDelModal(false, null, null);
         },
 
         removeHeaderFields(key) {
@@ -471,6 +596,27 @@ export default {
                     .replace(/<br\s*[\/]?>/g, "\n")
                     .replace(/&nbsp;/g, " ");
             }
+        },
+
+        onRowSelected(items) {
+            this.selected = items;
+        },
+        selectAllRows() {
+            this.$refs.commonTable.selectAllRows();
+        },
+        clearSelected() {
+            this.$refs.commonTable.clearSelected();
+        },
+
+        transferData() {
+            let vm = this;
+            console.log(vm.selected);
+            vm.settableResponse({
+                function: "transferData",
+                params: {
+                    data: vm.selected,
+                },
+            });
         },
     },
 };
@@ -526,5 +672,9 @@ export default {
     transform: rotate(-45deg);
     top: 5px;
     left: 2px;
+}
+::v-deep .w150px {
+    width: 150px !important;
+    min-width: 150px !important;
 }
 </style>

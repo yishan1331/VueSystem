@@ -1,140 +1,109 @@
 <template>
     <div class="Department container">
-        <h4>部門管理</h4>
-        <commonQuery v-if="tabIndex != 0" />
-        <b-card no-body>
-            <b-tabs card v-model="tabIndex">
-                <b-tab title="新增" active>
-                    <systemForm />
-                </b-tab>
-                <b-tab title="修改">
-                    <h5 class="card-title" v-if="items.length == 0">
-                        選擇查詢條件
-                    </h5>
-                    <b-table
-                        sticky-header="550px"
-                        responsive
-                        hover
-                        :busy="tableBusy"
-                        :items="items"
-                        :fields="fields"
-                        @row-clicked="onRowClicked"
-                        head-variant="light"
-                        v-if="items.length != 0"
-                    >
-                        <template v-slot:table-busy>
-                            <div class="text-center text-danger my-2">
-                                <b-spinner class="align-middle"></b-spinner>
-                                <strong>Loading...</strong>
-                            </div>
-                        </template>
-                    </b-table>
-                </b-tab>
-                <b-tab title="刪除">
-                    <h5 class="card-title">尚未開放刪除</h5>
-                    <!-- <b-table
-            sticky-header="550px"
-            responsive
-            hover
-            :busy="tableBusy"
-            :items="items"
-            :fields="fields"
-            @row-clicked="onRowClicked"
-            head-variant="light"
-            v-if="items.length != 0"
-          >
-            <template v-slot:table-busy>
-              <div class="text-center text-danger my-2">
-                <b-spinner class="align-middle"></b-spinner>
-                <strong>Loading...</strong>
-              </div>
-            </template>
-                    </b-table>-->
-                </b-tab>
-                <b-tab title="查詢">
-                    <h5 class="card-title" v-if="items.length == 0">
-                        選擇查詢條件
-                    </h5>
-                    <b-table
-                        sticky-header="550px"
-                        responsive
-                        hover
-                        :busy="tableBusy"
-                        :items="items"
-                        :fields="fields"
-                        head-variant="light"
-                        v-if="items.length != 0"
-                    >
-                        <template v-slot:table-busy>
-                            <div class="text-center text-danger my-2">
-                                <b-spinner class="align-middle"></b-spinner>
-                                <strong>Loading...</strong>
-                            </div>
-                        </template>
-                    </b-table>
-                </b-tab>
-            </b-tabs>
-        </b-card>
-        <!-- 部門刪除modal -->
-        <b-modal
-            centered
-            v-model="delDepartmentModalShow"
-            hide-header
-            hide-header-close
-            no-close-on-backdrop
-            no-close-on-esc
-        >
-            <template v-slot:default>
-                <div class="d-block text-center">
-                    <h3>確定要刪除此部門嗎？</h3>
+        <b-row class="mb-3">
+            <b-col sm="3">
+                <h4>部門管理</h4>
+            </b-col>
+            <b-col sm="9" class="text-right">
+                <div style="opacity: 0.5">
+                    <template v-if="collapseVisible">
+                        <b-icon
+                            icon="arrows-collapse"
+                            scale="1.5"
+                            @click="collapseVisible = !collapseVisible"
+                        ></b-icon>
+                    </template>
+                    <template v-else>
+                        <b-icon
+                            icon="arrows-expand"
+                            scale="1.5"
+                            @click="collapseVisible = !collapseVisible"
+                        ></b-icon>
+                    </template>
                 </div>
-            </template>
-            <template v-slot:modal-footer>
-                <div class="w-100">
-                    <b-button
-                        variant="light"
-                        size="sm"
-                        class="float-right"
-                        @click.prevent="delDepartmentModalShow = false"
-                        >Close</b-button
-                    >
-                    <b-button
-                        variant="success"
-                        size="sm"
-                        class="float-right"
-                        style="margin-right: 10px"
-                        @click.prevent="DepDel()"
-                        >確定刪除</b-button
-                    >
-                </div>
-            </template>
-        </b-modal>
-        <!-- 部門修改modal -->
-        <b-modal
-            centered
-            v-model="modDepartmentModalShow"
-            size="xl"
-            no-close-on-backdrop
-            no-close-on-esc
-        >
-            <template v-slot:modal-header>
-                <h5>部門修改</h5>
+            </b-col>
+        </b-row>
+        <b-collapse v-model="collapseVisible">
+            <b-row>
+                <b-col sm="10">
+                    <commonQuery />
+                </b-col>
+                <b-col sm="2">
+                    <div class="text-right">
+                        <b-button
+                            pill
+                            variant="success"
+                            @click="toggleAddModal(true)"
+                            >新增</b-button
+                        >
+                    </div>
+                </b-col>
+            </b-row>
+        </b-collapse>
+
+        <b-tabs v-model="tabIndex">
+            <b-tab title="查詢" active>
+                <h5 v-if="items.length == 0" class="card-title mt-2">
+                    查無資料
+                </h5>
+                <commonTable v-else></commonTable>
+            </b-tab>
+            <b-tab title="編輯">
+                <h5 v-if="items.length == 0" class="card-title mt-2">
+                    查無資料
+                </h5>
+                <commonTable v-else></commonTable>
+            </b-tab>
+        </b-tabs>
+
+        <!-- 新增部門 modal -->
+        <modal v-if="addModalShow">
+            <template v-slot:modalheader>
+                <h5 style="margin: 0 auto">新增部門</h5>
             </template>
             <template v-slot:default>
                 <systemForm />
             </template>
-            <template v-slot:modal-footer>
+            <template v-slot:modalfooter>
                 <div class="w-100">
                     <b-button
                         variant="light"
                         size="sm"
                         class="float-right"
-                        @click.prevent="modDepartmentModalShow = false"
+                        @click.prevent="
+                            toggleAddModal(false);
+                            resetSystemForm();
+                        "
                         >Close</b-button
                     >
                 </div>
             </template>
-        </b-modal>
+        </modal>
+
+        <!-- 部門修改modal -->
+        <modal v-if="modModalShow">
+            <template v-slot:modalheader>
+                <h5 style="margin: 0 auto">部門修改</h5>
+            </template>
+            <template v-slot:default>
+                <systemForm />
+            </template>
+            <template v-slot:modalfooter>
+                <div class="w-100">
+                    <b-button
+                        variant="light"
+                        size="sm"
+                        class="float-right"
+                        @click.prevent="
+                            togglecommonModal(false);
+                            modModalShow = false;
+                            resetSystemForm();
+                        "
+                        >Close</b-button
+                    >
+                </div>
+            </template>
+        </modal>
     </div>
 </template>
 
@@ -142,6 +111,8 @@
 import axios from "axios";
 import systemForm from "@/components/systemForm.vue";
 import commonQuery from "@/components/commonQuery.vue";
+import commonTable from "@/components/commonTable.vue";
+import modal from "@/components/modal.vue";
 import { mapGetters, mapActions } from "vuex";
 export default {
     name: "Department",
@@ -164,81 +135,133 @@ export default {
                     label: "部門介紹",
                     sortable: true,
                 },
-                {
-                    key: "accessList",
-                    label: "權限列表",
-                    sortable: true,
-                },
+                // {
+                //     key: "accessList",
+                //     label: "權限列表",
+                //     sortable: true,
+                // },
+                { key: "Action", label: "編輯按鈕", sortable: false },
             ],
             items: [],
             modDepartmentModalShow: false,
-            delmodalcontent: {
-                depID: "",
-            },
             delDepartmentModalShow: false,
+            collapseVisible: false,
+            modModalShow: false,
+            addModalShow: false,
         };
     },
     created: function () {
-        this.SetSystemFormData();
+        this.SetSystemFormData(null);
         this.SetDepDetail();
         this.SetCommonQueryData();
+
+        //設定modal config
+        let commonModalConfig = JSON.parse(
+            JSON.stringify(this.DEFAULT_commonModalConfig)
+        );
+        commonModalConfig.size = "xl";
+        commonModalConfig.modalClassFull = true;
+        this.setcommonModalConfig(commonModalConfig);
+
+        //設定commonTable SlotConfig
+        this.settableSlotConfig({
+            slotConfig: {
+                depID: {
+                    value: "depID",
+                    "v-html": true,
+                },
+                depName: {
+                    value: "depName",
+                    "v-html": true,
+                },
+                depInfo: {
+                    value: "depInfo",
+                    "v-html": true,
+                },
+            },
+            selectable: false,
+            actionConfig: {
+                edit: {
+                    authority: true,
+                    type: "modal",
+                    location: "toggleModModal",
+                    goback: true,
+                },
+                del: {
+                    authority: false,
+                    // location: "AccountDel",
+                    // delfield: ["uID"],
+                },
+            },
+        });
     },
-    mounted: function () {},
+    mounted: function () {
+        // this.getDepList();
+        this.queryAgain();
+    },
     components: {
         commonQuery,
         systemForm,
+        modal,
+        commonTable,
     },
     computed: {
         ...mapGetters({
             axiosResult: "commonaxios/get_axiosResult",
             loginData: "getlogin/get_loginData",
-            commonQueryResponse: "commonquery/get_queryResponse",
+            queryResponse: "commonquery/get_queryResponse",
             tableBusy: "commonquery/get_tableBusy",
             DEFAULT_inputData: "commonquery/get_DEFAULT_inputData",
             DEFAULT_apiParams: "commonquery/get_DEFAULT_apiParams",
             systemFormCompletedData: "systemform/get_completedData",
+            DEFAULT_commonModalConfig: "usemodal/get_DEFAULT_commonModalConfig",
+            tableResponse: "commontable/get_tableResponse",
         }),
     },
     watch: {
-        commonQueryResponse: {
+        queryResponse: {
             handler() {
                 var vm = this;
                 vm.reset(["tabIndex"]);
                 if (
-                    vm.commonQueryResponse == "查無資料" ||
-                    vm.commonQueryResponse == "時間尚未選擇"
+                    vm.queryResponse == "查無資料" ||
+                    vm.queryResponse == "時間尚未選擇"
                 ) {
-                    vm.setTimeOutAlertMsg(vm.commonQueryResponse);
+                    vm.setTimeOutAlertMsg(vm.queryResponse);
                     vm.settimeoutalertModal();
                     return;
                 }
-                var itemsarray = [];
-                for (var i = 0; i < vm.commonQueryResponse.length; i++) {
-                    var itemsobj = {};
-                    itemsobj["depID"] = vm.commonQueryResponse[i]["depID"];
-                    itemsobj["depName"] = vm.commonQueryResponse[i]["depName"];
-                    itemsobj["depInfo"] = vm.commonQueryResponse[i]["depInfo"];
-                    itemsobj["accessList"] =
-                        vm.commonQueryResponse[i]["accessList"];
-                    itemsarray.push(itemsobj);
-                }
-                if (itemsarray.length != 0) {
-                    vm.items = itemsarray;
-                }
+                console.log(vm.queryResponse);
+                console.log(JSON.stringify(vm.queryResponse));
+                vm.collapseVisible = false;
+                vm.getDepList();
             },
         },
+
+        tableResponse: {
+            handler() {
+                let vm = this;
+                console.log(vm.tableResponse);
+                vm[vm.tableResponse.function](vm.tableResponse.params);
+            },
+        },
+
         tabIndex: {
             handler(value) {
-                var vm = this;
-                vm.reset(["tabIndex"]);
-                if (vm.tabIndex == 0) {
-                    vm.SetSystemFormData();
-                    vm.SetCommonQueryData();
-                }
-                vm.setsystemFormResponse();
-                vm.setSystemFormCompletedData({});
+                console.log(value);
+                this.reset(["tabIndex", "items"]);
+                if (value === 0) this.fields.splice(3, 1);
+                this.settableInWhichTab({
+                    index: value,
+                    which: "department",
+                });
+                this.settableDetail({
+                    items: this.items,
+                    fields: this.fields,
+                });
             },
         },
+
         systemFormCompletedData: {
             handler() {
                 var vm = this;
@@ -248,6 +271,7 @@ export default {
                     if (vm.systemFormCompletedData.depID == "") {
                         msg.push("部門編號尚未輸入");
                     }
+                    //權限設定檢查
                     if (
                         vm.systemFormCompletedData.accessList.report.authority
                     ) {
@@ -311,9 +335,9 @@ export default {
                         vm.setSystemFormCompletedData({});
                         return;
                     } else {
-                        if (vm.tabIndex == 0) {
+                        if (vm.addModalShow) {
                             vm.DepAdd();
-                        } else if (vm.tabIndex == 1) {
+                        } else {
                             vm.DepMod();
                         }
                     }
@@ -333,17 +357,17 @@ export default {
             setvforData: "systemform/set_vforData",
             setsystemFormResponse: "systemform/set_systemFormResponse",
             setSystemFormCompletedData: "systemform/set_completedData",
+            togglecommonModal: "usemodal/toggle_commonModal",
+            setcommonModalConfig: "usemodal/set_commonModalConfig",
+            settableSlotConfig: "commontable/set_tableSlotConfig",
+            settableDetail: "commontable/set_tableDetail",
+            settableInWhichTab: "commontable/set_tableInWhichTab",
         }),
         SetSystemFormData(moditemobj) {
+            let vm = this;
             var vforData = {};
-            vforData["depID"] = ["text", "部門編號"];
-            vforData["depName"] = ["text", "部門名稱"];
-            vforData["depInfo"] = ["text", "部門介紹"];
-            vforData["accessList"] = ["accesscheckbox", "部門權限"];
-            vforData["textclass"] = true;
-            if (this.tabIndex == 0) {
-                vforData["button"] = ["Add", "新增"];
-            } else if (this.tabIndex == 1) {
+            console.log(vm.modModalShow);
+            if (vm.modModalShow) {
                 vforData["depID"] = ["readonly", "部門編號", moditemobj.depID];
                 vforData["depName"] = ["text", "部門名稱", moditemobj.depName];
                 vforData["depInfo"] = ["text", "部門介紹", moditemobj.depInfo];
@@ -353,10 +377,18 @@ export default {
                     moditemobj.accessList,
                 ];
                 vforData["button"] = ["Mod", "修改"];
+            } else {
+                vforData["depID"] = ["text", "部門編號"];
+                vforData["depName"] = ["text", "部門名稱"];
+                vforData["depInfo"] = ["text", "部門介紹"];
+                vforData["accessList"] = ["accesscheckbox", "部門權限"];
+                vforData["button"] = ["Add", "新增"];
             }
+            vforData["textclass"] = true;
             console.log(vforData);
-            this.setvforData(vforData);
+            vm.setvforData(vforData);
         },
+
         SetCommonQueryData() {
             var vm = this;
             var departmentqueryselected = "ALL";
@@ -380,6 +412,181 @@ export default {
             commonApiParams.normal.table = "department";
             vm.setapiParams(commonApiParams);
         },
+
+        getDepList() {
+            let vm = this;
+            var itemsarray = [];
+            let temp = [
+                {
+                    depInfo: "雲端AI(智慧)平台部",
+                    lastUpdateTime: "2020-10-16 17:38:02",
+                    noumenonType: "",
+                    dbName: "sapidoSystem",
+                    accessList: {
+                        report: {
+                            children: {
+                                meetingminutes: {
+                                    remark: {
+                                        commonQueryCondition: {
+                                            main: [],
+                                            secondary: null,
+                                        },
+                                        dataHandleAuthority: [],
+                                    },
+                                    authority: false,
+                                },
+                                sop: {
+                                    remark: {
+                                        commonQueryCondition: {
+                                            main: null,
+                                            secondary: null,
+                                        },
+                                        dataHandleAuthority: [],
+                                    },
+                                    authority: false,
+                                },
+                                weeklyreport: {
+                                    remark: {
+                                        commonQueryCondition: { main: null },
+                                    },
+                                    authority: false,
+                                },
+                                todolist: {
+                                    remark: {
+                                        commonQueryCondition: { main: null },
+                                    },
+                                    authority: false,
+                                },
+                            },
+                            authority: false,
+                        },
+                        management: {
+                            children: {
+                                department: { authority: false },
+                                account: { authority: false },
+                            },
+                            authority: false,
+                        },
+                        architecture: {
+                            children: {
+                                storage: { authority: true },
+                                structure: { authority: true },
+                                server: { authority: true },
+                            },
+                            authority: true,
+                        },
+                        bulletin: {
+                            children: {
+                                manage: { authority: true },
+                                board: { authority: true },
+                            },
+                            authority: true,
+                        },
+                    },
+                    noumenonID: "",
+                    creatorID: 2493,
+                    depName: "雲端AI(智慧)平台部",
+                    depID: 1003,
+                    createTime: "2020-04-07 11:23:10",
+                },
+                {
+                    depInfo: "",
+                    lastUpdateTime: "2020-10-16 17:09:00",
+                    noumenonType: "",
+                    dbName: "",
+                    accessList: {
+                        report: {
+                            children: {
+                                meetingminutes: {
+                                    remark: {
+                                        commonQueryCondition: {
+                                            main: ["1003"],
+                                            secondary: [],
+                                        },
+                                        dataHandleAuthority: ["query"],
+                                    },
+                                    authority: true,
+                                },
+                                sop: {
+                                    remark: {
+                                        commonQueryCondition: {
+                                            main: [],
+                                            secondary: [],
+                                        },
+                                        dataHandleAuthority: ["query"],
+                                    },
+                                    authority: true,
+                                },
+                                weeklyreport: {
+                                    remark: {
+                                        commonQueryCondition: { main: [] },
+                                    },
+                                    authority: true,
+                                },
+                                todolist: {
+                                    remark: {
+                                        commonQueryCondition: { main: [] },
+                                    },
+                                    authority: true,
+                                },
+                            },
+                            authority: true,
+                        },
+                        management: {
+                            children: {
+                                department: { authority: false },
+                                account: { authority: false },
+                            },
+                            authority: false,
+                        },
+                        architecture: {
+                            children: {
+                                storage: { authority: false },
+                                structure: { authority: false },
+                                server: { authority: false },
+                            },
+                            authority: false,
+                        },
+                        bulletin: {
+                            children: {
+                                manage: { authority: true },
+                                board: { authority: true },
+                            },
+                            authority: true,
+                        },
+                    },
+                    noumenonID: "",
+                    creatorID: "admin",
+                    depName: "test",
+                    depID: "test",
+                    createTime: "2020-10-16 17:04:16",
+                },
+            ];
+            // temp.forEach((element) => {
+            vm.queryResponse.forEach((element) => {
+                let itemsobj = {};
+                itemsobj["depID"] = element["depID"];
+                itemsobj["depName"] = element["depName"];
+                itemsobj["depInfo"] = element["depInfo"];
+                itemsobj["accessList"] = element["accessList"];
+                itemsarray.push(itemsobj);
+            });
+            console.log(itemsarray);
+            vm.items = itemsarray;
+            console.log(vm.items);
+
+            if (vm.tabIndex === 0) {
+                vm.fields.splice(3, 1);
+            }
+
+            vm.settableDetail({
+                items: vm.items,
+                fields: vm.fields,
+                which: "department",
+                children: {},
+            });
+        },
+
         SetDepDetail() {
             var vm = this;
             var params = {};
@@ -398,25 +605,59 @@ export default {
                         obj["value"] = result["QueryTableData"][i]["depName"];
                         depDetail.push(obj);
                     }
+                    console.log(JSON.stringify(depDetail));
                     vm.setconditionOptions(depDetail);
                 } else {
                     vm.setTimeOutAlertMsg(result["Response"]);
                     vm.settimeoutalertModal();
                 }
             });
+
+            // vm.setconditionOptions([
+            //     { text: "資訊通訊部", value: "資訊通訊部" },
+            //     { text: "系統研發部", value: "系統研發部" },
+            //     { text: "雲端AI(智慧)平台部", value: "雲端AI(智慧)平台部" },
+            //     { text: "工程課", value: "工程課" },
+            //     { text: "生管課", value: "生管課" },
+            //     { text: "行政總務課", value: "行政總務課" },
+            //     { text: "品管課", value: "品管課" },
+            //     { text: "採購課", value: "採購課" },
+            //     { text: "清潔人員", value: "清潔人員" },
+            //     { text: "智能製造事業處", value: "智能製造事業處" },
+            //     { text: "董事長室", value: "董事長室" },
+            //     { text: "打件課", value: "打件課" },
+            //     { text: "組裝課", value: "組裝課" },
+            //     { text: "警衛室", value: "警衛室" },
+            //     { text: "人資課", value: "人資課" },
+            //     { text: "業務課", value: "業務課" },
+            //     { text: "產品企劃行銷課", value: "產品企劃行銷課" },
+            //     { text: "代工事業處", value: "代工事業處" },
+            //     { text: "長榮專案組", value: "長榮專案組" },
+            //     { text: "test", value: "test" },
+            // ]);
         },
-        onRowClicked(items, index, event) {
-            var vm = this;
-            //two level deep copy
-            var thisitemobj = JSON.parse(JSON.stringify(items));
-            if (vm.tabIndex == 1) {
-                vm.SetSystemFormData(thisitemobj);
-                vm.modDepartmentModalShow = true;
-            } else {
-                vm.delmodalcontent.depID = items.depID;
-                // vm.delDepartmentModalShow = true;
+
+        toggleAddModal(status) {
+            let vm = this;
+            if (status) {
+                vm.SetSystemFormData();
             }
+            vm.togglecommonModal(status);
+            vm.addModalShow = status;
         },
+
+        toggleModModal(params) {
+            let vm = this;
+            console.log(params);
+            //two level deep copy
+            let thisitemobj = JSON.parse(JSON.stringify(params.data));
+
+            console.log(thisitemobj);
+            vm.modModalShow = true;
+            vm.SetSystemFormData(thisitemobj);
+            vm.togglecommonModal(true);
+        },
+
         DepMod() {
             var vm = this;
             var params = {};
@@ -429,25 +670,32 @@ export default {
                 vm.systemFormCompletedData.accessList
             );
             console.log(params);
-            vm.axiosAction(params).then(() => {
-                vm.setSystemFormCompletedData({});
-                var result = vm.axiosResult;
-                console.log(result);
-                var msg = "";
-                if (result["Response"] == "ok") {
-                    vm.setsystemFormResponse();
-                    msg = "修改成功";
-                    setTimeout(function () {
-                        vm.queryAgain();
-                    }, 500);
-                } else {
-                    msg = result["Response"];
-                }
-                vm.setTimeOutAlertMsg(msg);
-                vm.settimeoutalertModal();
-                vm.modDepartmentModalShow = false;
-            });
+            vm.axiosAction(params)
+                .then(() => {
+                    vm.setSystemFormCompletedData({});
+                    var result = vm.axiosResult;
+                    console.log(result);
+                    var msg = "";
+                    if (result["Response"] == "ok") {
+                        vm.setsystemFormResponse();
+                        msg = "修改成功";
+                    } else {
+                        msg = result["Response"];
+                    }
+                    vm.setTimeOutAlertMsg(msg);
+                })
+                .catch(function (err) {
+                    console.log(err);
+                    vm.setTimeOutAlertMsg(err);
+                })
+                .finally(() => {
+                    vm.settimeoutalertModal();
+                    vm.modModalShow = false;
+                    vm.togglecommonModal(false);
+                    vm.queryAgain();
+                });
         },
+
         DepAdd() {
             var vm = this;
             var params = {};
@@ -461,21 +709,38 @@ export default {
             params["depInfo"] = String(vm.systemFormCompletedData.depInfo);
             params["creatorID"] = String(vm.loginData.account);
             console.log(params);
-            vm.axiosAction(params).then(() => {
-                vm.setSystemFormCompletedData({});
-                var result = vm.axiosResult;
-                var msg = "";
-                if (result["Response"] == "ok") {
-                    vm.setsystemFormResponse();
-                    msg = "新增成功";
-                } else {
-                    msg = result["Response"];
-                }
-                vm.setTimeOutAlertMsg(msg);
-                vm.settimeoutalertModal();
-            });
+            vm.axiosAction(params)
+                .then(() => {
+                    vm.setSystemFormCompletedData({});
+                    var result = vm.axiosResult;
+                    var msg = "";
+                    if (result["Response"] == "ok") {
+                        vm.setsystemFormResponse();
+                        msg = "新增成功";
+                    } else {
+                        msg = result["Response"];
+                    }
+                    vm.setTimeOutAlertMsg(msg);
+                })
+                .catch(function (err) {
+                    console.log(err);
+                    vm.setTimeOutAlertMsg(err);
+                })
+                .finally(() => {
+                    vm.settimeoutalertModal();
+                    vm.toggleAddModal(false);
+                    vm.SetSystemFormData(null);
+                    vm.queryAgain();
+                });
         },
-        DepDel() {},
+
+        resetSystemForm() {
+            let vm = this;
+            vm.SetSystemFormData(null);
+            vm.setsystemFormResponse();
+            vm.setSystemFormCompletedData({});
+        },
+
         //資料reset
         reset(keep) {
             var def = this.$options.data();

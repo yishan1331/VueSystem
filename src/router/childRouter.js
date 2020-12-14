@@ -11,6 +11,7 @@ import sop from "@/views/report/SOP";
 import structure from "@/views/architecture/Structure";
 import server from "@/views/architecture/Server";
 import storage from "@/views/architecture/Storage";
+import fileupdownload from "@/views/tool/FileUpDownload";
 // import pagenotfound from "@/views/PageNotFound";
 
 export const childRouter = [
@@ -100,6 +101,13 @@ export const childRouter = [
             {
                 path: "architecture/storage",
                 component: storage,
+                meta: {
+                    needLogin: true
+                }
+            },
+            {
+                path: "tool/fileupdownload",
+                component: fileupdownload,
                 meta: {
                     needLogin: true
                 }

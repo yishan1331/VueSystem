@@ -1,6 +1,6 @@
 <template>
     <div class="Structure">
-        <b-button @click="img = !img">toggle</b-button>
+        <b-button @click="img = !img">切換</b-button>
         <div>
             <img v-if="img" src="../../assets/structure1.jpg" />
             <img v-else src="../../assets/structure2.jpg" />

@@ -513,6 +513,7 @@ export default {
                     },
                 },
             },
+            selectable: false,
             actionConfig: {
                 edit: {
                     authority: vm.pageAccess.report.children.sop.remark.dataHandleAuthority.includes(
@@ -582,7 +583,10 @@ export default {
                 console.log(value);
                 this.reset(["tabIndex", "depStaffRelation", "items"]);
                 if (value === 0) this.fields.splice(4, 1);
-                this.settableInWhichTabIndex(value);
+                this.settableInWhichTab({
+                    index: value,
+                    which: "SOP",
+                });
                 this.settableDetail({
                     items: this.items,
                     fields: this.fields,
@@ -613,7 +617,7 @@ export default {
             setSystemFormCompletedData: "systemform/set_completedData",
             settableSlotConfig: "commontable/set_tableSlotConfig",
             settableDetail: "commontable/set_tableDetail",
-            settableInWhichTabIndex: "commontable/set_tableInWhichTabIndex",
+            settableInWhichTab: "commontable/set_tableInWhichTab",
         }),
 
         SetCommonQueryData() {
@@ -671,8 +675,10 @@ export default {
             ) {
                 let thiswhere = 0;
                 commonApiParams.customized = {
-                    where: { level: [thiswhere] },
-                    symbols: { level: ["equal"] },
+                    condition_1: {
+                        where: { level: [thiswhere] },
+                        symbols: { level: ["equal"] },
+                    },
                 };
             }
             console.log(commonApiParams);
@@ -683,15 +689,13 @@ export default {
             let vm = this;
             var params = {};
             params["methods"] = "POST";
-            params["whichFunction"] = "CommonSqlSyntaxQuery_";
+            params["whichFunction"] = "CommonSqlSyntaxQuery";
             console.log(vm.loginData);
             params["condition"] = {
                 condition_1: {
                     table: "user",
                     fields: ["noumenonID"],
                     where: { uID: [vm.loginData.account] },
-                    orderby: "",
-                    limit: "",
                     symbols: { uID: ["equal"] },
                 },
             };
@@ -762,6 +766,8 @@ export default {
             vm.settableDetail({
                 items: vm.items,
                 fields: vm.fields,
+                which: "SOP",
+                children: {},
             });
             vm.togglealertModal(false);
         },

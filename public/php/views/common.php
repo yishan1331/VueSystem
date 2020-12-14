@@ -31,28 +31,6 @@ function CommonSimpleQuery($params, $publicIP)
 
 function CommonSqlSyntaxQuery($params, $publicIP)
 {
-    (!property_exists($params, 'purpose')) ? $purpose = "" : $purpose = $params->purpose;
-    (!property_exists($params, 'fields')) ? $fields = "" : $fields = $params->fields;
-    (!property_exists($params, 'where')) ? $where = "" : $where = $params->where;
-    (!property_exists($params, 'orderby')) ? $orderby = "" : $orderby = $params->orderby;
-    (!property_exists($params, 'limit')) ? $limit = "" : $limit = $params->limit;
-    (!property_exists($params, 'symbols')) ? $symbols = "" : $symbols = $params->symbols;
-    (!property_exists($params, 'intervaltime')) ? $intervaltime = "" : $intervaltime = $params->intervaltime;
-
-    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/SqlSyntax/" . $params->table . "?uid=@sapido@PaaS";
-    $data = array(
-        'purpose' => $purpose,
-        'fields' => $fields,
-        'where' => $where,
-        'orderby' => $orderby,
-        'limit' => $limit,
-        'symbols' => $symbols,
-        'intervaltime' => $intervaltime
-    );
-    return array($url, $data);
-}
-function CommonSqlSyntaxQuery_($params, $publicIP)
-{
     $postdata = new stdClass();
     foreach ($params->condition as $key => $value) {
         $postdata->$key = new stdClass();
@@ -63,6 +41,8 @@ function CommonSqlSyntaxQuery_($params, $publicIP)
         (!property_exists($value, 'limit')) ? $limit = "" : $limit = $value->limit;
         (!property_exists($value, 'symbols')) ? $symbols = "" : $symbols = $value->symbols;
         (!property_exists($value, 'intervaltime')) ? $intervaltime = "" : $intervaltime = $value->intervaltime;
+        (!property_exists($value, 'subquery')) ? $subquery = "" : $subquery = $value->subquery;
+        (!property_exists($value, 'union')) ? $union = "" : $union = $value->union;
         $postdata->$key->table = $table;
         $postdata->$key->fields = $fields;
         $postdata->$key->where = $where;
@@ -70,12 +50,14 @@ function CommonSqlSyntaxQuery_($params, $publicIP)
         $postdata->$key->limit = $limit;
         $postdata->$key->symbols = $symbols;
         $postdata->$key->intervaltime = $intervaltime;
+        $postdata->$key->subquery = $subquery;
+        $postdata->$key->union = $union;
     }
-    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/SqlSyntax_?uid=@sapido@PaaS&getSqlSyntax=yes";
+    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/2.0/my/CommonUse/SqlSyntax?uid=@sapido@PaaS&getSqlSyntax=yes";
     return array($url, $postdata);
 }
 
-function CommonJoinMultiTable_($params, $publicIP)
+function CommonJoinMultiTable($params, $publicIP)
 {
     $postdata = new stdClass();
     foreach ($params->condition as $key => $value) {
@@ -88,6 +70,7 @@ function CommonJoinMultiTable_($params, $publicIP)
         (!property_exists($value, 'symbols')) ? $symbols = "" : $symbols = $value->symbols;
         (!property_exists($value, 'join')) ? $join = "" : $join = $value->join;
         (!property_exists($value, 'jointype')) ? $jointype = "" : $jointype = $value->jointype;
+        (!property_exists($value, 'subquery')) ? $subquery = "" : $subquery = $value->subquery;
         $postdata->$key->tables = $tables;
         $postdata->$key->fields = $fields;
         $postdata->$key->orderby = $orderby;
@@ -96,8 +79,9 @@ function CommonJoinMultiTable_($params, $publicIP)
         $postdata->$key->symbols = $symbols;
         $postdata->$key->join = $join;
         $postdata->$key->jointype = $jointype;
+        $postdata->$key->subquery = $subquery;
     }
-    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/CommonUse/SqlSyntax/JoinMultiTable_?uid=@sapido@PaaS&getSqlSyntax=yes";
+    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/2.0/my/CommonUse/SqlSyntax/JoinMultiTable?uid=@sapido@PaaS&getSqlSyntax=yes";
     return array($url, $postdata);
 }
 

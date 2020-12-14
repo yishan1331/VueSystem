@@ -9,6 +9,8 @@ const state = {
 }
 const getters = {
     get_alertModalShow: state => {
+        console.log("******************");
+        console.log(state.alertModalShow);
         return state.alertModalShow
     },
     get_setTimeOutalertModalShow: state => {
@@ -57,6 +59,12 @@ const mutations = {
             state.alertModalShow = true;
         } else {
             state.alertModalShow = false;
+            console.log(this.timer);
+            // if (state.setTimeOutAlertModalShow){
+
+            // }else{
+            //     state.alertModalShow = false;
+            // }
         }
         console.log(state.alertModalShow);
     },

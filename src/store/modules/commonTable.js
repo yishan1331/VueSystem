@@ -2,17 +2,19 @@ const state = {
     tableDetail: {
         items: [],
         fields: [],
+        which: null,
+        children:{}
     },
     tableSlotConfig: {
         slotConfig: {},
-        actionConfig: {
-            edit: { "type": "", "model": "" }, //self,modal
-            del: { "type": "", "model": "" }, //self,modal
-        }
+        actionConfig: {}
     },
     tableResponse: null,
-    tableInWhichTabIndex: 0,
-    activeItemsSeq:null,
+    tableInWhichTab: {
+        index: 0,
+        which: null
+    },
+    activeItemsSeq: null,
 };
 const getters = {
     get_tableDetail: state => {
@@ -24,9 +26,9 @@ const getters = {
     get_tableResponse: state => {
         return state.tableResponse;
     },
-    get_tableInWhichTabIndex: state => {
+    get_tableInWhichTab: state => {
         console.log("#########");
-        return state.tableInWhichTabIndex;
+        return state.tableInWhichTab;
     },
     get_activeItemsSeq: state => {
         return state.activeItemsSeq;
@@ -42,9 +44,9 @@ const actions = {
     set_tableResponse(context, data) {
         context.commit("SET_TABLERESPONSE", data);
     },
-    set_tableInWhichTabIndex(context, data) {
+    set_tableInWhichTab(context, obj) {
         console.log("$$$$$$$$$$");
-        context.commit("SET_TABLEINWHICHTABINDEX", data);
+        context.commit("SET_TABLEINWHICHTAB", obj);
     },
     set_activeItemsSeq(context, data) {
         context.commit("SET_ACTIVEITEMSEQ", data);
@@ -60,8 +62,8 @@ const mutations = {
     SET_TABLERESPONSE(state, data) {
         state.tableResponse = data;
     },
-    SET_TABLEINWHICHTABINDEX(state, data) {
-        state.tableInWhichTabIndex = data;
+    SET_TABLEINWHICHTAB(state, obj) {
+        state.tableInWhichTab = obj;
         console.log("%%%%%%%%%%");
     },
     SET_ACTIVEITEMSEQ(state, data) {

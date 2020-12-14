@@ -273,8 +273,14 @@ export default {
         onChange(event) {
             console.log(event);
             var vm = this;
+            console.log(vm.inputData);
+            console.log(vm.inputData.conversiontable);
             if (Object.keys(vm.inputData.conversiontable).length != 0) {
-                vm.selected = vm.inputData.conversiontable[event];
+                if (vm.inputData.conversiontable.hasOwnProperty(event)) {
+                    vm.selected = vm.inputData.conversiontable[event];
+                } else {
+                    vm.selected = "";
+                }
             } else {
                 vm.selected = "";
             }
@@ -283,6 +289,7 @@ export default {
             // } else {
             //     vm.selected = "";
             // }
+            console.log(vm.selected);
             vm.inputtext = "";
         },
 
@@ -325,7 +332,7 @@ export default {
                 //     vm.setthisQueryTimeInterval("ALL");
                 // } else {
                 params["methods"] = "POST";
-                params["whichFunction"] = "CommonSqlSyntaxQuery_";
+                params["whichFunction"] = "CommonSqlSyntaxQuery";
                 //default params
                 let fieldsparams = "";
                 let orderbyparams = ["desc", "lastUpdateTime"];
@@ -333,6 +340,8 @@ export default {
                 let whereparams = {};
                 let symbolsparams = {};
                 let intervaltimeparams = {};
+                let subqueryparams = {};
+                let unionparams = [];
 
                 if (vm.settingtime) {
                     intervaltimeparams[vm.apiParams.normal.timeattr] = [
@@ -366,7 +375,7 @@ export default {
                     console.log(vm.isInit);
                 }
                 console.log(vm.apiParams.normal);
-
+                console.log(vm.inputData.selected);
                 if (vm.inputData.selected != "ALL") {
                     if (vm.apiParams.normal.attr == "") {
                         if (
@@ -414,6 +423,12 @@ export default {
                     whereparams = "";
                     symbolsparams = "";
                 }
+                if (Object.keys(subqueryparams).length == 0)
+                    subqueryparams = "";
+
+                if (unionparams.length == 0) unionparams = "";
+
+                console.log(whereparams);
                 params["condition"] = {
                     condition_1: {
                         table: vm.apiParams.normal.table,
@@ -423,27 +438,102 @@ export default {
                         where: whereparams,
                         symbols: symbolsparams,
                         intervaltime: intervaltimeparams,
+                        subquery: subqueryparams,
+                        union: unionparams,
                     },
                 };
-
+                console.log(params["condition"]);
                 //若有自定義參數在此整理合併查詢
                 console.log(vm.apiParams.customized);
                 Object.keys(vm.apiParams.customized).map((element) => {
-                    if (params["condition"]["condition_1"][element] != "") {
-                        Object.assign(
-                            params["condition"]["condition_1"][element],
-                            vm.apiParams.customized[element]
+                    console.log(element);
+                    console.log(params["condition"][element]);
+                    console.log(vm.apiParams.customized[element]);
+                    if (params["condition"].hasOwnProperty(element)) {
+                        Object.keys(params["condition"][element]).map(
+                            (element2) => {
+                                if (
+                                    vm.apiParams.customized[
+                                        element
+                                    ].hasOwnProperty(element2)
+                                ) {
+                                    console.log(
+                                        vm.apiParams.customized[element][
+                                            element2
+                                        ]
+                                    );
+                                    console.log(
+                                        params["condition"][element][element2]
+                                    );
+                                    if (
+                                        params["condition"][element][
+                                            element2
+                                        ] == ""
+                                    ) {
+                                        console.log("-------------------");
+                                        params["condition"][element][element2] =
+                                            vm.apiParams.customized[element][
+                                                element2
+                                            ];
+                                    } else {
+                                        Object.assign(
+                                            params["condition"][element][
+                                                element2
+                                            ],
+                                            vm.apiParams.customized[element][
+                                                element2
+                                            ]
+                                        );
+                                    }
+                                }
+                            }
+                        );
+                        Object.keys(vm.apiParams.customized[element]).map(
+                            (element2) => {
+                                if (
+                                    !params["condition"][
+                                        element
+                                    ].hasOwnProperty(element2)
+                                ) {
+                                    console.log(element2);
+                                    console.log("$$$$$$$$$$$$$$");
+                                    Object.assign(
+                                        params["condition"][element][element2],
+                                        vm.apiParams.customized[element][
+                                            element2
+                                        ]
+                                    );
+                                }
+                            }
                         );
                     } else {
-                        params["condition"]["condition_1"][element] =
-                            vm.apiParams.customized[element];
+                        params["condition"][element] = JSON.parse(
+                            JSON.stringify(vm.apiParams.customized[element])
+                        );
+                        Object.entries(vm.apiParams.customized[element]).map(
+                            (element2) => {
+                                if (
+                                    (element2[0] == "where" ||
+                                        element2[0] == "symbols" ||
+                                        element2[0] == "intervaltime") &&
+                                    typeof element2[1] === "string"
+                                ) {
+                                    params["condition"][element][element2[0]] =
+                                        params["condition"][element2[1]][
+                                            element2[0]
+                                        ];
+                                }
+                            }
+                        );
+                        console.log(vm.apiParams.customized[element]);
                     }
                 });
+                console.log(params["condition"]);
                 // }
             } else if (vm.apiParams.type == "join") {
                 if (vm.inputData.selected == "ALL") {
                     params["methods"] = "POST";
-                    params["whichFunction"] = "CommonJoinMultiTable_";
+                    params["whichFunction"] = "CommonJoinMultiTable";
                     params["condition"] = vm.apiParams.customized;
                 }
             }

@@ -32,6 +32,16 @@
                             }"
                             @keypress.enter.prevent
                         ></b-form-input>
+                        <b-form-input
+                            v-else-if="item1[0] == 'email'"
+                            type="email"
+                            v-model="form[key1]"
+                            :class="{
+                                wronginput: form.formcontentwrong,
+                                'input-text': vforData['textclass'],
+                            }"
+                            @keypress.enter.prevent
+                        ></b-form-input>
                         <b-form-textarea
                             v-else-if="item1[0] == 'textarea'"
                             v-model="form[key1]"
@@ -432,6 +442,11 @@ export default {
         ...mapActions({
             setcompletedData: "systemform/set_completedData",
         }),
+        customizer(objValue, srcValue) {
+            if (_.isArray(objValue)) {
+                return objValue.concat(srcValue);
+            }
+        },
         createFormData() {
             var vm = this;
             var pageAccessobj = JSON.parse(
@@ -441,12 +456,6 @@ export default {
             var formdata = JSON.parse(JSON.stringify(vm.vforData));
             console.log(formdata);
             var formdataitem = {};
-
-            function customizer(objValue, srcValue) {
-                if (_.isArray(objValue)) {
-                    return objValue.concat(srcValue);
-                }
-            }
 
             for (var i = 0; i < Object.keys(formdata).length; i++) {
                 if (Object.values(formdata)[i].length == 2) {
@@ -471,7 +480,7 @@ export default {
                             mergeWith(
                                 pageAccessobj,
                                 Object.values(formdata)[i][2],
-                                customizer
+                                vm.customizer
                             );
                             formdataitem[
                                 Object.keys(formdata)[i]
@@ -498,11 +507,15 @@ export default {
             const selectOptionsList = selectOptionsObj
                 .map((item) => Object.values(item))
                 .filter(function (item, index) {
-                    console.log(item);
                     return item[1] == event;
                 });
             console.log(selectOptionsList);
-            vm.form.accessList = selectOptionsList[0][2];
+
+            mergeWith(
+                vm.form.accessList,
+                selectOptionsList[0][2],
+                vm.customizer
+            );
             console.log(vm.form.accessList);
         },
 
