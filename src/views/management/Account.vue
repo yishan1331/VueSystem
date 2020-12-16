@@ -566,7 +566,7 @@ export default {
         AccountMod() {
             var vm = this;
             var params = {};
-            params["methods"] = "POST";
+            params["methods"] = "PATCH";
             params["whichFunction"] = "AccountMod";
             params["uID"] = String(vm.systemFormCompletedData.uID);
             params["pwd"] = vm.systemFormCompletedData.pwd;
@@ -654,7 +654,7 @@ export default {
         AccountDel(params) {
             var vm = this;
             var apiparams = {};
-            apiparams["methods"] = "GET";
+            apiparams["methods"] = "DELETE";
             apiparams["whichFunction"] = "AccountDel";
             apiparams["uID"] = String(params.data.uID);
             vm.axiosAction(apiparams)

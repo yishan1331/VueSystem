@@ -64,6 +64,9 @@ function AccountMod($params, $publicIP)
 }
 function AccountDel($params, $publicIP)
 {
-    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/user/delete_User?uid=@sapido@PaaS&del_uID=" . $params->uID;
-    return array($url);
+    $url = "https://" . $publicIP . ":3687/api/SAPIDOSYSTEM/1.0/my/user/delete_User?uid=@sapido@PaaS";
+    $data = array(
+        'uID' => $params->uID,
+    );
+    return array($url, $data);
 }

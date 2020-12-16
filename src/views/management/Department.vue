@@ -661,7 +661,7 @@ export default {
         DepMod() {
             var vm = this;
             var params = {};
-            params["methods"] = "POST";
+            params["methods"] = "PATCH";
             params["whichFunction"] = "DepartmentMod";
             params["depID"] = String(vm.systemFormCompletedData.depID);
             params["depName"] = String(vm.systemFormCompletedData.depName);

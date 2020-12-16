@@ -1802,7 +1802,10 @@ export default {
                 // const fileName = thisdep + "的WeeklyReport_" + vm.nowFormat;
                 const fileName =
                     "Weekly Report_" +
-                    vm.thisweekday.join("-") +
+                    vm.thisQueryTimeInterval[0].replace(/-/g, "") +
+                    "-" +
+                    vm.thisQueryTimeInterval[1].split("-")[1] +
+                    vm.thisQueryTimeInterval[1].split("-")[2] +
                     "_" +
                     thisdep +
                     "_" +
