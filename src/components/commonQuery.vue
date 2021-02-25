@@ -400,10 +400,11 @@ export default {
                             orderbyparams = ["asc", "date"];
                         }
                     }
-                } else {
-                    //設定此次抓取的時間區間
-                    vm.setthisQueryTimeInterval("ALL");
                 }
+                // else {
+                //     //設定此次抓取的時間區間
+                //     vm.setthisQueryTimeInterval("ALL");
+                // }
 
                 if (vm.inputData.secondcondition[0]) {
                     let thisinputlen = vm.second_inputtext.length;
@@ -543,6 +544,13 @@ export default {
                 console.log(result);
                 vm.togglealertModal(false);
                 vm.changetableBusy();
+                if (
+                    Object.prototype.toString.call(result) != "[object Object]"
+                ) {
+                    vm.setTimeOutAlertMsg(result);
+                    vm.settimeoutalertModal(2000);
+                    return;
+                }
                 if (result["Response"] == "ok") {
                     result["QueryTableData"] = result["QueryTableData"].sort(
                         function (a, b) {

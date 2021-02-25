@@ -754,6 +754,15 @@ export default {
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        anyerror = true;
+                        return;
+                    }
+
                     if (result["Response"] == "ok") {
                         if (result["QueryTableData"].length == 0) {
                             vm.setTimeOutAlertMsg("查無資料");
@@ -974,7 +983,9 @@ export default {
                 .finally(() => {
                     console.log("done");
                     vm.alertProgressModal(false);
-                    vm.queryAgain();
+                    setTimeout(function () {
+                        vm.queryAgain();
+                    }, 1200);
                 });
         },
 
@@ -1243,7 +1254,9 @@ export default {
                 .finally(() => {
                     // console.log("done");
                     vm.alertProgressModal(false);
-                    vm.queryAgain();
+                    setTimeout(function () {
+                        vm.queryAgain();
+                    }, 1200);
                 });
         },
 
@@ -1334,7 +1347,9 @@ export default {
                     // console.log("done");
                     vm.togglealertModal(false);
                     vm.togglecommonModal(false);
-                    vm.queryAgain();
+                    setTimeout(function () {
+                        vm.queryAgain();
+                    }, 1200);
                 });
         },
 

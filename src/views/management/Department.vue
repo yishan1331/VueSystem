@@ -568,7 +568,7 @@ export default {
                 itemsobj["depID"] = element["depID"];
                 itemsobj["depName"] = element["depName"];
                 itemsobj["depInfo"] = element["depInfo"];
-                itemsobj["accessList"] = element["accessList"];
+                itemsobj["accessList"] = JSON.parse(element["accessList"]);
                 itemsarray.push(itemsobj);
             });
             console.log(itemsarray);
@@ -597,6 +597,14 @@ export default {
             vm.axiosAction(params).then(() => {
                 var result = vm.axiosResult;
                 var array = [];
+                if (
+                    Object.prototype.toString.call(result) != "[object Object]"
+                ) {
+                    vm.setTimeOutAlertMsg(result);
+                    vm.settimeoutalertModal(2000);
+                    return;
+                }
+
                 if (result["Response"] == "ok") {
                     var depDetail = [];
                     for (var i = 0; i < result["QueryTableData"].length; i++) {
@@ -676,6 +684,15 @@ export default {
                     var result = vm.axiosResult;
                     console.log(result);
                     var msg = "";
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        vm.settimeoutalertModal(2000);
+                        return;
+                    }
+
                     if (result["Response"] == "ok") {
                         vm.setsystemFormResponse();
                         msg = "修改成功";
@@ -692,7 +709,9 @@ export default {
                     vm.settimeoutalertModal();
                     vm.modModalShow = false;
                     vm.togglecommonModal(false);
-                    vm.queryAgain();
+                    setTimeout(function () {
+                        vm.queryAgain();
+                    }, 1200);
                 });
         },
 
@@ -714,6 +733,15 @@ export default {
                     vm.setSystemFormCompletedData({});
                     var result = vm.axiosResult;
                     var msg = "";
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        vm.settimeoutalertModal(2000);
+                        return;
+                    }
+
                     if (result["Response"] == "ok") {
                         vm.setsystemFormResponse();
                         msg = "新增成功";
@@ -730,7 +758,9 @@ export default {
                     vm.settimeoutalertModal();
                     vm.toggleAddModal(false);
                     vm.SetSystemFormData(null);
-                    vm.queryAgain();
+                    setTimeout(function () {
+                        vm.queryAgain();
+                    }, 1200);
                 });
         },
 

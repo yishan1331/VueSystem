@@ -363,6 +363,15 @@ export default {
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        vm.settimeoutalertModal(2000);
+                        return;
+                    }
+
                     if (result["Response"] == "ok") {
                         vm.setTimeOutAlertMsg("新增成功");
                     } else {
@@ -377,7 +386,9 @@ export default {
                     vm.togglealertModal(false);
                     vm.settimeoutalertModal();
                     vm.toggleAddModal(false);
-                    vm.queryAgain();
+                    setTimeout(function () {
+                        vm.queryAgain();
+                    }, 1200);
                 });
         },
 
@@ -433,6 +444,15 @@ export default {
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        vm.settimeoutalertModal(2000);
+                        return;
+                    }
+
                     if (result["Response"] == "ok") {
                         vm.setTimeOutAlertMsg("修改成功");
                     } else {
@@ -447,7 +467,9 @@ export default {
                     //console.log("done");
                     vm.togglealertModal(false);
                     vm.settimeoutalertModal();
-                    vm.queryAgain();
+                    setTimeout(function () {
+                        vm.queryAgain();
+                    }, 1200);
                 });
         },
 
@@ -472,6 +494,15 @@ export default {
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        vm.settimeoutalertModal(2000);
+                        return;
+                    }
+
                     if (result["Response"] == "ok") {
                         vm.setTimeOutAlertMsg("刪除成功");
                     } else {
@@ -486,7 +517,9 @@ export default {
                     //console.log("done");
                     vm.togglealertModal(false);
                     vm.settimeoutalertModal();
-                    vm.queryAgain();
+                    setTimeout(function () {
+                        vm.queryAgain();
+                    }, 1200);
                 });
         },
 

@@ -1071,6 +1071,15 @@ export default {
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        anyerror = true;
+                        return;
+                    }
+
                     // console.log(JSON.stringify(result["QueryTableData"]));
                     if (result["Response"] == "ok") {
                         if (result["QueryTableData"].length == 0) {
@@ -1133,7 +1142,7 @@ export default {
                     if (anyerror) vm.settimeoutalertModal();
                     if (
                         vm.pageAccess.report.children.todolist.remark
-                            .commonQueryCondition.main == "ALL"
+                            .commonQueryCondition.main != "ALL"
                     )
                         vm.togglealertModal(false);
                 });
@@ -1225,6 +1234,8 @@ export default {
                 };
                 console.log(params);
 
+                console.log("-----before add-----");
+                console.log(new Date());
                 const response = async () => {
                     let addResult = await vm.addTaskFunc(params);
                     console.log(addResult);
@@ -1243,6 +1254,7 @@ export default {
                 response()
                     .then((value) => {
                         console.log(value);
+                        console.log("-----get add-----");
                         console.log(new Date());
                         if (value == "ok") {
                             if (vm.addTaskDetail.email) {
@@ -1261,11 +1273,14 @@ export default {
                         vm.setTimeOutAlertMsg(response);
                     })
                     .finally(() => {
+                        console.log("-----finally add-----");
+                        console.log(new Date());
                         vm.togglealertModal(false);
                         vm.settimeoutalertModal();
-                        console.log(new Date());
                         vm.formReset();
-                        vm.queryAgain();
+                        setTimeout(function () {
+                            vm.queryAgain();
+                        }, 1200);
                         vm.addTaskModalShow = !vm.addTaskModalShow;
                     });
             }
@@ -1278,6 +1293,13 @@ export default {
                     .then(() => {
                         var result = vm.axiosResult;
                         console.log(result);
+                        if (
+                            Object.prototype.toString.call(result) !=
+                            "[object Object]"
+                        ) {
+                            reject(result);
+                        }
+
                         if (result["Response"] == "ok") {
                             console.log(new Date());
                             resolve("ok");
@@ -1331,7 +1353,6 @@ export default {
 
         modTask(items) {
             let vm = this;
-            // vm.togglealertModal(true);
             console.log(items);
             let thiscompletedDate = "";
             if (items.status) thiscompletedDate = vm.nowFormat;
@@ -1367,6 +1388,15 @@ export default {
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        vm.settimeoutalertModal(2000);
+                        return;
+                    }
+
                     if (result["Response"] == "ok") {
                         vm.setTimeOutAlertMsg("修改成功");
                     } else {
@@ -1402,6 +1432,15 @@ export default {
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        vm.settimeoutalertModal(2000);
+                        return;
+                    }
+
                     if (result["Response"] == "ok") {
                         vm.setTimeOutAlertMsg("刪除成功");
                     } else {
@@ -1818,6 +1857,13 @@ export default {
                     .then(() => {
                         var result = vm.axiosResult;
                         console.log(result);
+                        if (
+                            Object.prototype.toString.call(result) !=
+                            "[object Object]"
+                        ) {
+                            reject("新增失敗");
+                        }
+
                         if (result["Response"] == "ok") {
                             if (step === "todoListComplt") {
                                 vm.transferDataAddFunc(
@@ -1863,6 +1909,15 @@ export default {
                     .then(() => {
                         var result = vm.axiosResult;
                         console.log(result);
+                        if (
+                            Object.prototype.toString.call(result) !=
+                            "[object Object]"
+                        ) {
+                            vm.setTimeOutAlertMsg(result);
+                            anyerror = true;
+                            reject("刪除失敗");
+                        }
+
                         if (result["Response"] == "ok") {
                             resolve("ok");
                         } else {

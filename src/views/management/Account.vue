@@ -399,6 +399,14 @@ export default {
             vm.axiosAction(params).then(() => {
                 var result = vm.axiosResult;
                 var array = [];
+                if (
+                    Object.prototype.toString.call(result) != "[object Object]"
+                ) {
+                    vm.setTimeOutAlertMsg(result);
+                    vm.settimeoutalertModal(2000);
+                    return;
+                }
+
                 if (result["Response"] == "ok") {
                     var depDetail = [];
                     depDetail[0] = {}; //key為depID
@@ -414,7 +422,7 @@ export default {
                         systemformselectoptions["value"] =
                             result["QueryTableData"][i]["depID"];
                         systemformselectoptions["accessList"] =
-                            result["QueryTableData"][i]["accessList"];
+                            JSON.parse(result["QueryTableData"][i]["accessList"]);
                         array.push(systemformselectoptions);
                     }
                     console.log(array);
@@ -510,7 +518,7 @@ export default {
                 itemsobj["uInfo"] = element["uInfo"];
                 itemsobj["email"] = element["email"];
                 itemsobj["noumenonID"] = element["noumenonID"];
-                itemsobj["accessList"] = element["accessList"];
+                itemsobj["accessList"] = JSON.parse(element["accessList"]);
                 itemsarray.push(itemsobj);
             });
             console.log(itemsarray);
@@ -550,6 +558,14 @@ export default {
             apiparams["uID"] = thisitemobj.uID;
             vm.axiosAction(apiparams).then(() => {
                 var result = vm.axiosResult;
+                if (
+                    Object.prototype.toString.call(result) != "[object Object]"
+                ) {
+                    vm.setTimeOutAlertMsg(result);
+                    vm.settimeoutalertModal(2000);
+                    return;
+                }
+
                 if (result["Response"] == "ok") {
                     var thispwd = result["QueryTableData"][0].pwd;
                     thisitemobj["pwd"] = thispwd;
@@ -587,6 +603,15 @@ export default {
                     var result = vm.axiosResult;
                     console.log(result);
                     var msg = "";
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        vm.settimeoutalertModal(2000);
+                        return;
+                    }
+
                     if (result["Response"] == "ok") {
                         vm.setsystemFormResponse();
                         msg = "修改成功";
@@ -631,6 +656,15 @@ export default {
                     console.log(result);
                     vm.setSystemFormCompletedData({});
                     var msg = "";
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        vm.settimeoutalertModal(2000);
+                        return;
+                    }
+
                     if (result["Response"] == "ok") {
                         vm.setsystemFormResponse();
                         msg = "新增成功";
@@ -662,6 +696,15 @@ export default {
                     var result = vm.axiosResult;
                     console.log(result);
                     var msg = "";
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        vm.settimeoutalertModal(2000);
+                        return;
+                    }
+
                     if (result["Response"] == "ok") {
                         msg = "刪除成功";
                     } else {

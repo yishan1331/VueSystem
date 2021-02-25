@@ -330,6 +330,15 @@ export default {
                     var result = vm.axiosResult;
                     console.log(result);
                     vm.togglealertModal(false);
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        vm.settimeoutalertModal(2000);
+                        return;
+                    }
+
                     if (result["Response"] == "ok") {
                         if (result["QueryTableData"].length == 0) {
                             vm.setTimeOutAlertMsg("查無資料");

@@ -116,9 +116,10 @@ export default {
                         obj.account = vm.user.uID;
                         obj.status = true;
                         obj.username = result["QueryTableData"][0].uName;
-                        obj.accesslist = result["QueryTableData"][0].accessList;
-                        var access = result["QueryTableData"][0].accessList;
+                        obj.accesslist = JSON.parse(result["QueryTableData"][0].accessList);
+                        var access = JSON.parse(result["QueryTableData"][0].accessList);
                         let trueList = [];
+                        console.log(access);
                         Object.entries(access).forEach((element) => {
                             if (element[1]["authority"]) {
                                 if (element[1].hasOwnProperty("children")) {

@@ -14,7 +14,7 @@
                                     id="input-category"
                                     v-model="form.category"
                                     :options="categoryoptions"
-                                    style="display:inline-block"
+                                    style="display: inline-block"
                                 ></b-form-select>
                             </b-col>
                         </b-row>
@@ -24,7 +24,10 @@
                             </b-col>
                             <b-col
                                 sm="5"
-                                :class="{ 'form-group--error': $v.form.title.value.$error }"
+                                :class="{
+                                    'form-group--error':
+                                        $v.form.title.value.$error,
+                                }"
                             >
                                 <b-form-input
                                     v-model.trim="$v.form.title.$model.value"
@@ -32,7 +35,12 @@
                                     type="text"
                                 ></b-form-input>
                                 <template
-                                    v-if="check_required($v.form.title.value.required,$v.form.title.$model)"
+                                    v-if="
+                                        check_required(
+                                            $v.form.title.value.required,
+                                            $v.form.title.$model
+                                        )
+                                    "
                                 >
                                     <div class="error">Is required</div>
                                 </template>
@@ -43,17 +51,36 @@
                                 <label for="textarea-large">公告內容:</label>
                                 <b-form-checkbox
                                     v-model="formcontentusetable"
-                                    style="margin-bottom:5px"
-                                    v-b-tooltip="{ trigger:'hover',title: usetableTooltipExample, html:true, placement: 'right', variant: 'info'}"
-                                >自定義文字格式或使用表格(若兩者都勾選以此優先)</b-form-checkbox>
+                                    style="margin-bottom: 5px"
+                                    v-b-tooltip="{
+                                        trigger: 'hover',
+                                        title: usetableTooltipExample,
+                                        html: true,
+                                        placement: 'right',
+                                        variant: 'info',
+                                    }"
+                                    >自定義文字格式或使用表格(若兩者都勾選以此優先)</b-form-checkbox
+                                >
                                 <b-form-checkbox
                                     v-model="formcontentusepre"
-                                    v-b-tooltip="{ trigger:'hover',title: usepreTooltipExample, html:true, placement: 'bottom', variant: 'info'}"
-                                >自定義格式內容(&lt;pre&gt;)</b-form-checkbox>
+                                    v-b-tooltip="{
+                                        trigger: 'hover',
+                                        title: usepreTooltipExample,
+                                        html: true,
+                                        placement: 'bottom',
+                                        variant: 'info',
+                                    }"
+                                    >自定義格式內容(&lt;pre&gt;)</b-form-checkbox
+                                >
                             </b-col>
                             <b-col
                                 sm="10"
-                                :class="{ 'form-group--error': seterrorclass($v.form.content.value,tabIndex)}"
+                                :class="{
+                                    'form-group--error': seterrorclass(
+                                        $v.form.content.value,
+                                        tabIndex
+                                    ),
+                                }"
                             >
                                 <b-form-textarea
                                     id="textarea-default"
@@ -65,15 +92,29 @@
                                     <br />
                                 </b-form-textarea>
                                 <template
-                                    v-if="check_required($v.form.content.value.required,$v.form.content.$model)"
+                                    v-if="
+                                        check_required(
+                                            $v.form.content.value.required,
+                                            $v.form.content.$model
+                                        )
+                                    "
                                 >
                                     <div class="error">Is required</div>
                                 </template>
                                 <template v-else-if="formcontentusetable">
                                     <div
                                         class="jsonerror"
-                                        v-if="check_jsonvalid($v.form.content.value.jsonvalidator,$v.form.content.$model)"
-                                    >不是正確的JSON格式，字串須加雙引號，陣列要以[ ]包起來，物件要以{ }包起來</div>
+                                        v-if="
+                                            check_jsonvalid(
+                                                $v.form.content.value
+                                                    .jsonvalidator,
+                                                $v.form.content.$model
+                                            )
+                                        "
+                                    >
+                                        不是正確的JSON格式，字串須加雙引號，陣列要以[
+                                        ]包起來，物件要以{ }包起來
+                                    </div>
                                 </template>
                             </b-col>
                         </b-row>
@@ -106,7 +147,8 @@
                                         type="submit"
                                         variant="primary"
                                         @click="$v.form.$touch"
-                                    >上傳</b-button>
+                                        >上傳</b-button
+                                    >
                                     <!-- @click.prevent="onSubmit()" -->
                                 </div>
                             </b-col>
@@ -114,7 +156,9 @@
                     </b-form>
                 </b-tab>
                 <b-tab title="修改">
-                    <h5 class="card-title" v-if="items.length == 0">選擇查詢條件</h5>
+                    <h5 class="card-title" v-if="items.length == 0">
+                        選擇查詢條件
+                    </h5>
                     <b-table
                         sticky-header="430px"
                         responsive
@@ -135,7 +179,9 @@
                     </b-table>
                 </b-tab>
                 <b-tab title="刪除">
-                    <h5 class="card-title" v-if="items.length == 0">選擇查詢條件</h5>
+                    <h5 class="card-title" v-if="items.length == 0">
+                        選擇查詢條件
+                    </h5>
                     <b-table
                         sticky-header="430px"
                         responsive
@@ -178,15 +224,19 @@
                         variant="light"
                         size="sm"
                         class="float-right"
-                        @click.prevent="delBulletinModalShow = !delBulletinModalShow"
-                    >Close</b-button>
+                        @click.prevent="
+                            delBulletinModalShow = !delBulletinModalShow
+                        "
+                        >Close</b-button
+                    >
                     <b-button
                         variant="success"
                         size="sm"
                         class="float-right"
-                        style="margin-right:10px"
+                        style="margin-right: 10px"
                         @click.prevent="onDelete()"
-                    >確定刪除</b-button>
+                        >確定刪除</b-button
+                    >
                 </div>
             </template>
         </b-modal>
@@ -214,7 +264,7 @@
                                 id="input-category"
                                 v-model="modmodalcontent.category"
                                 :options="categoryoptions"
-                                style="display:inline-block"
+                                style="display: inline-block"
                             ></b-form-select>
                         </b-col>
                     </b-row>
@@ -224,15 +274,25 @@
                         </b-col>
                         <b-col
                             sm="5"
-                            :class="{ 'form-group--error': $v.modmodalcontent.title.value.$error }"
+                            :class="{
+                                'form-group--error':
+                                    $v.modmodalcontent.title.value.$error,
+                            }"
                         >
                             <b-form-input
                                 class="input-title"
-                                v-model.trim="$v.modmodalcontent.title.$model.value"
+                                v-model.trim="
+                                    $v.modmodalcontent.title.$model.value
+                                "
                                 type="text"
                             ></b-form-input>
                             <template
-                                v-if="check_required($v.modmodalcontent.title.value.required,$v.modmodalcontent.title.$model)"
+                                v-if="
+                                    check_required(
+                                        $v.modmodalcontent.title.value.required,
+                                        $v.modmodalcontent.title.$model
+                                    )
+                                "
                             >
                                 <div class="error">Is required</div>
                             </template>
@@ -243,34 +303,70 @@
                             <label for="textarea-large">公告內容:</label>
                             <b-form-checkbox
                                 v-model="modmodalcontentusetable"
-                                v-b-tooltip="{ trigger:'hover',title: usetableTooltipExample, html:true, placement: 'right', variant: 'info'}"
-                            >自定義文字格式或使用表格(若兩者都勾選以此優先)</b-form-checkbox>
+                                v-b-tooltip="{
+                                    trigger: 'hover',
+                                    title: usetableTooltipExample,
+                                    html: true,
+                                    placement: 'right',
+                                    variant: 'info',
+                                }"
+                                >自定義文字格式或使用表格(若兩者都勾選以此優先)</b-form-checkbox
+                            >
                             <b-form-checkbox
                                 v-model="modmodalcontentusepre"
-                                v-b-tooltip="{ trigger:'hover',title: usepreTooltipExample, html:true, placement: 'bottom', variant: 'info'}"
-                            >自定義格式內容(&lt;pre&gt;)</b-form-checkbox>
+                                v-b-tooltip="{
+                                    trigger: 'hover',
+                                    title: usepreTooltipExample,
+                                    html: true,
+                                    placement: 'bottom',
+                                    variant: 'info',
+                                }"
+                                >自定義格式內容(&lt;pre&gt;)</b-form-checkbox
+                            >
                         </b-col>
                         <b-col
                             sm="10"
-                            :class="{ 'form-group--error': seterrorclass($v.modmodalcontent.content.value,tabIndex)}"
+                            :class="{
+                                'form-group--error': seterrorclass(
+                                    $v.modmodalcontent.content.value,
+                                    tabIndex
+                                ),
+                            }"
                         >
                             <b-form-textarea
                                 id="textarea-default"
                                 size="lg"
                                 no-resize
                                 rows="8"
-                                v-model="$v.modmodalcontent.content.$model.value"
+                                v-model="
+                                    $v.modmodalcontent.content.$model.value
+                                "
                             ></b-form-textarea>
                             <template
-                                v-if="check_required($v.modmodalcontent.content.value.required,$v.modmodalcontent.content.$model)"
+                                v-if="
+                                    check_required(
+                                        $v.modmodalcontent.content.value
+                                            .required,
+                                        $v.modmodalcontent.content.$model
+                                    )
+                                "
                             >
                                 <div class="error">Is required</div>
                             </template>
                             <template v-else-if="modmodalcontentusetable">
                                 <div
                                     class="jsonerror"
-                                    v-if="check_jsonvalid($v.modmodalcontent.content.value.jsonvalidator,$v.modmodalcontent.content.$model)"
-                                >不是正確的JSON格式，字串須加雙引號，陣列要以[ ]包起來，物件要以{ }包起來</div>
+                                    v-if="
+                                        check_jsonvalid(
+                                            $v.modmodalcontent.content.value
+                                                .jsonvalidator,
+                                            $v.modmodalcontent.content.$model
+                                        )
+                                    "
+                                >
+                                    不是正確的JSON格式，字串須加雙引號，陣列要以[
+                                    ]包起來，物件要以{ }包起來
+                                </div>
                             </template>
                         </b-col>
                     </b-row>
@@ -279,7 +375,11 @@
                             <label for="textarea-large">是否顯示:</label>
                         </b-col>
                         <b-col sm="10">
-                            <b-form-checkbox v-model="modmodalcontent.showhide" switch>顯示</b-form-checkbox>
+                            <b-form-checkbox
+                                v-model="modmodalcontent.showhide"
+                                switch
+                                >顯示</b-form-checkbox
+                            >
                         </b-col>
                     </b-row>
                     <b-row class="my-4">
@@ -290,20 +390,38 @@
                             <!-- <a :href="item" v-for="(item, key,index) in modmodalcontent.boardannex"
                 target="_blank"
                             :key="index">{{key}}</a>-->
-                            <p v-if="Object.keys(modmodalcontent.boardannex).length === 0">無</p>
+                            <p
+                                v-if="
+                                    Object.keys(modmodalcontent.boardannex)
+                                        .length === 0
+                                "
+                            >
+                                無
+                            </p>
                             <div
                                 v-else
-                                v-for="(item, key,index) in modmodalcontent.boardannex"
+                                v-for="(
+                                    item, key, index
+                                ) in modmodalcontent.boardannex"
                                 :key="index"
-                                style="display:inline-block;position: relative;margin-right:15px;margin-bottom:10px"
+                                style="
+                                    display: inline-block;
+                                    position: relative;
+                                    margin-right: 15px;
+                                    margin-bottom: 10px;
+                                "
                             >
                                 <b-button
                                     pill
                                     variant="outline-secondary"
                                     target="_blank"
                                     @click.prevent="previewfile(item)"
-                                >{{key}}</b-button>
-                                <div class="deletefilebtn" @click.prevent="deletefile(key,item)"></div>
+                                    >{{ key }}</b-button
+                                >
+                                <div
+                                    class="deletefilebtn"
+                                    @click.prevent="deletefile(key, item)"
+                                ></div>
                             </div>
                         </b-col>
                     </b-row>
@@ -335,7 +453,8 @@
                                     size="sm"
                                     class="float-right"
                                     @click.prevent="onModifyClose()"
-                                >Close</b-button>
+                                    >Close</b-button
+                                >
                             </div>
                             <div class="text-right">
                                 <b-button
@@ -344,8 +463,9 @@
                                     size="sm"
                                     class="float-right"
                                     @click="$v.modmodalcontent.$touch"
-                                    style="margin-right:5px"
-                                >修改</b-button>
+                                    style="margin-right: 5px"
+                                    >修改</b-button
+                                >
                                 <!-- @click.prevent="onModify()" -->
                             </div>
                         </b-col>
@@ -1010,7 +1130,9 @@ export default {
                     })
                     .finally(() => {
                         vm.togglealertModal(false);
-                        vm.queryAgain();
+                        setTimeout(function () {
+                            vm.queryAgain();
+                        }, 1200);
                     });
             }
         },
@@ -1082,7 +1204,9 @@ export default {
                         vm.setTimeOutAlertMsg(result);
                         vm.settimeoutalertModal(1000);
                         vm.delBulletinModalShow = false;
-                        vm.queryAgain();
+                        setTimeout(function () {
+                            vm.queryAgain();
+                        }, 1200);
                     }.bind(this)
                 )
                 .catch(function (err) {

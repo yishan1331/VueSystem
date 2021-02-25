@@ -270,6 +270,15 @@ export default {
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        anyerror = true;
+                        return;
+                    }
+
                     if (result["Response"] == "ok") {
                         result["FileList"].map((element) => {
                             vm.items.push({
@@ -502,6 +511,15 @@ export default {
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        anyerror = true;
+                        return;
+                    }
+
                     if (result["Response"] == "ok") {
                         vm.createIdPwd.Id = result["ID"];
                         vm.createIdPwd.Pwd = result["PWD"];

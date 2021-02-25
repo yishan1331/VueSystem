@@ -31,13 +31,17 @@ const getters = {
 }
 const actions = {
     toggle_alertModal(context, status) {
-        console.log("---------------");
+        console.log("-------toggle_alertModal--------");
+        console.log(status);
+        console.log(new Date());
         context.commit('TOGGLE_ALERTMODAL', status);
     },
     settimeout_alertModal(context, time) {
         if (typeof (time) === "undefined") {
             time = state.alertModalShowTime;
         }
+        console.log("-------settimeout_alertModal--------");
+        console.log(new Date());
         context.commit('SETTIMEOUT_ALERTMODAL', time);
     },
     set_alertMsg(context, msg) {

@@ -1240,6 +1240,15 @@ export default {
             vm.axiosAction(params)
                 .then(() => {
                     var result = vm.axiosResult;
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        vm.settimeoutalertModal(2000);
+                        return;
+                    }
+
                     //console.log(result);
                     //console.log(JSON.stringify(result["QueryTableData"]));
                     if (result["Response"] == "ok") {
@@ -1408,6 +1417,15 @@ export default {
                     .then(() => {
                         var result = vm.axiosResult;
                         //console.log(result);
+                        if (
+                            Object.prototype.toString.call(result) !=
+                            "[object Object]"
+                        ) {
+                            vm.setTimeOutAlertMsg(result);
+                            vm.settimeoutalertModal(2000);
+                            return;
+                        }
+
                         if (result["Response"] == "ok") {
                             vm.setTimeOutAlertMsg("新增成功");
                         } else {
@@ -1523,6 +1541,15 @@ export default {
                 .then(() => {
                     var result = vm.axiosResult;
                     //console.log(result);
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        vm.settimeoutalertModal(2000);
+                        return;
+                    }
+
                     if (result["Response"] == "ok") {
                         vm.setTimeOutAlertMsg("修改成功");
                     } else {
@@ -1570,6 +1597,15 @@ export default {
                 .then(() => {
                     var result = vm.axiosResult;
                     //console.log(result);
+                    if (
+                        Object.prototype.toString.call(result) !=
+                        "[object Object]"
+                    ) {
+                        vm.setTimeOutAlertMsg(result);
+                        vm.settimeoutalertModal(2000);
+                        return;
+                    }
+
                     if (result["Response"] == "ok") {
                         vm.setTimeOutAlertMsg("刪除成功");
                     } else {
@@ -1733,11 +1769,11 @@ export default {
                         }
                     }
                 });
-                // //console.log(thisweekexportdata);
+                // console.log(thisweekexportdata);
                 // //console.log(JSON.stringify(thisweekexportdata));
 
                 let nextWeekData = JSON.parse(JSON.stringify(vm.items));
-                // //console.log(nextWeekData);
+                console.log(nextWeekData);
                 // //console.log(JSON.stringify(nextWeekData));
                 let othersOption = [
                     "人事",
@@ -1759,6 +1795,10 @@ export default {
                 nextWeekData.map(function (item) {
                     delete item.seq;
                     delete item.depID;
+                    item.Status = vm.replaceContentData(
+                        String(item.Status),
+                        false
+                    );
                 });
 
                 nextWeekData.filter(function (item) {
@@ -1798,8 +1838,10 @@ export default {
                 if (vm.inputData.selected != "ALL") {
                     thisdep = vm.depConfig[vm.inputData.selected];
                 }
-                //console.log(thisdep);
+                console.log(thisdep);
                 // const fileName = thisdep + "的WeeklyReport_" + vm.nowFormat;
+                console.log(vm.thisQueryTimeInterval);
+                console.log(vm.loginData.username);
                 const fileName =
                     "Weekly Report_" +
                     vm.thisQueryTimeInterval[0].replace(/-/g, "") +
@@ -1811,6 +1853,7 @@ export default {
                     "_" +
                     vm.loginData.username;
                 vm.exportTitle = thisdep;
+                console.log(vm.exportTitle);
 
                 if (filetype === "CSV") {
                     thisweekexportdata.map(function (item) {
@@ -1851,8 +1894,8 @@ export default {
                     } else {
                         thistimeinterval = vm.thisQueryTimeInterval.join(" ~ ");
                     }
-                    //console.log(thistimeinterval);
                     vm.exportDate = thistimeinterval;
+                    console.log(vm.exportDate);
 
                     let mergecells = {};
                     if (vm.exportPDFselected)

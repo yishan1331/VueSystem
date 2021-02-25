@@ -15,6 +15,7 @@ function ChangePwd($params, $publicIP)
         'uName' => $params->uName,
         'pwd' => $params->pwd,
         'uInfo' => $params->uInfo,
+        'email' => $params->email,
         'noumenonType' => $params->noumenonType,
         'noumenonID' => $params->noumenonID,
         'accessList' => $params->accessList,

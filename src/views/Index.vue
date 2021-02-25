@@ -545,6 +545,7 @@ export default {
             params["uID"] = vm.loginData.account;
             vm.axiosAction(params).then(() => {
                 var result = vm.axiosResult;
+                console.log(result);
                 if (result["Response"] != "ok") {
                     vm.setTimeOutAlertMsg(result["Response"]);
                     vm.settimeoutalertModal();
@@ -554,14 +555,15 @@ export default {
                         result["QueryTableData"][0].pwd
                     ) {
                         params = {};
-                        params["methods"] = "POST";
+                        params["methods"] = "PATCH";
                         params["whichFunction"] = "ChangePwd";
                         params["uID"] = String(result["QueryTableData"][0].uID);
                         params["noumenonType"] =
                             result["QueryTableData"][0].noumenonType;
                         params["uInfo"] = result["QueryTableData"][0].uInfo;
+                        params["email"] = result["QueryTableData"][0].email;
                         params["accessList"] =
-                            result["QueryTableData"][0].accessList;
+                            JSON.parse(result["QueryTableData"][0].accessList);
                         params["uName"] = result["QueryTableData"][0].uName;
                         params["pwd"] = vm.ChangePwdmodal.change_newpwd;
                         params["noumenonID"] = String(
