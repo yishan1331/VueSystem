@@ -205,6 +205,17 @@
                         ></b-form-input>
                     </div>
                 </template>
+                <template v-slot:cell(Dep)="row">
+                    <div :class="{ hide: activeItemsSeq == row.item.seq }">
+                        {{ depConfig[row.item.depID] }}
+                    </div>
+                    <div :class="{ hide: activeItemsSeq != row.item.seq }">
+                        <b-form-select
+                            v-model="row.item.depID"
+                            :options="depOptions"
+                        ></b-form-select>
+                    </div>
+                </template>
                 <template v-slot:cell(Owner)="row">
                     <div :class="{ hide: activeItemsSeq == row.item.seq }">
                         <span
@@ -228,17 +239,6 @@
                             v-model="row.item.Owner"
                             @click="editLongData(row, 'Owner', true)"
                         ></b-form-input>
-                    </div>
-                </template>
-                <template v-slot:cell(Dep)="row">
-                    <div :class="{ hide: activeItemsSeq == row.item.seq }">
-                        {{ depConfig[row.item.depID] }}
-                    </div>
-                    <div :class="{ hide: activeItemsSeq != row.item.seq }">
-                        <b-form-select
-                            v-model="row.item.depID"
-                            :options="depOptions"
-                        ></b-form-select>
                     </div>
                 </template>
                 <template v-slot:cell(Edit)="row">
@@ -285,6 +285,7 @@
                 </template>
             </b-table>
         </b-tabs>
+
         <!-- 新增事項modal -->
         <b-modal
             centered
@@ -333,16 +334,6 @@
                                 ></b-form-input>
                                 <b-form-select
                                     :id="'input-' + index"
-                                    v-else-if="index == 'Owner'"
-                                    v-model="
-                                        $v.addTaskDetail.Owner.$model.value
-                                    "
-                                    :options="getStaffOptions"
-                                    size="sm"
-                                    multiple
-                                ></b-form-select>
-                                <b-form-select
-                                    :id="'input-' + index"
                                     v-else-if="index == 'Dep'"
                                     v-model="$v.addTaskDetail.Dep.$model.value"
                                     :options="depOptions"
@@ -357,6 +348,16 @@
                                         >
                                     </template>
                                 </b-form-select>
+                                <b-form-select
+                                    :id="'input-' + index"
+                                    v-else-if="index == 'Owner'"
+                                    v-model="
+                                        $v.addTaskDetail.Owner.$model.value
+                                    "
+                                    :options="getStaffOptions"
+                                    size="sm"
+                                    multiple
+                                ></b-form-select>
                                 <template
                                     v-else-if="
                                         index == 'Group' || index == 'Item'
@@ -482,6 +483,7 @@
                 </b-form>
             </template>
         </b-modal>
+
         <!-- 刪除事項modal -->
         <b-modal
             centered
@@ -516,6 +518,7 @@
                 </div>
             </template>
         </b-modal>
+
         <!-- export modal -->
         <b-modal
             centered
@@ -622,6 +625,7 @@
                 </div>
             </template>
         </b-modal>
+
         <exportFile />
     </div>
 </template>
@@ -660,8 +664,8 @@ export default {
                 { key: "Action", sortable: false },
                 { key: "Remark", sortable: false },
                 { key: "Priority", sortable: true },
-                { key: "Owner", sortable: true },
                 { key: "Dep", sortable: true },
+                { key: "Owner", sortable: true },
                 { key: "Edit", sortable: false },
             ],
             items: [],
@@ -740,14 +744,14 @@ export default {
                     value: null,
                     invalid: false,
                 },
-                Owner: {
-                    key: "Owner",
-                    value: [],
-                    invalid: false,
-                },
                 Dep: {
                     key: "Dep",
                     value: null,
+                    invalid: false,
+                },
+                Owner: {
+                    key: "Owner",
+                    value: [],
                     invalid: false,
                 },
             },
@@ -837,12 +841,12 @@ export default {
                         positivenumvalidator,
                     },
                 },
-                Owner: {
+                Dep: {
                     value: {
                         required,
                     },
                 },
-                Dep: {
+                Owner: {
                     value: {
                         required,
                     },
@@ -856,10 +860,12 @@ export default {
             delete setvalid.addTaskDetail.Priority;
             //console.log(setvalid);
             return setvalid;
-        } else if (this.addTaskWhich == 0) {
-            delete setvalid.addTaskDetail.Dep;
-            return setvalid;
-        } else {
+        }
+        // else if (this.addTaskWhich == 0) {
+        //     delete setvalid.addTaskDetail.Dep;
+        //     return setvalid;
+        // }
+        else {
             return setvalid;
         }
     },
@@ -895,7 +901,7 @@ export default {
     },
     mounted: function () {
         let vm = this;
-        vm.fields.splice(9, 1);
+        // vm.fields.splice(9, 1);
     },
     watch: {
         tabIndex: {
@@ -938,7 +944,7 @@ export default {
                         ],
                     };
                     vm.setapiParams(commonApiParams);
-                    vm.fields.splice(9, 1);
+                    // vm.fields.splice(9, 1);
                 } else {
                     commonApiParams.normal.table = "workedKey";
                     commonApiParams.normal.attr = "depID";
@@ -953,7 +959,8 @@ export default {
                     };
                     vm.setapiParams(commonApiParams);
                     vm.fields.splice(2, 1);
-                    vm.fields.splice(3, 5);
+                    vm.fields.splice(3, 4);
+                    vm.fields.splice(4, 1);
 
                     if (vm.items.length == 0) {
                         //console.log("@@@@@@@@@");
@@ -1014,7 +1021,7 @@ export default {
                     delete vm.addTaskDetail.Priority;
                     delete vm.addTaskDetail.Owner;
                 } else if (vm.addTaskWhich == 0) {
-                    delete vm.addTaskDetail.Dep;
+                    // delete vm.addTaskDetail.Dep;
                     vm.addTaskDetail.Date.time = vm.nowFormat;
                 }
                 //console.log(vm.addTaskDetail);
@@ -1350,7 +1357,7 @@ export default {
             let vm = this;
             let status = true;
             //console.log(vm.addTaskWhich);
-            let checkvalid = ["Group", "Item", "Progress", "Priority", "Owner"];
+            let checkvalid = ["Group", "Item", "Progress", "Priority", "Owner","Dep"];
             if (vm.tabIndex == 1) checkvalid = ["Group", "Item", "Dep"];
             //console.log(checkvalid);
             checkvalid.forEach((element) => {
@@ -1384,11 +1391,12 @@ export default {
                         table: "weeklyReport",
                         postdata: {
                             seq: [""],
-                            depID: [
-                                vm.depStaffRelation[
-                                    vm.addTaskDetail.Owner.value[0]
-                                ],
-                            ],
+                            // depID: [
+                            //     vm.depStaffRelation[
+                            //         vm.addTaskDetail.Owner.value[0]
+                            //     ],
+                            // ],
+                            depID: [vm.addTaskDetail.Dep.value],
                             groupID: [vm.addTaskDetail.Group.value],
                             item: [vm.addTaskDetail.Item.value],
                             date: [vm.addTaskDetail.Date.time],
@@ -1468,7 +1476,7 @@ export default {
             let params = {};
             let checkvalid = [];
             if (vm.tabIndex == 0) {
-                checkvalid = ["Group", "Item", "Progress", "Priority", "Owner"];
+                checkvalid = ["Group", "Item", "Progress", "Priority", "Owner","Dep"];
                 for (let i = 0; i < checkvalid.length; i++) {
                     if (items[checkvalid[i]] == "") {
                         vm.setTimeOutAlertMsg("尚有未輸入的值");
@@ -1497,7 +1505,8 @@ export default {
                     table: "weeklyReport",
                     postdata: {
                         old_seq: [items.seq],
-                        depID: [vm.depStaffRelation[items.Owner.split(",")[0]]],
+                        // depID: [vm.depStaffRelation[items.Owner.split(",")[0]]],
+                        depID: [items.depID],
                         groupID: [items.Group],
                         item: [items.Item],
                         date: [items.Date.time],
@@ -1682,14 +1691,14 @@ export default {
                     value: null,
                     invalid: false,
                 },
-                Owner: {
-                    key: "Owner",
-                    value: [],
-                    invalid: false,
-                },
                 Dep: {
                     key: "Dep",
                     value: null,
+                    invalid: false,
+                },
+                Owner: {
+                    key: "Owner",
+                    value: [],
                     invalid: false,
                 },
             };
