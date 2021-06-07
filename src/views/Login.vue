@@ -1,11 +1,13 @@
 <template>
     <div class="login">
         <form class="form-signin">
-            <img
-                src="../assets/sapidoLOGO.png"
-                alt="sapido"
-                class="sapidoimg"
-            />
+            <div class="text-center">
+                <img
+                    src="../assets/yishan_logo1.png"
+                    alt="sapido"
+                    class="sapidoimg"
+                />
+            </div>
             <div style="margin-top: 10px">
                 <div class="inputdiv">
                     <label>帳號:</label>
@@ -89,84 +91,185 @@ export default {
                 vm.settimeoutalertModal();
                 return;
             }
+            if (vm.user.uID != "root" && vm.user.uID != "test") {
+                vm.setTimeOutAlertMsg("無此帳號");
+                vm.settimeoutalertModal();
+                return;
+            }
             vm.togglealertModal(true);
             var obj = {};
             obj.account = 2493;
             obj.status = true;
             obj.username = "admin";
-            obj.accesslist = {
-                bulletin: {
-                    authority: true,
-                    children: {
-                        board: { authority: true },
-                        manage: { authority: true },
-                    },
-                },
-                management: {
-                    authority: true,
-                    children: {
-                        department: { authority: true },
-                        account: { authority: true },
-                    },
-                },
-                architecture: {
-                    authority: true,
-                    children: {
-                        structure: { authority: true },
-                        server: { authority: true },
-                        storage: { authority: true },
-                    },
-                },
-                report: {
-                    authority: true,
-                    children: {
-                        todolist: {
-                            authority: true,
-                            remark: { commonQueryCondition: { main: "ALL" } },
+            if (vm.user.uID == "root") {
+                obj.username = "root";
+                obj.accesslist = {
+                    bulletin: {
+                        authority: true,
+                        children: {
+                            board: { authority: true },
+                            manage: { authority: true },
                         },
-                        weeklyreport: {
-                            authority: true,
-                            remark: { commonQueryCondition: { main: "ALL" } },
+                    },
+                    management: {
+                        authority: true,
+                        children: {
+                            department: { authority: true },
+                            account: { authority: true },
                         },
-                        meetingminutes: {
-                            authority: true,
-                            remark: {
-                                commonQueryCondition: {
-                                    main: ["1003", "1002", "1001", "common"],
-                                    secondary: "supervisor",
+                    },
+                    architecture: {
+                        authority: true,
+                        children: {
+                            structure: { authority: true },
+                            server: { authority: true },
+                            storage: { authority: true },
+                        },
+                    },
+                    report: {
+                        authority: true,
+                        children: {
+                            todolist: {
+                                authority: true,
+                                remark: {
+                                    commonQueryCondition: { main: "ALL" },
                                 },
-                                dataHandleAuthority: [
-                                    "query",
-                                    "modify",
-                                    "delete",
-                                    "add",
-                                ],
+                            },
+                            weeklyreport: {
+                                authority: true,
+                                remark: {
+                                    commonQueryCondition: { main: "ALL" },
+                                },
+                            },
+                            meetingminutes: {
+                                authority: true,
+                                remark: {
+                                    commonQueryCondition: {
+                                        main: [
+                                            "1003",
+                                            "1002",
+                                            "1001",
+                                            "common",
+                                        ],
+                                        secondary: "supervisor",
+                                    },
+                                    dataHandleAuthority: [
+                                        "query",
+                                        "modify",
+                                        "delete",
+                                        "add",
+                                    ],
+                                },
+                            },
+                            sop: {
+                                authority: true,
+                                remark: {
+                                    commonQueryCondition: {
+                                        main: "1003",
+                                        secondary: "supervisor",
+                                    },
+                                    dataHandleAuthority: [
+                                        "query",
+                                        "modify",
+                                        "delete",
+                                        "add",
+                                    ],
+                                },
                             },
                         },
-                        sop: {
-                            authority: true,
-                            remark: {
-                                commonQueryCondition: {
-                                    main: "1003",
-                                    secondary: "supervisor",
+                    },
+                    tool: {
+                        authority: true,
+                        children: {
+                            fileupdownload: { authority: true },
+                        },
+                    },
+                };
+            } else if (vm.user.uID == "test") {
+                obj.username = "test";
+                obj.accesslist = {
+                    bulletin: {
+                        authority: true,
+                        children: {
+                            board: { authority: true },
+                            manage: { authority: true },
+                        },
+                    },
+                    management: {
+                        authority: true,
+                        children: {
+                            department: { authority: true },
+                            account: { authority: true },
+                        },
+                    },
+                    architecture: {
+                        authority: false,
+                        children: {
+                            structure: { authority: false },
+                            server: { authority: false },
+                            storage: { authority: false },
+                        },
+                    },
+                    report: {
+                        authority: false,
+                        children: {
+                            todolist: {
+                                authority: false,
+                                remark: {
+                                    commonQueryCondition: { main: "ALL" },
                                 },
-                                dataHandleAuthority: [
-                                    "query",
-                                    "modify",
-                                    "delete",
-                                    "add",
-                                ],
+                            },
+                            weeklyreport: {
+                                authority: false,
+                                remark: {
+                                    commonQueryCondition: { main: "ALL" },
+                                },
+                            },
+                            meetingminutes: {
+                                authority: false,
+                                remark: {
+                                    commonQueryCondition: {
+                                        main: [
+                                            "1003",
+                                            "1002",
+                                            "1001",
+                                            "common",
+                                        ],
+                                        secondary: "supervisor",
+                                    },
+                                    dataHandleAuthority: [
+                                        "query",
+                                        "modify",
+                                        "delete",
+                                        "add",
+                                    ],
+                                },
+                            },
+                            sop: {
+                                authority: false,
+                                remark: {
+                                    commonQueryCondition: {
+                                        main: "1003",
+                                        secondary: "supervisor",
+                                    },
+                                    dataHandleAuthority: [
+                                        "query",
+                                        "modify",
+                                        "delete",
+                                        "add",
+                                    ],
+                                },
                             },
                         },
                     },
-                },
-                tool: {
-                    authority: true,
-                    children: {
-                        fileupdownload: { authority: true },
+                    tool: {
+                        authority: false,
+                        children: {
+                            fileupdownload: { authority: true },
+                        },
                     },
-                },
-            };
+                };
+            }
             vm.change_loginData(obj);
             vm.change_pageAccess(obj.accesslist);
             console.log(childRouter);
@@ -193,7 +296,7 @@ input:focus {
 }
 .form-signin {
     max-width: 600px;
-    margin-top: 110px !important;
+    margin-top: 13rem !important;
     margin: 0 auto;
 }
 .form-control {

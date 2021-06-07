@@ -1,9 +1,5 @@
 <template>
     <div class="index">
-        <!-- <nav
-            class="navbar navbar-expand-lg navbar-light fixed-top"
-            style="background-color:#7C93B6;"
-        >-->
         <b-navbar
             toggleable="lg"
             type="dark"
@@ -15,7 +11,7 @@
                 <router-link :to="'#'">
                     <img
                         class="navbar-brand"
-                        src="../assets/sapidoLOGOw.png"
+                        src="../assets/yishan_logo1.png"
                         width="170px"
                     />
                 </router-link>
@@ -265,12 +261,6 @@
                         </p>
                     </div>
                     <a
-                        class="changepwd a-hover"
-                        style="float: right"
-                        @click.prevent="toggleChangePWDModal(true)"
-                        >更改密碼</a
-                    >
-                    <a
                         class="logout a-hover"
                         style="float: right"
                         @click.prevent="logout"
@@ -278,85 +268,11 @@
                     >
                 </form>
             </div>
-            <!-- </nav> -->
         </b-navbar>
         <b-container>
             <router-view style="margin-top: 10px"></router-view>
             <!-- <router-view style="position:absolute;margin-top:10px"></router-view> -->
         </b-container>
-        <modal v-if="ChangePwdmodalShow">
-            <template v-slot:modalheader>
-                <h5>更改密碼</h5>
-            </template>
-            <template v-slot:default>
-                <div class="inputdiv">
-                    <label>舊密碼:</label>
-                    <div>
-                        <input
-                            type="password"
-                            id="change_oldpwd"
-                            class="form-control"
-                            style="background-color: white"
-                            v-model="ChangePwdmodal.old_pwd"
-                            v-bind:class="{
-                                wrongoldpwd:
-                                    ChangePwdmodal.wrongStatus.oldisWrong,
-                            }"
-                        />
-                    </div>
-                </div>
-                <div class="inputdiv">
-                    <label>新密碼:</label>
-                    <div>
-                        <input
-                            type="password"
-                            id="change_newpwd"
-                            class="form-control"
-                            v-model="ChangePwdmodal.change_newpwd"
-                            v-bind:class="{
-                                wrongnewpwd1:
-                                    ChangePwdmodal.wrongStatus.new1isWrong,
-                            }"
-                        />
-                    </div>
-                </div>
-                <div class="inputdiv">
-                    <label>再次輸入新密碼:</label>
-                    <div>
-                        <input
-                            type="password"
-                            id="change_newpwd2"
-                            class="form-control"
-                            v-model="ChangePwdmodal.change_newpwd2"
-                            v-bind:class="{
-                                wrongnewpwd2:
-                                    ChangePwdmodal.wrongStatus.new2isWrong,
-                            }"
-                        />
-                    </div>
-                </div>
-            </template>
-            <template v-slot:modalfooter>
-                <div class="w-100">
-                    <b-button
-                        variant="light"
-                        size="sm"
-                        class="float-right"
-                        @click.prevent="toggleChangePWDModal(false)"
-                        >Close</b-button
-                    >
-                    <b-button
-                        variant="success"
-                        size="sm"
-                        class="float-right"
-                        style="margin-right: 10px"
-                        @click.prevent="changepwd"
-                        >更改密碼</b-button
-                    >
-                </div>
-            </template>
-        </modal>
-
         <alertModal />
     </div>
 </template>
@@ -369,17 +285,6 @@ export default {
     name: "index",
     data() {
         return {
-            ChangePwdmodalShow: false,
-            ChangePwdmodal: {
-                old_pwd: "",
-                change_newpwd: "",
-                change_newpwd2: "",
-                wrongStatus: {
-                    oldisWrong: false,
-                    new1isWrong: false,
-                    new2isWrong: false,
-                },
-            },
         };
     },
     computed: {
@@ -469,6 +374,7 @@ export default {
             ];
             vm.setDate(obj);
         },
+
         dateFormat(time) {
             let vm = this;
             let weekdays = [
@@ -501,124 +407,6 @@ export default {
             obj.accesslist = null;
             vm.change_loginData(obj);
             vm.$router.push("/");
-        },
-        changepwd() {
-            var vm = this;
-            vm.ChangePwdmodal.wrongStatus = vm.$options.data().ChangePwdmodal.wrongStatus;
-            vm.ChangePwdmodal.old_pwd = vm.ChangePwdmodal.old_pwd.trim();
-            vm.ChangePwdmodal.change_newpwd = vm.ChangePwdmodal.change_newpwd.trim();
-            vm.ChangePwdmodal.change_newpwd2 = vm.ChangePwdmodal.change_newpwd2.trim();
-            if (
-                vm.ChangePwdmodal.old_pwd === "" ||
-                vm.ChangePwdmodal.change_newpwd === "" ||
-                vm.ChangePwdmodal.change_newpwd2 === ""
-            ) {
-                vm.setTimeOutAlertMsg("不能為空");
-                vm.settimeoutalertModal();
-                return;
-            }
-            if (vm.ChangePwdmodal.old_pwd === vm.ChangePwdmodal.change_newpwd) {
-                vm.setTimeOutAlertMsg("新密碼不能與舊密碼相同");
-                vm.settimeoutalertModal();
-                vm.ChangePwdmodal.change_newpwd = "";
-                vm.ChangePwdmodal.wrongStatus.oldisWrong = true;
-                vm.ChangePwdmodal.wrongStatus.new1isWrong = true;
-                return;
-            }
-            vm.ChangePwdmodal.wrongStatus = vm.$options.data().ChangePwdmodal.wrongStatus;
-            if (
-                vm.ChangePwdmodal.change_newpwd !=
-                vm.ChangePwdmodal.change_newpwd2
-            ) {
-                vm.setTimeOutAlertMsg("兩次密碼輸入不相符");
-                vm.settimeoutalertModal();
-                vm.ChangePwdmodal.change_newpwd = "";
-                vm.ChangePwdmodal.change_newpwd2 = "";
-                vm.ChangePwdmodal.wrongStatus.new1isWrong = true;
-                vm.ChangePwdmodal.wrongStatus.new2isWrong = true;
-                return;
-            }
-            vm.ChangePwdmodal.wrongStatus = vm.$options.data().ChangePwdmodal.wrongStatus;
-            var params = {};
-            params["methods"] = "GET";
-            params["whichFunction"] = "Login";
-            params["uID"] = vm.loginData.account;
-            vm.axiosAction(params).then(() => {
-                var result = vm.axiosResult;
-                console.log(result);
-                if (result["Response"] != "ok") {
-                    vm.setTimeOutAlertMsg(result["Response"]);
-                    vm.settimeoutalertModal();
-                } else {
-                    if (
-                        vm.ChangePwdmodal.old_pwd ===
-                        result["QueryTableData"][0].pwd
-                    ) {
-                        params = {};
-                        params["methods"] = "PATCH";
-                        params["whichFunction"] = "ChangePwd";
-                        params["uID"] = String(result["QueryTableData"][0].uID);
-                        params["noumenonType"] =
-                            result["QueryTableData"][0].noumenonType;
-                        params["uInfo"] = result["QueryTableData"][0].uInfo;
-                        params["email"] = result["QueryTableData"][0].email;
-                        params["accessList"] =
-                            JSON.parse(result["QueryTableData"][0].accessList);
-                        params["uName"] = result["QueryTableData"][0].uName;
-                        params["pwd"] = vm.ChangePwdmodal.change_newpwd;
-                        params["noumenonID"] = String(
-                            result["QueryTableData"][0].noumenonID
-                        );
-                        params["creatorID"] = String(
-                            result["QueryTableData"][0].creatorID
-                        );
-                        console.log(params);
-                        vm.axiosAction(params).then(() => {
-                            var result = vm.axiosResult;
-                            if (result["Response"] != "ok") {
-                                vm.setTimeOutAlertMsg(result["Response"]);
-                                vm.settimeoutalertModal();
-                            } else {
-                                vm.setTimeOutAlertMsg("修改成功請重新登入");
-                                vm.settimeoutalertModal();
-                                var obj = {};
-                                obj.account = null;
-                                obj.status = false;
-                                obj.username = null;
-                                obj.accesslist = null;
-                                vm.change_loginData(obj);
-                                vm.reset();
-                                vm.togglecommonModal(false);
-                                vm.ChangePwdmodalShow = false;
-                                setTimeout(function () {
-                                    vm.$router.push("/");
-                                }, 900);
-                            }
-                        });
-                    } else {
-                        vm.ChangePwdmodal.old_pwd = "";
-                        vm.ChangePwdmodal.wrongStatus.oldisWrong = true;
-                        vm.setTimeOutAlertMsg("舊密碼不符合");
-                        vm.settimeoutalertModal();
-                    }
-                }
-            });
-        },
-
-        toggleChangePWDModal(status) {
-            let vm = this;
-            console.log(status);
-            if (status) {
-                let commonModalConfig = JSON.parse(
-                    JSON.stringify(vm.DEFAULT_commonModalConfig)
-                );
-                console.log(commonModalConfig);
-                vm.setcommonModalConfig(commonModalConfig);
-            } else {
-                vm.reset();
-            }
-            vm.ChangePwdmodalShow = status;
-            vm.togglecommonModal(status);
         },
 
         //資料reset

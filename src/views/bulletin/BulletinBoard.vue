@@ -213,6 +213,51 @@ export default {
                 system: "系統",
             },
             collapseVisible: false,
+
+            test_data: [
+                {
+                    category: "system",
+                    title:
+                        "2021年3月13號(六)因擴廠作業需求，將進行斷電施工，系統關機通知",
+                    releasedate: "2021-03-12 18:27:42",
+                    content:
+                        "因配合產線施工工程，2021年1月9號(六)早上06-00至晚上06-00需進行斷電，這段時間內系統將無法使用，請各位同仁在1月8號(五)下班前將電腦關機並拔除插頭，造成不便敬請見諒。",
+                    filename: "",
+                },
+                {
+                    category: "system",
+                    title:
+                        "2021年1月30號(六)因擴廠作業需求，將進行斷電施工，系統關機通知",
+                    releasedate: "2021-01-29 18:01:41",
+                    content:
+                        "因配合產線施工工程，2021年1月３０號(六)早上09-00至晚上18-00需進行斷電施工，這段時間內系統將無法使用，請各位同仁在1月29號(五)下班前將電腦關機並拔除插頭，造成不便敬請見諒。",
+                    filename: "",
+                },
+                {
+                    category: "system",
+                    title: "防火牆異動作業",
+                    releasedate: "2020-09-29 18:03:32",
+                    content:
+                        "9/23(三)配合防火牆異動作業12-30~13-00，造成不便請多包涵!",
+                    filename: "",
+                },
+                {
+                    category: "PC",
+                    title: "請各位小心釣魚網站",
+                    releasedate: "2020-01-16 10:21:56",
+                    content:
+                        "公司內部同仁遇到有網站偽裝成防毒軟體 發送訊息警示您中毒了請立即更新防毒軟體 當心按下去有可能就中病毒或被駭客入侵 請各位同仁多加注意",
+                    filename: "",
+                },
+                {
+                    category: "network",
+                    title: "Google Play Store騙錢軟體",
+                    releasedate: "2020-01-20 15:03:13",
+                    content:
+                        "現行App提供免費試用期，俟用戶滿意才需要付款，若不喜歡就需取消訂閱。普通情況下，大部份用戶是把測試版移除，即使未終止訂閱開發商也不會再收取費用。但安全廠商Sophos去年發現有24款AndroidApp，它們都只是QR讀取器、指南針或計算機等簡單功能，但若用戶在免費期（例如3天）截止前沒有主動終止訂閱，就會被索取1年100到240美元的高額費用，光是移除測試版是沒有用的。因此安全廠商Sophos將此類App稱為騙錢軟體（fleeceware）。",
+                    filename: "",
+                },
+            ],
         };
     },
     created: function () {
@@ -311,84 +356,26 @@ export default {
         //查詢最新五筆
         LatestBulletinDataQuery() {
             var vm = this;
-            vm.togglealertModal(true);
-            vm.changetableBusy();
-            var params = {};
-            params["methods"] = "POST";
-            params["whichFunction"] = "CommonSqlSyntaxQuery";
-            params["condition"] = {
-                condition_1: {
-                    table: "misBulletin",
-                    orderby: ["desc", "lastUpdateTime"],
-                    limit: [0, 5],
-                    where: { showhide: [1] },
-                    symbols: { showhide: ["equal"] },
-                },
-            };
-            vm.axiosAction(params)
-                .then(() => {
-                    var result = vm.axiosResult;
-                    console.log(result);
-                    vm.togglealertModal(false);
-                    if (
-                        Object.prototype.toString.call(result) !=
-                        "[object Object]"
-                    ) {
-                        vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(2000);
-                        return;
-                    }
-
-                    if (result["Response"] == "ok") {
-                        if (result["QueryTableData"].length == 0) {
-                            vm.setTimeOutAlertMsg("查無資料");
-                            vm.settimeoutalertModal();
-                        } else {
-                            var itemsarray = [];
-                            vm.setLatestBulletin(result["QueryTableData"][0]);
-                            for (
-                                var i = 0;
-                                i < result["QueryTableData"].length;
-                                i++
-                            ) {
-                                var itemsobj = {};
-                                itemsobj["category"] =
-                                    vm.categorytoCH[
-                                        result["QueryTableData"][i]["category"]
-                                    ];
-                                itemsobj["title"] =
-                                    result["QueryTableData"][i]["title"];
-                                itemsobj["releasedate"] =
-                                    result["QueryTableData"][i][
-                                        "lastUpdateTime"
-                                    ];
-                                itemsobj["content"] =
-                                    result["QueryTableData"][i]["content"];
-                                if (
-                                    result["QueryTableData"][i]["filename"] !=
-                                    ""
-                                ) {
-                                    var thisfilename = result["QueryTableData"][
-                                        i
-                                    ]["filename"].split(",");
-                                    itemsobj["annex"] = thisfilename;
-                                }
-                                itemsarray.push(itemsobj);
-                            }
-                            vm.items = itemsarray;
-                            vm.totalRows = itemsarray.length;
-                        }
-                    } else {
-                        vm.setTimeOutAlertMsg(result["Response"]);
-                        vm.settimeoutalertModal();
-                    }
-                    vm.changetableBusy();
-                })
-                .catch(function (err) {
-                    console.log(err);
-                    vm.setTimeOutAlertMsg(err);
-                    vm.settimeoutalertModal();
-                });
+            var itemsarray = [];
+            vm.setLatestBulletin(vm.test_data[0]);
+            for (var i = 0; i < vm.test_data.length; i++) {
+                var itemsobj = {};
+                itemsobj["category"] =
+                    vm.categorytoCH[vm.test_data[i]["category"]];
+                itemsobj["title"] = vm.test_data[i]["title"];
+                itemsobj["releasedate"] =
+                    vm.test_data[i]["lastUpdateTime"];
+                itemsobj["content"] = vm.test_data[i]["content"];
+                if (vm.test_data[i]["filename"] != "") {
+                    var thisfilename = vm.test_data[i][
+                        "filename"
+                    ].split(",");
+                    itemsobj["annex"] = thisfilename;
+                }
+                itemsarray.push(itemsobj);
+            }
+            vm.items = itemsarray;
+            vm.totalRows = itemsarray.length;
         },
 
         //表格點擊
