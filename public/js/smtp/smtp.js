@@ -17,7 +17,7 @@ var Email = {
         console.log(a);
         return new Promise(function (resolve, reject) {
             var t = JSON.stringify(a);
-            Email.ajaxPost("api/PaaS/1.0/email/sendEmails?uid=@YS@PaaS", a, function (e) { resolve(e) }, function (e) { reject(e) })
+            Email.ajaxPost("api/PaaS/1.0/email/todoListSendEmails?uid=@YS@PaaS", a, function (e) { resolve(e) }, function (e) { reject(e) })
         })
     },
     async ajaxPost(url, data, resolve, reject) {
