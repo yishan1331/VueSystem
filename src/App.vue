@@ -7,7 +7,6 @@
 <script>
 import "jquery";
 import "bootstrap";
-import axios from "axios";
 import { mapGetters, mapActions } from "vuex";
 import { childRouter } from "@/router/childRouter";
 export default {

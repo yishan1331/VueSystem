@@ -7,8 +7,7 @@ import axios from "axios";
 const https = require("https");
 //https://github.com/axios/axios/issues/535
 const api = axios.create({
-    // baseURL: "https://192.168.88.75:3687/"
-    baseURL: "https://" + location.hostname + ":3687/"
+    baseURL: "https://yishan-paas.herokuapp.com/"
 })
 
 var Email = {
