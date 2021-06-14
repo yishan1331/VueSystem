@@ -57,7 +57,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import systemForm from "@/components/systemForm.vue";
 import commonQuery from "@/components/commonQuery.vue";
 import commonTable from "@/components/commonTable.vue";
@@ -211,7 +210,6 @@ export default {
             systemFormCompletedData: "systemform/get_completedData",
             inputData: "commonquery/get_inputData",
             DEFAULT_inputData: "commonquery/get_DEFAULT_inputData",
-            apiParams: "commonquery/get_apiParams",
             DEFAULT_apiParams: "commonquery/get_DEFAULT_apiParams",
             isInit: "commonquery/get_isInit",
             DEFAULT_commonModalConfig: "usemodal/get_DEFAULT_commonModalConfig",
@@ -276,7 +274,9 @@ export default {
     },
     methods: {
         ...mapActions({
-            axiosAction: "commonaxios/axiosAction",
+            axiosPostAction: "commonaxios/axiosPostAction",
+            axiosPatchAction: "commonaxios/axiosPatchAction",
+            axiosDeleteAction: "commonaxios/axiosDeleteAction",
             setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             togglealertModal: "alertmodal/toggle_alertModal",
@@ -342,40 +342,32 @@ export default {
                 }
             });
             console.log(vm.systemFormCompletedData);
-            var params = {
-                methods: "POST",
-                whichFunction: "CommonRegister",
-                table: "storage",
-                postdata: {
-                    seq: [""],
-                    species: [vm.systemFormCompletedData.species],
-                    type: [vm.systemFormCompletedData.type],
-                    name: [vm.systemFormCompletedData.name],
-                    size: [vm.systemFormCompletedData.size],
-                    subSize: [vm.systemFormCompletedData.subSize],
-                    note: [vm.systemFormCompletedData.note],
-                    IP: [vm.systemFormCompletedData.IP],
-                    creatorID: [vm.loginData.account],
-                },
+            let params = {};
+            params["url"] = "api/YS/1.0/my/CommonUse/storage";
+            params["postdata"] = {
+                seq: [""],
+                species: [vm.systemFormCompletedData.species],
+                type: [vm.systemFormCompletedData.type],
+                name: [vm.systemFormCompletedData.name],
+                size: [vm.systemFormCompletedData.size],
+                subSize: [vm.systemFormCompletedData.subSize],
+                note: [vm.systemFormCompletedData.note],
+                IP: [vm.systemFormCompletedData.IP],
+                creatorID: [vm.loginData.account],
             };
             console.log(params);
-            vm.axiosAction(params)
+            vm.axiosPostAction(params)
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
-                    if (
-                        Object.prototype.toString.call(result) !=
-                        "[object Object]"
-                    ) {
-                        vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(2000);
+                    if (result.status != 200) {
+                        vm.setTimeOutAlertMsg(result.data);
                         return;
                     }
-
-                    if (result["Response"] == "ok") {
+                    if (result.data["Response"] === "ok") {
                         vm.setTimeOutAlertMsg("新增成功");
                     } else {
-                        vm.setTimeOutAlertMsg(result["Response"]);
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
                     }
                 })
                 .catch(function (err) {
@@ -423,40 +415,31 @@ export default {
             });
 
             let apiparams = {};
-            apiparams = {
-                methods: "PATCH",
-                whichFunction: "CommonUpdate",
-                table: "storage",
-                postdata: {
-                    old_seq: [items.seq],
-                    species: [items.species],
-                    type: [items.type],
-                    name: [items.name],
-                    size: [items.size],
-                    subSize: [items.subSize],
-                    note: [items.note],
-                    IP: [items.IP],
-                },
+            apiparams["url"] = "api/YS/1.0/my/CommonUse/storage";
+            apiparams["postdata"] = {
+                old_seq: [items.seq],
+                species: [items.species],
+                type: [items.type],
+                name: [items.name],
+                size: [items.size],
+                subSize: [items.subSize],
+                note: [items.note],
+                IP: [items.IP],
             };
             vm.setactiveItemsSeq(null);
             console.log(apiparams);
-            vm.axiosAction(apiparams)
+            vm.axiosPatchAction(apiparams)
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
-                    if (
-                        Object.prototype.toString.call(result) !=
-                        "[object Object]"
-                    ) {
-                        vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(2000);
+                    if (result.status != 200) {
+                        vm.setTimeOutAlertMsg(result.data);
                         return;
                     }
-
-                    if (result["Response"] == "ok") {
+                    if (result.data["Response"] === "ok") {
                         vm.setTimeOutAlertMsg("修改成功");
                     } else {
-                        vm.setTimeOutAlertMsg(result["Response"]);
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
                     }
                 })
                 .catch(function (err) {
@@ -478,35 +461,25 @@ export default {
             let vm = this;
             const delseq = params.data.seq;
             vm.togglealertModal(true);
-            let apiparams = {};
             console.log(delseq);
-            apiparams = {
-                methods: "DELETE",
-                whichFunction: "CommonDelete",
-                table: "storage",
-                postdata: {
-                    seq: [delseq],
-                },
+            let apiparams = {};
+            apiparams["url"] = "api/YS/1.0/my/CommonUse/storage";
+            apiparams["postdata"] = {
+                seq: [delseq],
             };
-
             console.log(apiparams);
-            vm.axiosAction(apiparams)
+            vm.axiosDeleteAction(apiparams)
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
-                    if (
-                        Object.prototype.toString.call(result) !=
-                        "[object Object]"
-                    ) {
-                        vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(2000);
+                    if (result.status != 200) {
+                        vm.setTimeOutAlertMsg(result.data);
                         return;
                     }
-
-                    if (result["Response"] == "ok") {
+                    if (result.data["Response"] === "ok") {
                         vm.setTimeOutAlertMsg("刪除成功");
                     } else {
-                        vm.setTimeOutAlertMsg(result["Response"]);
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
                     }
                 })
                 .catch(function (err) {
@@ -549,8 +522,7 @@ export default {
                     IP: "",
                     subSize: 0,
                     species: "NAS",
-                    note:
-                        "Sapido_MES正式區備份，定期每個月15日清理上個月的資料",
+                    note: "Sapido_MES正式區備份，定期每個月15日清理上個月的資料",
                     creatorID: 2521,
                     type: "CIFS",
                     createTime: "2020-09-22 18:32:34",
@@ -576,8 +548,7 @@ export default {
                     IP: "",
                     subSize: 0,
                     species: "NAS",
-                    note:
-                        "Sapido_Emaker正式區備份，定期每個月15日清理上個月的資料",
+                    note: "Sapido_Emaker正式區備份，定期每個月15日清理上個月的資料",
                     creatorID: 2521,
                     type: "CIFS",
                     createTime: "2020-09-22 18:31:30",
@@ -668,8 +639,7 @@ export default {
                     IP: "",
                     subSize: 0,
                     species: "NAS",
-                    note:
-                        "Amigo_Emaker正式區備份，定期每個月15日清理上個月的資料",
+                    note: "Amigo_Emaker正式區備份，定期每個月15日清理上個月的資料",
                     creatorID: 2521,
                     type: "CIFS",
                     createTime: "2020-09-22 18:27:25",

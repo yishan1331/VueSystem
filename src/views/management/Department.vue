@@ -347,7 +347,9 @@ export default {
     },
     methods: {
         ...mapActions({
-            axiosAction: "commonaxios/axiosAction",
+            axiosGetAction: "commonaxios/axiosGetAction",
+            axiosPostAction: "commonaxios/axiosPostAction",
+            axiosPatchAction: "commonaxios/axiosPatchAction",
             setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             setinputData: "commonquery/set_inputData",
@@ -416,154 +418,10 @@ export default {
         getDepList() {
             let vm = this;
             var itemsarray = [];
-            let temp = [
-                {
-                    depInfo: "雲端AI(智慧)平台部",
-                    lastUpdateTime: "2020-10-16 17:38:02",
-                    noumenonType: "",
-                    dbName: "sapidoSystem",
-                    accessList: {
-                        report: {
-                            children: {
-                                meetingminutes: {
-                                    remark: {
-                                        commonQueryCondition: {
-                                            main: [],
-                                            secondary: null,
-                                        },
-                                        dataHandleAuthority: [],
-                                    },
-                                    authority: false,
-                                },
-                                sop: {
-                                    remark: {
-                                        commonQueryCondition: {
-                                            main: null,
-                                            secondary: null,
-                                        },
-                                        dataHandleAuthority: [],
-                                    },
-                                    authority: false,
-                                },
-                                weeklyreport: {
-                                    remark: {
-                                        commonQueryCondition: { main: null },
-                                    },
-                                    authority: false,
-                                },
-                                todolist: {
-                                    remark: {
-                                        commonQueryCondition: { main: null },
-                                    },
-                                    authority: false,
-                                },
-                            },
-                            authority: false,
-                        },
-                        management: {
-                            children: {
-                                department: { authority: false },
-                                account: { authority: false },
-                            },
-                            authority: false,
-                        },
-                        architecture: {
-                            children: {
-                                storage: { authority: true },
-                                structure: { authority: true },
-                                server: { authority: true },
-                            },
-                            authority: true,
-                        },
-                        bulletin: {
-                            children: {
-                                manage: { authority: true },
-                                board: { authority: true },
-                            },
-                            authority: true,
-                        },
-                    },
-                    noumenonID: "",
-                    creatorID: 2493,
-                    depName: "雲端AI(智慧)平台部",
-                    depID: 1003,
-                    createTime: "2020-04-07 11:23:10",
-                },
-                {
-                    depInfo: "",
-                    lastUpdateTime: "2020-10-16 17:09:00",
-                    noumenonType: "",
-                    dbName: "",
-                    accessList: {
-                        report: {
-                            children: {
-                                meetingminutes: {
-                                    remark: {
-                                        commonQueryCondition: {
-                                            main: ["1003"],
-                                            secondary: [],
-                                        },
-                                        dataHandleAuthority: ["query"],
-                                    },
-                                    authority: true,
-                                },
-                                sop: {
-                                    remark: {
-                                        commonQueryCondition: {
-                                            main: [],
-                                            secondary: [],
-                                        },
-                                        dataHandleAuthority: ["query"],
-                                    },
-                                    authority: true,
-                                },
-                                weeklyreport: {
-                                    remark: {
-                                        commonQueryCondition: { main: [] },
-                                    },
-                                    authority: true,
-                                },
-                                todolist: {
-                                    remark: {
-                                        commonQueryCondition: { main: [] },
-                                    },
-                                    authority: true,
-                                },
-                            },
-                            authority: true,
-                        },
-                        management: {
-                            children: {
-                                department: { authority: false },
-                                account: { authority: false },
-                            },
-                            authority: false,
-                        },
-                        architecture: {
-                            children: {
-                                storage: { authority: false },
-                                structure: { authority: false },
-                                server: { authority: false },
-                            },
-                            authority: false,
-                        },
-                        bulletin: {
-                            children: {
-                                manage: { authority: true },
-                                board: { authority: true },
-                            },
-                            authority: true,
-                        },
-                    },
-                    noumenonID: "",
-                    creatorID: "admin",
-                    depName: "test",
-                    depID: "test",
-                    createTime: "2020-10-16 17:04:16",
-                },
-            ];
-            // temp.forEach((element) => {
+            console.log(vm.queryResponse);
             vm.queryResponse.forEach((element) => {
+                console.log(element);
+                console.log(JSON.parse(element["accessList"]));
                 let itemsobj = {};
                 itemsobj["depID"] = element["depID"];
                 itemsobj["depName"] = element["depName"];
@@ -589,60 +447,52 @@ export default {
 
         SetDepDetail() {
             var vm = this;
-            var params = {};
-            params["methods"] = "GET";
-            params["whichFunction"] = "CommonSimpleQuery";
-            params["category"] = "systemformselectoptions";
-            params["table"] = "department";
-            vm.axiosAction(params).then(() => {
-                var result = vm.axiosResult;
-                var array = [];
-                if (
-                    Object.prototype.toString.call(result) != "[object Object]"
-                ) {
-                    vm.setTimeOutAlertMsg(result);
-                    vm.settimeoutalertModal(2000);
-                    return;
-                }
-
-                if (result["Response"] == "ok") {
-                    var depDetail = [];
-                    for (var i = 0; i < result["QueryTableData"].length; i++) {
-                        let obj = {};
-                        obj["text"] = result["QueryTableData"][i]["depName"];
-                        obj["value"] = result["QueryTableData"][i]["depName"];
-                        depDetail.push(obj);
+            let params = {};
+            params["url"] = "api/YS/1.0/my/CommonUse/TableData";
+            params["urlparams"] = {
+                table: "department",
+            };
+            let anyerror = false;
+            vm.axiosGetAction(params)
+                .then(() => {
+                    var result = vm.axiosResult;
+                    var array = [];
+                    if (result.status != 200) {
+                        anyerror = true;
+                        vm.setTimeOutAlertMsg(result.data);
+                        return;
                     }
-                    console.log(JSON.stringify(depDetail));
-                    vm.setconditionOptions(depDetail);
-                } else {
-                    vm.setTimeOutAlertMsg(result["Response"]);
-                    vm.settimeoutalertModal();
-                }
-            });
 
-            // vm.setconditionOptions([
-            //     { text: "資訊通訊部", value: "資訊通訊部" },
-            //     { text: "系統研發部", value: "系統研發部" },
-            //     { text: "雲端AI(智慧)平台部", value: "雲端AI(智慧)平台部" },
-            //     { text: "工程課", value: "工程課" },
-            //     { text: "生管課", value: "生管課" },
-            //     { text: "行政總務課", value: "行政總務課" },
-            //     { text: "品管課", value: "品管課" },
-            //     { text: "採購課", value: "採購課" },
-            //     { text: "清潔人員", value: "清潔人員" },
-            //     { text: "智能製造事業處", value: "智能製造事業處" },
-            //     { text: "董事長室", value: "董事長室" },
-            //     { text: "打件課", value: "打件課" },
-            //     { text: "組裝課", value: "組裝課" },
-            //     { text: "警衛室", value: "警衛室" },
-            //     { text: "人資課", value: "人資課" },
-            //     { text: "業務課", value: "業務課" },
-            //     { text: "產品企劃行銷課", value: "產品企劃行銷課" },
-            //     { text: "代工事業處", value: "代工事業處" },
-            //     { text: "長榮專案組", value: "長榮專案組" },
-            //     { text: "test", value: "test" },
-            // ]);
+                    if (result.data["Response"] === "ok") {
+                        var depDetail = [];
+                        for (
+                            var i = 0;
+                            i < result.data["QueryTableData"].length;
+                            i++
+                        ) {
+                            let obj = {};
+                            obj["text"] =
+                                result.data["QueryTableData"][i]["depName"];
+                            obj["value"] =
+                                result.data["QueryTableData"][i]["depName"];
+                            depDetail.push(obj);
+                        }
+                        console.log(JSON.stringify(depDetail));
+                        vm.setconditionOptions(depDetail);
+                    } else {
+                        anyerror = true;
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                    anyerror = true;
+                    vm.setTimeOutAlertMsg(err);
+                })
+                .finally(() => {
+                    console.log("done");
+                    if (anyerror) vm.settimeoutalertModal();
+                });
         },
 
         toggleAddModal(status) {
@@ -668,38 +518,30 @@ export default {
 
         DepMod() {
             var vm = this;
-            var params = {};
-            params["methods"] = "PATCH";
-            params["whichFunction"] = "DepartmentMod";
-            params["depID"] = String(vm.systemFormCompletedData.depID);
-            params["depName"] = String(vm.systemFormCompletedData.depName);
-            params["depInfo"] = String(vm.systemFormCompletedData.depInfo);
-            params["accessList"] = JSON.stringify(
-                vm.systemFormCompletedData.accessList
-            );
+            let params = {};
+            params["url"] = "api/YS/1.0/my/department/update_Department";
+            params["postdata"] = {
+                depID: String(vm.systemFormCompletedData.depID),
+                depName: String(vm.systemFormCompletedData.depName),
+                depInfo: String(vm.systemFormCompletedData.depInfo),
+                accessList: vm.systemFormCompletedData.accessList,
+            };
             console.log(params);
-            vm.axiosAction(params)
+            vm.axiosPatchAction(params)
                 .then(() => {
                     vm.setSystemFormCompletedData({});
                     var result = vm.axiosResult;
                     console.log(result);
-                    var msg = "";
-                    if (
-                        Object.prototype.toString.call(result) !=
-                        "[object Object]"
-                    ) {
-                        vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(2000);
+                    if (result.status != 200) {
+                        vm.setTimeOutAlertMsg(result.data);
                         return;
                     }
-
-                    if (result["Response"] == "ok") {
+                    if (result.data["Response"] === "ok") {
                         vm.setsystemFormResponse();
-                        msg = "修改成功";
+                        vm.setTimeOutAlertMsg("修改成功");
                     } else {
-                        msg = result["Response"];
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
                     }
-                    vm.setTimeOutAlertMsg(msg);
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -718,37 +560,32 @@ export default {
         DepAdd() {
             var vm = this;
             var params = {};
-            params["methods"] = "POST";
-            params["whichFunction"] = "DepartmentAdd";
-            params["depID"] = String(vm.systemFormCompletedData.depID);
-            params["depName"] = String(vm.systemFormCompletedData.depName);
-            params["accessList"] = JSON.stringify(
-                vm.systemFormCompletedData.accessList
-            );
-            params["depInfo"] = String(vm.systemFormCompletedData.depInfo);
-            params["creatorID"] = String(vm.loginData.account);
+            params["url"] = "api/YS/1.0/my/department/registerDep";
+            params["postdata"] = {
+                depID: String(vm.systemFormCompletedData.depID),
+                depName: String(vm.systemFormCompletedData.depName),
+                noumenonType: "",
+                noumenonID: "",
+                accessList: vm.systemFormCompletedData.accessList,
+                depInfo: String(vm.systemFormCompletedData.depInfo),
+                creatorID: String(vm.loginData.account),
+                creDB: "no",
+            };
             console.log(params);
-            vm.axiosAction(params)
+            vm.axiosPostAction(params)
                 .then(() => {
                     vm.setSystemFormCompletedData({});
                     var result = vm.axiosResult;
-                    var msg = "";
-                    if (
-                        Object.prototype.toString.call(result) !=
-                        "[object Object]"
-                    ) {
-                        vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(2000);
+                    if (result.status != 200) {
+                        vm.setTimeOutAlertMsg(result.data);
                         return;
                     }
-
-                    if (result["Response"] == "ok") {
+                    if (result.data["Response"] === "ok") {
                         vm.setsystemFormResponse();
-                        msg = "新增成功";
+                        vm.setTimeOutAlertMsg("新增成功");
                     } else {
-                        msg = result["Response"];
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
                     }
-                    vm.setTimeOutAlertMsg(msg);
                 })
                 .catch(function (err) {
                     console.log(err);

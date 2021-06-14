@@ -1,6 +1,7 @@
 <template>
     <div class="WeeklyReport">
-        <div id="bluebg" class="mb-2">
+        <h4>工作週報</h4>
+        <!-- <div id="bluebg" class="mb-2">
             <b-row>
                 <b-col sm="1">
                     <img src="../../assets/todolist.png" />
@@ -284,7 +285,7 @@
                     </template>
                 </template>
             </b-table>
-        </b-tabs>
+        </b-tabs> -->
 
         <!-- 新增事項modal -->
         <b-modal
@@ -626,7 +627,7 @@
             </template>
         </b-modal>
 
-        <exportFile />
+        <!-- <exportFile /> -->
     </div>
 </template>
 
@@ -893,11 +894,11 @@ export default {
     },
     created: function () {
         let vm = this;
-        vm.now = vm.getDate.now;
-        vm.nowFormat = vm.getDate.nowFormat;
-        vm.thisweekday = vm.getDate.thisweekday;
-        vm.SetCommonQueryData();
-        vm.getBelongDepStaff();
+        // vm.now = vm.getDate.now;
+        // vm.nowFormat = vm.getDate.nowFormat;
+        // vm.thisweekday = vm.getDate.thisweekday;
+        // vm.SetCommonQueryData();
+        // vm.getBelongDepStaff();
     },
     mounted: function () {
         let vm = this;

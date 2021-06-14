@@ -139,7 +139,6 @@
             sticky-header="430px"
             responsive
             hover
-            :busy="tableBusy"
             :items="items"
             :fields="fields"
             :current-page="currentPage"
@@ -217,8 +216,7 @@ export default {
             test_data: [
                 {
                     category: "system",
-                    title:
-                        "2021年3月13號(六)因擴廠作業需求，將進行斷電施工，系統關機通知",
+                    title: "2021年3月13號(六)因擴廠作業需求，將進行斷電施工，系統關機通知",
                     releasedate: "2021-03-12 18:27:42",
                     content:
                         "因配合產線施工工程，2021年1月9號(六)早上06-00至晚上06-00需進行斷電，這段時間內系統將無法使用，請各位同仁在1月8號(五)下班前將電腦關機並拔除插頭，造成不便敬請見諒。",
@@ -226,8 +224,7 @@ export default {
                 },
                 {
                     category: "system",
-                    title:
-                        "2021年1月30號(六)因擴廠作業需求，將進行斷電施工，系統關機通知",
+                    title: "2021年1月30號(六)因擴廠作業需求，將進行斷電施工，系統關機通知",
                     releasedate: "2021-01-29 18:01:41",
                     content:
                         "因配合產線施工工程，2021年1月３０號(六)早上09-00至晚上18-00需進行斷電施工，這段時間內系統將無法使用，請各位同仁在1月29號(五)下班前將電腦關機並拔除插頭，造成不便敬請見諒。",
@@ -285,7 +282,6 @@ export default {
             handler() {
                 var vm = this;
                 vm.reset([]);
-                // vm.changetableBusy();
                 if (
                     vm.queryResponse == "查無資料" ||
                     vm.queryResponse == "時間尚未選擇"
@@ -306,9 +302,8 @@ export default {
                             vm.queryResponse[i]["lastUpdateTime"];
                         itemsobj["content"] = vm.queryResponse[i]["content"];
                         if (vm.queryResponse[i]["filename"] != "") {
-                            var thisfilename = vm.queryResponse[i][
-                                "filename"
-                            ].split(",");
+                            var thisfilename =
+                                vm.queryResponse[i]["filename"].split(",");
                             itemsobj["annex"] = thisfilename;
                         }
                         itemsarray.push(itemsobj);
@@ -322,7 +317,7 @@ export default {
     },
     methods: {
         ...mapActions({
-            axiosAction: "commonaxios/axiosAction",
+            axiosPostAction: "commonaxios/axiosPostAction",
             setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             togglealertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
@@ -356,26 +351,88 @@ export default {
         //查詢最新五筆
         LatestBulletinDataQuery() {
             var vm = this;
-            var itemsarray = [];
-            vm.setLatestBulletin(vm.test_data[0]);
-            for (var i = 0; i < vm.test_data.length; i++) {
-                var itemsobj = {};
-                itemsobj["category"] =
-                    vm.categorytoCH[vm.test_data[i]["category"]];
-                itemsobj["title"] = vm.test_data[i]["title"];
-                itemsobj["releasedate"] =
-                    vm.test_data[i]["lastUpdateTime"];
-                itemsobj["content"] = vm.test_data[i]["content"];
-                if (vm.test_data[i]["filename"] != "") {
-                    var thisfilename = vm.test_data[i][
-                        "filename"
-                    ].split(",");
-                    itemsobj["annex"] = thisfilename;
-                }
-                itemsarray.push(itemsobj);
-            }
-            vm.items = itemsarray;
-            vm.totalRows = itemsarray.length;
+            let params = {};
+            params["url"] = "api/YS/2.0/my/CommonUse/SqlSyntax";
+            params["urlparams"] = {
+                getSqlSyntax: "yes",
+            };
+            let post_data = {
+                condition_1: {
+                    fields: "",
+                    table: "misBulletin",
+                    orderby: ["desc", "lastUpdateTime"],
+                    limit: [0, 5],
+                    where: { showhide: [1] },
+                    symbols: { showhide: ["equal"] },
+                    intervaltime: "",
+                    union: "",
+                    subquery: "",
+                },
+            };
+            params["postdata"] = post_data;
+            let anyerror = false;
+            vm.togglealertModal(true);
+            vm.axiosPostAction(params)
+                .then(() => {
+                    var result = vm.axiosResult;
+                    console.log(result);
+                    vm.togglealertModal(false);
+                    if (result.status != 200) {
+                        vm.setTimeOutAlertMsg(result.data);
+                        return;
+                    }
+                    if (result.data["Response"] === "ok") {
+                        if (result.data["QueryTableData"].length == 0) {
+                            vm.setTimeOutAlertMsg("查無資料");
+                        } else {
+                            var itemsarray = [];
+                            vm.setLatestBulletin(result.data["QueryTableData"][0]);
+                            for (
+                                var i = 0;
+                                i < result.data["QueryTableData"].length;
+                                i++
+                            ) {
+                                var itemsobj = {};
+                                itemsobj["category"] =
+                                    vm.categorytoCH[
+                                        result.data["QueryTableData"][i]["category"]
+                                    ];
+                                itemsobj["title"] =
+                                    result.data["QueryTableData"][i]["title"];
+                                itemsobj["releasedate"] =
+                                    result.data["QueryTableData"][i][
+                                        "lastUpdateTime"
+                                    ];
+                                itemsobj["content"] =
+                                    result.data["QueryTableData"][i]["content"];
+                                if (
+                                    result.data["QueryTableData"][i]["filename"] !=
+                                    ""
+                                ) {
+                                    var thisfilename =
+                                        result.data["QueryTableData"][i][
+                                            "filename"
+                                        ].split(",");
+                                    itemsobj["annex"] = thisfilename;
+                                }
+                                itemsarray.push(itemsobj);
+                            }
+                            vm.items = itemsarray;
+                            vm.totalRows = itemsarray.length;
+                        }
+                    } else {
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
+                        anyerror = true;
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                    vm.setTimeOutAlertMsg(err);
+                    anyerror = true;
+                })
+                .finally(() => {
+                    if (anyerror) vm.settimeoutalertModal();
+                });
         },
 
         //表格點擊
@@ -474,16 +531,14 @@ export default {
                 }
                 if (parsecontent.hasOwnProperty("wordUp")) {
                     if (!Array.isArray(parsecontent.wordUp.content))
-                        parsecontent.wordUp.content = parsecontent.wordUp.content.split(
-                            "<br/>"
-                        );
+                        parsecontent.wordUp.content =
+                            parsecontent.wordUp.content.split("<br/>");
                     vm.boardcontentUP = parsecontent.wordUp;
                 }
                 if (parsecontent.hasOwnProperty("wordDown")) {
                     if (!Array.isArray(parsecontent.wordDown.content))
-                        parsecontent.wordDown.content = parsecontent.wordDown.content.split(
-                            "<br/>"
-                        );
+                        parsecontent.wordDown.content =
+                            parsecontent.wordDown.content.split("<br/>");
                     vm.boardcontentDOWN = parsecontent.wordDown;
                 }
                 if (parsecontent.hasOwnProperty("wordPreUp"))

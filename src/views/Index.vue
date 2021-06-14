@@ -7,267 +7,67 @@
             sticky
             style="background-color: #7c93b6"
         >
-            <div>
-                <router-link :to="'#'">
+            <b-navbar-brand>
+                <router-link :to="'/index/bulletin/board'">
                     <img
                         class="navbar-brand"
                         src="../assets/yishan_logo1.png"
                         width="170px"
                     />
                 </router-link>
-            </div>
-            <button
-                class="navbar-toggler"
-                type="button"
-                data-toggle="collapse"
-                data-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent"
-                aria-expanded="false"
-                aria-label="Toggle navigation"
-            >
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav mr-auto">
-                    <li
-                        class="nav-item dropdown"
-                        v-if="
-                            pageAccess.hasOwnProperty('bulletin') &&
-                            pageAccess.bulletin.authority
-                        "
+            </b-navbar-brand>
+
+            <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
+
+            <b-collapse id="nav-collapse" is-nav>
+                <!-- Right aligned nav items -->
+                <b-navbar-nav>
+                    <div
+                        v-for="(item, key) in Object.keys(navbarItems)"
+                        :key="key"
                     >
-                        <a class="nav-link dropdown" role="button">系統公告</a>
-                        <div class="dropdown-menu">
-                            <router-link
-                                class="nav-link"
-                                v-if="
-                                    pageAccess.bulletin.children.hasOwnProperty(
-                                        'board'
-                                    ) &&
-                                    pageAccess.bulletin.children.board.authority
-                                "
-                                :to="'/index/bulletin/board'"
-                                >公告區</router-link
+                        <b-nav-item-dropdown
+                            v-if="
+                                pageAccess.hasOwnProperty(item) &&
+                                pageAccess[item].authority
+                            "
+                            :text="navbarItems[item].title"
+                            style="float: left !important; font-size: 20px"
+                            right
+                        >
+                            <div
+                                v-for="(item2, key2, index2) in pageAccess[item]
+                                    .children"
+                                :key="index2"
                             >
-                            <router-link
-                                class="nav-link"
-                                v-if="
-                                    pageAccess.bulletin.children.hasOwnProperty(
-                                        'manage'
-                                    ) &&
-                                    pageAccess.bulletin.children.manage
-                                        .authority
-                                "
-                                :to="'/index/bulletin/manage'"
-                                >公告管理</router-link
-                            >
-                        </div>
-                    </li>
-                    <li
-                        class="nav-item dropdown"
-                        v-if="
-                            pageAccess.hasOwnProperty('architecture') &&
-                            pageAccess.architecture.authority
-                        "
-                    >
-                        <a class="nav-link dropdown" role="button">系統架構</a>
-                        <div class="dropdown-menu">
-                            <router-link
-                                class="nav-link"
-                                v-if="
-                                    pageAccess.architecture.children.hasOwnProperty(
-                                        'structure'
-                                    ) &&
-                                    pageAccess.architecture.children.structure
-                                        .authority
-                                "
-                                :to="'/index/architecture/structure'"
-                                >架構圖</router-link
-                            >
-                            <router-link
-                                class="nav-link"
-                                v-if="
-                                    pageAccess.architecture.children.hasOwnProperty(
-                                        'server'
-                                    ) &&
-                                    pageAccess.architecture.children.server
-                                        .authority
-                                "
-                                :to="'/index/architecture/server'"
-                                >伺服器狀態</router-link
-                            >
-                            <router-link
-                                class="nav-link"
-                                v-if="
-                                    pageAccess.architecture.children.hasOwnProperty(
-                                        'storage'
-                                    ) &&
-                                    pageAccess.architecture.children.storage
-                                        .authority
-                                "
-                                :to="'/index/architecture/storage'"
-                                >儲存設備狀態</router-link
-                            >
-                        </div>
-                    </li>
-                    <li
-                        class="nav-item dropdown"
-                        v-if="
-                            pageAccess.hasOwnProperty('report') &&
-                            pageAccess.report.authority
-                        "
-                    >
-                        <a class="nav-link dropdown" role="button">報告</a>
-                        <div class="dropdown-menu">
-                            <router-link
-                                class="nav-link"
-                                v-if="
-                                    pageAccess.report.children.hasOwnProperty(
-                                        'todolist'
-                                    ) &&
-                                    pageAccess.report.children.todolist
-                                        .authority
-                                "
-                                :to="'/index/report/todolist'"
-                                >待辦事項</router-link
-                            >
-                            <router-link
-                                class="nav-link"
-                                v-if="
-                                    pageAccess.report.children.hasOwnProperty(
-                                        'weeklyreport'
-                                    ) &&
-                                    pageAccess.report.children.weeklyreport
-                                        .authority
-                                "
-                                :to="'/index/report/weeklyreport'"
-                                >工作週報</router-link
-                            >
-                            <router-link
-                                class="nav-link"
-                                v-if="
-                                    pageAccess.report.children.hasOwnProperty(
-                                        'meetingminutes'
-                                    ) &&
-                                    pageAccess.report.children.meetingminutes
-                                        .authority
-                                "
-                                :to="'/index/report/meetingminutes'"
-                                >會議記錄</router-link
-                            >
-                            <router-link
-                                class="nav-link"
-                                v-if="
-                                    pageAccess.report.children.hasOwnProperty(
-                                        'sop'
-                                    ) &&
-                                    pageAccess.report.children.sop.authority
-                                "
-                                :to="'/index/report/sop'"
-                                >SOP文件</router-link
-                            >
-                        </div>
-                    </li>
-                    <li
-                        class="nav-item dropdown"
-                        v-if="
-                            pageAccess.hasOwnProperty('tool') &&
-                            pageAccess.tool.authority
-                        "
-                    >
-                        <a class="nav-link dropdown" role="button">工具</a>
-                        <div class="dropdown-menu">
-                            <router-link
-                                class="nav-link"
-                                v-if="
-                                    pageAccess.tool.children.hasOwnProperty(
-                                        'fileupdownload'
-                                    ) &&
-                                    pageAccess.tool.children.fileupdownload
-                                        .authority
-                                "
-                                :to="'/index/tool/fileupdownload'"
-                                >檔案上傳下載</router-link
-                            >
-                        </div>
-                    </li>
-                    <li
-                        class="nav-item dropdown"
-                        v-if="
-                            pageAccess.hasOwnProperty('management') &&
-                            pageAccess.management.authority
-                        "
-                    >
-                        <a class="nav-link dropdown" role="button">系統管理</a>
-                        <div class="dropdown-menu">
-                            <router-link
-                                class="nav-link"
-                                v-if="
-                                    pageAccess.management.children.hasOwnProperty(
-                                        'department'
-                                    ) &&
-                                    pageAccess.management.children.department
-                                        .authority
-                                "
-                                :to="'/index/management/department'"
-                                >部門</router-link
-                            >
-                            <router-link
-                                class="nav-link"
-                                v-if="
-                                    pageAccess.management.children.hasOwnProperty(
-                                        'account'
-                                    ) &&
-                                    pageAccess.management.children.account
-                                        .authority
-                                "
-                                :to="'/index/management/account'"
-                                >帳號</router-link
-                            >
-                        </div>
-                    </li>
-                    <!-- <li class="nav-item dropdown">
-                        <a class="nav-link dropdown" role="button">MIS</a>
-                        <div class="dropdown-menu">
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown" role="button">系統</a>
-                                <div class="dropdown-menu dropdown-l2">
-                                    <router-link class="nav-link" :to="''">架構</router-link>
-                                    <router-link class="nav-link" :to="''">網路</router-link>
-                                    <router-link class="nav-link" :to="''">儲存</router-link>
-                                    <router-link class="nav-link" :to="''">伺服器</router-link>
-                                </div>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown" role="button">報告</a>
-                                <div class="dropdown-menu dropdown-l2">
-                                    <router-link class="nav-link" :to="''">每日狀況回報</router-link>
-                                    <router-link class="nav-link" :to="''">金智洋月報</router-link>
-                                    <router-link class="nav-link" :to="''">易昇鋼鐵月報</router-link>
-                                    <router-link class="nav-link" :to="'todolist'">待辦事項</router-link>
-                                    <router-link class="nav-link" :to="''">Weekly Report</router-link>
-                                </div>
-                            </li>
-                        </div>
-                    </li>-->
-                </ul>
-                <form class="form-inline my-2 my-lg-0">
-                    <div class="username">
-                        <p v-if="loginData.username === null" class="account">
-                            HI, xxxx
-                        </p>
-                        <p v-else class="account">
-                            HI, {{ loginData.username }}
-                        </p>
+                                <b-dropdown-item
+                                    v-if="
+                                        pageAccess[
+                                            item
+                                        ].children.hasOwnProperty(key2) &&
+                                        pageAccess[item].children[key2]
+                                            .authority
+                                    "
+                                    :to="'/index/' + item + '/' + key2"
+                                >
+                                    {{ navbarItems[item].children[key2].title }}
+                                </b-dropdown-item>
+                            </div>
+                        </b-nav-item-dropdown>
                     </div>
-                    <a
-                        class="logout a-hover"
-                        style="float: right"
-                        @click.prevent="logout"
-                        >登出</a
-                    >
-                </form>
-            </div>
+                </b-navbar-nav>
+                <b-navbar-nav class="ml-auto">
+                    <template v-if="loginData.username === null">
+                        <b-nav-text class="account">HI, xxxx</b-nav-text>
+                    </template>
+                    <template v-else>
+                        <b-nav-text class="account"
+                            >HI, {{ loginData.username }}</b-nav-text
+                        >
+                    </template>
+                    <b-nav-item @click.prevent="logout">登出</b-nav-item>
+                </b-navbar-nav>
+            </b-collapse>
         </b-navbar>
         <b-container>
             <router-view style="margin-top: 10px"></router-view>
@@ -285,6 +85,69 @@ export default {
     name: "index",
     data() {
         return {
+            navbarItems: {
+                bulletin: {
+                    title: "系統公告",
+                    children: {
+                        board: {
+                            title: "公告區",
+                        },
+                        manage: {
+                            title: "公告管理",
+                        },
+                    },
+                },
+                architecture: {
+                    title: "系統架構",
+                    children: {
+                        structure: {
+                            title: "架構圖",
+                        },
+                        server: {
+                            title: "伺服器狀態",
+                        },
+                        storage: {
+                            title: "儲存設備狀態",
+                        },
+                    },
+                },
+                report: {
+                    title: "報告",
+                    children: {
+                        todolist: {
+                            title: "待辦事項",
+                        },
+                        weeklyreport: {
+                            title: "工作週報",
+                        },
+                        meetingminutes: {
+                            title: "會議記錄",
+                        },
+                        sop: {
+                            title: "SOP文件",
+                        },
+                    },
+                },
+                tool: {
+                    title: "工具",
+                    children: {
+                        fileupdownload: {
+                            title: "檔案上傳下載",
+                        },
+                    },
+                },
+                management: {
+                    title: "系統管理",
+                    children: {
+                        department: {
+                            title: "部門",
+                        },
+                        account: {
+                            title: "帳號",
+                        },
+                    },
+                },
+            },
         };
     },
     computed: {
@@ -421,48 +284,6 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.nav-item .nav-link {
-    color: #eefbf0;
-    font-size: 20px;
-}
-.dropdown-menu .nav-link:hover {
-    background-color: lightgrey;
-}
-.username {
-    height: 24px;
-}
-.form-inline a,
-.form-inline p {
-    color: #eefbf0;
-    margin-left: 15px;
-}
-.dropdown-menu {
-    margin: 0;
-    margin-top: 0px;
-    background-color: #97a7c0;
-    width: 125px !important;
-    /* min-width: 127px !important; */
-}
-.dropdown-l2 {
-    top: 0;
-    left: 75px;
-    background-color: #8b99b1 !important;
-}
-.dropdown:hover > .dropdown-menu {
-    display: block;
-}
-
-.dropleft:hover > .dropdown-menu {
-    display: block;
-    margin-right: 0px;
-}
-.dropdown-item {
-    padding-left: 10px;
-    width: 125px !important;
-}
-.dropdown-item:hover {
-    background-color: #ffffff;
-}
 .wrongoldpwd,
 .wrongnewpwd1,
 .wrongnewpwd2 {

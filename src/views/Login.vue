@@ -76,7 +76,7 @@ export default {
     },
     methods: {
         ...mapActions({
-            axiosAction: "commonaxios/axiosAction",
+            axiosGetAction: "commonaxios/axiosGetAction",
             setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             togglealertModal: "alertmodal/toggle_alertModal",
@@ -91,194 +91,102 @@ export default {
                 vm.settimeoutalertModal();
                 return;
             }
-            if (vm.user.uID != "root" && vm.user.uID != "test") {
-                vm.setTimeOutAlertMsg("無此帳號");
-                vm.settimeoutalertModal();
-                return;
-            }
+            let apiparams = {};
+            apiparams["url"] = "api/YS/1.0/my/CommonUse/Interval/user";
+            apiparams["urlparams"] = {
+                attr: "uID",
+                valueStart: vm.user.uID,
+                valueEnd: vm.user.uID,
+            };
+            let anyerror = false;
+            console.log(apiparams);
             vm.togglealertModal(true);
-            var obj = {};
-            obj.account = 2493;
-            obj.status = true;
-            obj.username = "admin";
-            if (vm.user.uID == "root") {
-                obj.username = "root";
-                obj.accesslist = {
-                    bulletin: {
-                        authority: true,
-                        children: {
-                            board: { authority: true },
-                            manage: { authority: true },
-                        },
-                    },
-                    management: {
-                        authority: true,
-                        children: {
-                            department: { authority: true },
-                            account: { authority: true },
-                        },
-                    },
-                    architecture: {
-                        authority: true,
-                        children: {
-                            structure: { authority: true },
-                            server: { authority: true },
-                            storage: { authority: true },
-                        },
-                    },
-                    report: {
-                        authority: true,
-                        children: {
-                            todolist: {
-                                authority: true,
-                                remark: {
-                                    commonQueryCondition: { main: "ALL" },
-                                },
-                            },
-                            weeklyreport: {
-                                authority: true,
-                                remark: {
-                                    commonQueryCondition: { main: "ALL" },
-                                },
-                            },
-                            meetingminutes: {
-                                authority: true,
-                                remark: {
-                                    commonQueryCondition: {
-                                        main: [
-                                            "1003",
-                                            "1002",
-                                            "1001",
-                                            "common",
-                                        ],
-                                        secondary: "supervisor",
-                                    },
-                                    dataHandleAuthority: [
-                                        "query",
-                                        "modify",
-                                        "delete",
-                                        "add",
-                                    ],
-                                },
-                            },
-                            sop: {
-                                authority: true,
-                                remark: {
-                                    commonQueryCondition: {
-                                        main: "1003",
-                                        secondary: "supervisor",
-                                    },
-                                    dataHandleAuthority: [
-                                        "query",
-                                        "modify",
-                                        "delete",
-                                        "add",
-                                    ],
-                                },
-                            },
-                        },
-                    },
-                    tool: {
-                        authority: true,
-                        children: {
-                            fileupdownload: { authority: true },
-                        },
-                    },
-                };
-            } else if (vm.user.uID == "test") {
-                obj.username = "test";
-                obj.accesslist = {
-                    bulletin: {
-                        authority: true,
-                        children: {
-                            board: { authority: true },
-                            manage: { authority: true },
-                        },
-                    },
-                    management: {
-                        authority: true,
-                        children: {
-                            department: { authority: true },
-                            account: { authority: true },
-                        },
-                    },
-                    architecture: {
-                        authority: false,
-                        children: {
-                            structure: { authority: false },
-                            server: { authority: false },
-                            storage: { authority: false },
-                        },
-                    },
-                    report: {
-                        authority: false,
-                        children: {
-                            todolist: {
-                                authority: false,
-                                remark: {
-                                    commonQueryCondition: { main: "ALL" },
-                                },
-                            },
-                            weeklyreport: {
-                                authority: false,
-                                remark: {
-                                    commonQueryCondition: { main: "ALL" },
-                                },
-                            },
-                            meetingminutes: {
-                                authority: false,
-                                remark: {
-                                    commonQueryCondition: {
-                                        main: [
-                                            "1003",
-                                            "1002",
-                                            "1001",
-                                            "common",
-                                        ],
-                                        secondary: "supervisor",
-                                    },
-                                    dataHandleAuthority: [
-                                        "query",
-                                        "modify",
-                                        "delete",
-                                        "add",
-                                    ],
-                                },
-                            },
-                            sop: {
-                                authority: false,
-                                remark: {
-                                    commonQueryCondition: {
-                                        main: "1003",
-                                        secondary: "supervisor",
-                                    },
-                                    dataHandleAuthority: [
-                                        "query",
-                                        "modify",
-                                        "delete",
-                                        "add",
-                                    ],
-                                },
-                            },
-                        },
-                    },
-                    tool: {
-                        authority: false,
-                        children: {
-                            fileupdownload: { authority: true },
-                        },
-                    },
-                };
-            }
-            vm.change_loginData(obj);
-            vm.change_pageAccess(obj.accesslist);
-            console.log(childRouter);
-            vm.$router.addRoutes(childRouter);
-            vm.change_loginData(obj);
-            console.log(vm.$router);
-            setTimeout(function () {
-                vm.$router.push("/index");
-            }, 900);
+            vm.axiosGetAction(apiparams)
+                .then(() => {
+                    vm.togglealertModal(false);
+                    var result = vm.axiosResult;
+                    console.log(result);
+                    if (result.status != 200) {
+                        anyerror = true;
+                        vm.setTimeOutAlertMsg(result.data);
+                        return;
+                    }
+                    if (result.data["Response"] === "ok") {
+                        if (result.data["QueryTableData"].length == 0) {
+                            anyerror = true;
+                            vm.setTimeOutAlertMsg("無此帳號");
+                            return;
+                        }
+                        if (
+                            result.data["QueryTableData"][0].pwd != vm.user.pwd
+                        ) {
+                            anyerror = true;
+                            vm.setTimeOutAlertMsg("帳號或密碼錯誤");
+                            return;
+                        }
+                        vm.setTimeOutAlertMsg("登入成功");
+
+                        var obj = {};
+                        obj.account = vm.user.uID;
+                        obj.status = true;
+                        obj.username = result.data["QueryTableData"][0].uName;
+                        obj.accesslist = JSON.parse(
+                            result.data["QueryTableData"][0].accessList
+                        );
+                        var access = JSON.parse(
+                            result.data["QueryTableData"][0].accessList
+                        );
+                        let trueList = [];
+                        console.log(access);
+                        Object.entries(access).forEach((element) => {
+                            if (element[1]["authority"]) {
+                                if (element[1].hasOwnProperty("children")) {
+                                    Object.keys(element[1].children).map(
+                                        (item) => {
+                                            if (
+                                                element[1].children[item]
+                                                    .authority
+                                            ) {
+                                                trueList.push(
+                                                    element[0] + "/" + item
+                                                );
+                                            }
+                                        }
+                                    );
+                                } else {
+                                    trueList.push(element[0]);
+                                }
+                            }
+                        });
+                        console.log(trueList);
+                        trueList.push("home");
+                        childRouter[0].children =
+                            childRouter[0].children.filter((item) =>
+                                trueList.includes(item.path)
+                            );
+                        vm.change_loginData(obj);
+                        vm.change_pageAccess(obj.accesslist);
+                        console.log(childRouter);
+                        vm.$router.addRoutes(childRouter);
+                        vm.change_loginData(obj);
+                        console.log(vm.$router);
+                        setTimeout(function () {
+                            vm.$router.push("/index");
+                        }, 500);
+                    } else {
+                        anyerror = true;
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                    anyerror = true;
+                    vm.setTimeOutAlertMsg(err);
+                })
+                .finally(() => {
+                    console.log("done");
+                    if (anyerror) vm.settimeoutalertModal();
+                });
         },
     },
 };

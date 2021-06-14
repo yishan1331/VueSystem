@@ -119,7 +119,7 @@
                             </b-col>
                         </b-row>
 
-                        <b-row class="my-4">
+                        <!-- <b-row class="my-4">
                             <b-col sm="2">
                                 <label for="textarea-large">
                                     附件:
@@ -138,7 +138,7 @@
                                     accept="image/*, .pdf, .zip"
                                 ></b-form-file>
                             </b-col>
-                        </b-row>
+                        </b-row> -->
 
                         <b-row>
                             <b-col lg="12" class="pb-2">
@@ -163,7 +163,6 @@
                         sticky-header="430px"
                         responsive
                         hover
-                        :busy="tableBusy"
                         :items="items"
                         :fields="fields"
                         @row-clicked="onRowClicked"
@@ -186,7 +185,6 @@
                         sticky-header="430px"
                         responsive
                         hover
-                        :busy="tableBusy"
                         :items="items"
                         :fields="fields"
                         @row-clicked="onRowClicked"
@@ -382,14 +380,11 @@
                             >
                         </b-col>
                     </b-row>
-                    <b-row class="my-4">
+                    <!-- <b-row class="my-4">
                         <b-col sm="2">
                             <label for="textarea-large">原附件:</label>
                         </b-col>
                         <b-col sm="10">
-                            <!-- <a :href="item" v-for="(item, key,index) in modmodalcontent.boardannex"
-                target="_blank"
-                            :key="index">{{key}}</a>-->
                             <p
                                 v-if="
                                     Object.keys(modmodalcontent.boardannex)
@@ -444,7 +439,7 @@
                                 accept="image/*, .pdf, .zip"
                             ></b-form-file>
                         </b-col>
-                    </b-row>
+                    </b-row> -->
                     <b-row>
                         <b-col lg="12" class="pb-2">
                             <div class="w-100">
@@ -477,7 +472,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import commonQuery from "@/components/commonQuery.vue";
 import { validationMixin } from "vuelidate"; // 表單驗證
 import { required, minLength, between } from "vuelidate/lib/validators";
@@ -668,6 +662,7 @@ export default {
                     PC: "個人電腦",
                     system: "系統",
                 };
+                console.log(vm.queryResponse);
                 for (var i = 0; i < vm.queryResponse.length; i++) {
                     var itemsobj = {};
                     itemsobj["seq"] = vm.queryResponse[i]["seq"];
@@ -684,9 +679,8 @@ export default {
                     }
                     itemsobj["creatorID"] = vm.queryResponse[i]["creatorID"];
                     if (vm.queryResponse[i]["filename"] != "") {
-                        var thisfilename = vm.queryResponse[i][
-                            "filename"
-                        ].split(",");
+                        var thisfilename =
+                            vm.queryResponse[i]["filename"].split(",");
                         itemsobj["annex"] = thisfilename;
                     }
                     itemsarray.push(itemsobj);
@@ -731,6 +725,9 @@ export default {
     },
     methods: {
         ...mapActions({
+            axiosPostAction: "commonaxios/axiosPostAction",
+            axiosPatchAction: "commonaxios/axiosPatchAction",
+            axiosDeleteAction: "commonaxios/axiosDeleteAction",
             setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             togglealertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
@@ -790,74 +787,43 @@ export default {
                 console.log(thiscontent);
                 console.log(typeof thiscontent);
                 console.log(thiscontent);
-                let formData = new FormData();
-                console.log(this.form.files);
-                for (var i = 0; i < this.form.files.length; i++) {
-                    let file = this.form.files[i];
-                    console.log(file);
-                    //檢察檔案大小是否大於10MB(1024*1024*10)，若大於就不傳到後端
-                    if (file.size > 1024 * 1024 * 10) {
-                        vm.setTimeOutAlertMsg("檔名:" + file.name + "檔案太大");
-                        vm.settimeoutalertModal(1200);
-                        return;
-                    }
-                    formData.append("fileToUpload[" + i + "]", file);
-                }
+                console.log(vm.form);
 
-                formData.append("content", thiscontent);
-                formData.append("title", vm.form.title.value);
-                formData.append("category", vm.form.category);
-                formData.append("filename", vm.form.filename);
-                formData.append("account", vm.loginData.account);
+                let params = {};
+                params["url"] = "api/YS/1.0/my/CommonUse/misBulletin";
+                params["postdata"] = {
+                    seq: [""],
+                    category: [vm.form.category],
+                    title: [vm.form.title.value],
+                    content: [thiscontent],
+                    filename: [""],
+                    showhide: ["1"],
+                    creatorID: [vm.loginData.account],
+                };
 
                 vm.togglealertModal(true);
-                let config = {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                };
-                const instance = axios.create({
-                    withCredentials: true,
-                });
-                instance
-                    .post(
-                        "/php/views/misbulletin/misBulletinAdd.php",
-                        formData,
-                        config
-                    )
-                    .then(
-                        function (response) {
-                            const result = response.data;
-                            vm.setTimeOutAlertMsg(result);
-                            var altertime = 0;
-                            if (result.length == 1) {
-                                altertime = 1200;
-                            } else if (result.length < 4) {
-                                altertime = 1500;
-                            } else {
-                                altertime = 2500;
-                            }
-                            vm.settimeoutalertModal(altertime);
-                            vm.formReset();
-                        }.bind(this)
-                    )
+                vm.axiosPostAction(params)
+                    .then(() => {
+                        var result = vm.axiosResult;
+                        console.log(result);
+                        vm.togglealertModal(false);
+                        if (result.status != 200) {
+                            vm.setTimeOutAlertMsg(result.data);
+                            return;
+                        }
+                        if (result.data["Response"] === "ok") {
+                            vm.setTimeOutAlertMsg("上傳成功");
+                        } else {
+                            vm.setTimeOutAlertMsg(result.data["Response"]);
+                        }
+                    })
                     .catch(function (err) {
                         console.log(err);
-                        console.log(err.response.status);
-                        if (err.response.status === 413) {
-                            vm.setTimeOutAlertMsg(
-                                "Error 413: Request entity too large，檔案太大"
-                            );
-                        } else {
-                            vm.setTimeOutAlertMsg(err);
-                        }
-                        vm.settimeoutalertModal();
+                        vm.setTimeOutAlertMsg(err);
                     })
                     .finally(() => {
-                        console.log("done");
-                        setTimeout(() => {
-                            vm.togglealertModal(false);
-                        }, 1200);
+                        vm.formReset();
+                        vm.settimeoutalertModal();
                     });
             }
         },
@@ -938,10 +904,11 @@ export default {
                     if (parsecontent.hasOwnProperty("wordPreUp")) {
                         if (typeof parsecontent.wordPreUp.content != "string") {
                             vm.modmodalcontentusepre = true;
-                            parsecontent = parsecontent.wordPreUp.content.content.replace(
-                                /<br\s*[\/]?>/g,
-                                "\n"
-                            );
+                            parsecontent =
+                                parsecontent.wordPreUp.content.content.replace(
+                                    /<br\s*[\/]?>/g,
+                                    "\n"
+                                );
                         }
                     }
                     if (!vm.modmodalcontentusepre)
@@ -951,18 +918,19 @@ export default {
                         vm.modmodalcontent.content.value = parsecontent;
                     } else {
                         if (parsecontent.hasOwnProperty("wordUp"))
-                            parsecontent.wordUp.content = parsecontent.wordUp.content
-                                .replace(/<br\s*[\/]?>/g, "\n")
-                                .replace(/&nbsp;/g, "");
+                            parsecontent.wordUp.content =
+                                parsecontent.wordUp.content
+                                    .replace(/<br\s*[\/]?>/g, "\n")
+                                    .replace(/&nbsp;/g, "");
                         if (parsecontent.hasOwnProperty("wordDown"))
-                            parsecontent.wordDown.content = parsecontent.wordDown.content
-                                .replace(/<br\s*[\/]?>/g, "\n")
-                                .replace(/&nbsp;/g, "");
+                            parsecontent.wordDown.content =
+                                parsecontent.wordDown.content
+                                    .replace(/<br\s*[\/]?>/g, "\n")
+                                    .replace(/&nbsp;/g, "");
 
                         console.log(parsecontent);
-                        vm.modmodalcontent.content.value = JSON.stringify(
-                            parsecontent
-                        );
+                        vm.modmodalcontent.content.value =
+                            JSON.stringify(parsecontent);
                     }
                 } else {
                     thisitem.content = thisitem.content
@@ -1056,80 +1024,44 @@ export default {
                 thiscontent = vm.adjustContentData(vm.modmodalcontent.content);
                 if (!thiscontent) return;
                 console.log(thiscontent);
-                let formData = new FormData();
-                for (var i = 0; i < this.modmodalcontent.files.length; i++) {
-                    let file = this.modmodalcontent.files[i];
-                    //檢察檔案大小是否大於10MB(1024*1024*10)，若大於就不傳到後端
-                    if (file.size > 1024 * 1024 * 10) {
-                        vm.setTimeOutAlertMsg("檔名:" + file.name + "檔案太大");
-                        vm.settimeoutalertModal(1200);
-                        return;
-                    }
-                    formData.append("fileToUpload[" + i + "]", file);
-                }
-                console.log(Object.keys(vm.modmodalcontent.boardannex));
-                formData.append("deletefile", "");
-                formData.append("seq", vm.modmodalcontent.seq);
-                formData.append("title", vm.modmodalcontent.title.value);
-                formData.append("content", thiscontent);
-                formData.append("category", vm.modmodalcontent.category);
-                if (Object.keys(vm.modmodalcontent.boardannex).length == 0) {
-                    formData.append("filename", vm.modmodalcontent.filename);
-                } else {
-                    formData.append(
-                        "filename",
-                        Object.keys(vm.modmodalcontent.boardannex)
-                    );
-                }
-                formData.append("showhide", vm.modmodalcontent.showhide);
-                formData.append("account", vm.loginData.account);
-                let config = {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
+
+                let params = {};
+                params["url"] = "api/YS/1.0/my/CommonUse/misBulletin";
+                params["postdata"] = {
+                    old_seq: [vm.modmodalcontent.seq],
+                    category: [vm.modmodalcontent.category],
+                    title: [vm.modmodalcontent.title.value],
+                    content: [thiscontent],
+                    showhide: [vm.modmodalcontent.showhide],
+                    creatorID: [vm.loginData.accoun],
                 };
+
                 vm.togglealertModal(true);
-                const instance = axios.create({
-                    withCredentials: true,
-                });
-                instance
-                    .post(
-                        "/php/views/misbulletin/misBulletinMod.php",
-                        formData,
-                        config
-                    )
-                    .then(
-                        function (response) {
-                            const result = response.data;
-                            console.log(result);
-                            vm.setTimeOutAlertMsg(result);
-                            var altertime = 0;
-                            if (result.length == 1) {
-                                altertime = 1000;
-                            } else if (result.length < 4) {
-                                altertime = 1500;
-                            } else {
-                                altertime = 2500;
-                            }
-                            vm.settimeoutalertModal(altertime);
-                            vm.modmodalcontent = this.$options.data().modmodalcontent;
+                vm.axiosPatchAction(params)
+                    .then(() => {
+                        var result = vm.axiosResult;
+                        console.log(result);
+                        vm.togglealertModal(false);
+                        if (result.status != 200) {
+                            vm.setTimeOutAlertMsg(result.data);
+                            return;
+                        }
+                        if (result.data["Response"] === "ok") {
+                            vm.setTimeOutAlertMsg("修改成功");
+                            vm.modmodalcontent =
+                                this.$options.data().modmodalcontent;
                             vm.modBulletinModalShow = false;
-                        }.bind(this)
-                    )
+                        } else {
+                            vm.setTimeOutAlertMsg(result.data["Response"]);
+                        }
+                    })
                     .catch(function (err) {
                         console.log(err);
-                        console.log(err.response.status);
-                        if (err.response.status === 413) {
-                            vm.setTimeOutAlertMsg(
-                                "Error 413: Request entity too large，檔案太大"
-                            );
-                        } else {
-                            vm.setTimeOutAlertMsg(err);
-                        }
-                        vm.settimeoutalertModal();
+                        vm.setTimeOutAlertMsg(err);
                     })
                     .finally(() => {
                         vm.togglealertModal(false);
+                        vm.settimeoutalertModal();
                         setTimeout(function () {
                             vm.queryAgain();
                         }, 1200);
@@ -1148,27 +1080,24 @@ export default {
             var oldfilelist = Object.keys(vm.modmodalcontent.boardannex);
             oldfilelist.splice(oldfilelist.indexOf(filename), 1);
             var newfilestr = oldfilelist.join(",");
-            let formData = new FormData();
-            formData.append("seq", vm.modmodalcontent.seq);
-            formData.append("deletefile", filename);
-            formData.append("remainfile", newfilestr);
-            let config = {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
+
+            let params = {};
+            params["url"] = "api/YS/1.0/my/CommonUse/misBulletin";
+            params["postdata"] = {
+                seq: [vm.modmodalcontent.seq],
             };
-            const instance = axios.create({
-                withCredentials: true,
-            });
-            instance
-                .post(
-                    "/php/views/misbulletin/misBulletinMod.php",
-                    formData,
-                    config
-                )
-                .then(
-                    function (response) {
-                        const result = response.data;
+            vm.togglealertModal(true);
+            vm.axiosDeleteAction(params)
+                .then(() => {
+                    var result = vm.axiosResult;
+                    console.log(result);
+                    vm.togglealertModal(false);
+                    if (result.status != 200) {
+                        vm.setTimeOutAlertMsg(result.data);
+                        return;
+                    }
+                    if (result.data["Response"] === "ok") {
+                        vm.setTimeOutAlertMsg("修改成功");
                         var oldfileobj = vm.modmodalcontent.boardannex;
                         delete oldfileobj[filename];
                         this.$data.modmodalcontent.boardannex = Object.assign(
@@ -1182,35 +1111,52 @@ export default {
                             thisrowitems[thisrowindex].annex.indexOf(vm.items),
                             1
                         );
-                        vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(1000);
-                    }.bind(this)
-                )
+                    } else {
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
+                    }
+                })
                 .catch(function (err) {
                     console.log(err);
+                    vm.setTimeOutAlertMsg(err);
+                })
+                .finally(() => {
+                    vm.settimeoutalertModal();
                 });
         },
         //刪除畫面刪除檔案
         onDelete() {
-            var vm = this;
+            let vm = this;
             let params = {};
-            params["filename"] = vm.delmodalcontent.filename;
-            params["seq"] = vm.delmodalcontent.seq;
-            axios
-                .post("/php/views/misbulletin/misBulletinDel.php", params)
-                .then(
-                    function (response) {
-                        const result = response.data;
-                        vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(1000);
-                        vm.delBulletinModalShow = false;
-                        setTimeout(function () {
-                            vm.queryAgain();
-                        }, 1200);
-                    }.bind(this)
-                )
+            params["url"] = "api/YS/1.0/my/CommonUse/misBulletin";
+            params["postdata"] = {
+                seq: [vm.delmodalcontent.seq],
+            };
+            vm.togglealertModal(true);
+            vm.axiosDeleteAction(params)
+                .then(() => {
+                    var result = vm.axiosResult;
+                    console.log(result);
+                    vm.togglealertModal(false);
+                    if (result.status != 200) {
+                        vm.setTimeOutAlertMsg(result.data);
+                        return;
+                    }
+                    if (result.data["Response"] === "ok") {
+                        vm.setTimeOutAlertMsg("刪除成功");
+                    } else {
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
+                    }
+                })
                 .catch(function (err) {
                     console.log(err);
+                    vm.setTimeOutAlertMsg(err);
+                })
+                .finally(() => {
+                    vm.settimeoutalertModal();
+                    vm.delBulletinModalShow = false;
+                    setTimeout(function () {
+                        vm.queryAgain();
+                    }, 1200);
                 });
         },
         //validation表單reset
@@ -1375,11 +1321,10 @@ export default {
                             wordtype[i] != "wordPreUp" &&
                             wordtype[i] != "wordPreDown"
                         ) {
-                            parsecontentvalue[wordtype[i]][
-                                "content"
-                            ] = vm.replaceContentData(
-                                parsecontentvalue[wordtype[i]]["content"]
-                            );
+                            parsecontentvalue[wordtype[i]]["content"] =
+                                vm.replaceContentData(
+                                    parsecontentvalue[wordtype[i]]["content"]
+                                );
                         }
                     }
                 }

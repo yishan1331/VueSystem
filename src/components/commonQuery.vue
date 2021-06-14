@@ -261,7 +261,7 @@ export default {
     },
     methods: {
         ...mapActions({
-            axiosAction: "commonaxios/axiosAction",
+            axiosPostAction: "commonaxios/axiosPostAction",
             setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             togglealertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
@@ -323,6 +323,12 @@ export default {
             params["end_time"] = vm.endTime.time + " 23:59:59";
             params["settingtime"] = vm.settingtime;
 
+            let axiosparams = {};
+
+            axiosparams["urlparams"] = {
+                getSqlSyntax: "yes",
+            };
+
             if (vm.apiParams.type == "normal") {
                 // if (vm.inputData.selected == "ALL") {
                 //     params["whichFunction"] = "IntervalQuery";
@@ -331,8 +337,7 @@ export default {
                 //     //設定此次抓取的時間區間
                 //     vm.setthisQueryTimeInterval("ALL");
                 // } else {
-                params["methods"] = "POST";
-                params["whichFunction"] = "CommonSqlSyntaxQuery";
+                axiosparams["url"] = "api/YS/2.0/my/CommonUse/SqlSyntax";
                 //default params
                 let fieldsparams = "";
                 let orderbyparams = ["desc", "lastUpdateTime"];
@@ -415,9 +420,8 @@ export default {
                         (index) => "equal"
                     );
                     console.log(thissymbols);
-                    symbolsparams[
-                        vm.inputData.secondcondition[1].attr
-                    ] = thissymbols;
+                    symbolsparams[vm.inputData.secondcondition[1].attr] =
+                        thissymbols;
                 }
 
                 if (Object.keys(whereparams).length == 0) {
@@ -430,7 +434,7 @@ export default {
                 if (unionparams.length == 0) unionparams = "";
 
                 console.log(whereparams);
-                params["condition"] = {
+                let condition = {
                     condition_1: {
                         table: vm.apiParams.normal.table,
                         fields: fieldsparams,
@@ -443,63 +447,49 @@ export default {
                         union: unionparams,
                     },
                 };
-                console.log(params["condition"]);
+                console.log(condition);
                 //若有自定義參數在此整理合併查詢
                 console.log(vm.apiParams.customized);
                 Object.keys(vm.apiParams.customized).map((element) => {
                     console.log(element);
-                    console.log(params["condition"][element]);
+                    console.log(condition[element]);
                     console.log(vm.apiParams.customized[element]);
-                    if (params["condition"].hasOwnProperty(element)) {
-                        Object.keys(params["condition"][element]).map(
-                            (element2) => {
-                                if (
-                                    vm.apiParams.customized[
-                                        element
-                                    ].hasOwnProperty(element2)
-                                ) {
-                                    console.log(
+                    if (condition.hasOwnProperty(element)) {
+                        Object.keys(condition[element]).map((element2) => {
+                            if (
+                                vm.apiParams.customized[element].hasOwnProperty(
+                                    element2
+                                )
+                            ) {
+                                console.log(
+                                    vm.apiParams.customized[element][element2]
+                                );
+                                console.log(condition[element][element2]);
+                                if (condition[element][element2] == "") {
+                                    console.log("-------------------");
+                                    condition[element][element2] =
+                                        vm.apiParams.customized[element][
+                                            element2
+                                        ];
+                                } else {
+                                    Object.assign(
+                                        condition[element][element2],
                                         vm.apiParams.customized[element][
                                             element2
                                         ]
                                     );
-                                    console.log(
-                                        params["condition"][element][element2]
-                                    );
-                                    if (
-                                        params["condition"][element][
-                                            element2
-                                        ] == ""
-                                    ) {
-                                        console.log("-------------------");
-                                        params["condition"][element][element2] =
-                                            vm.apiParams.customized[element][
-                                                element2
-                                            ];
-                                    } else {
-                                        Object.assign(
-                                            params["condition"][element][
-                                                element2
-                                            ],
-                                            vm.apiParams.customized[element][
-                                                element2
-                                            ]
-                                        );
-                                    }
                                 }
                             }
-                        );
+                        });
                         Object.keys(vm.apiParams.customized[element]).map(
                             (element2) => {
                                 if (
-                                    !params["condition"][
-                                        element
-                                    ].hasOwnProperty(element2)
+                                    !condition[element].hasOwnProperty(element2)
                                 ) {
                                     console.log(element2);
                                     console.log("$$$$$$$$$$$$$$");
                                     Object.assign(
-                                        params["condition"][element][element2],
+                                        condition[element][element2],
                                         vm.apiParams.customized[element][
                                             element2
                                         ]
@@ -508,7 +498,7 @@ export default {
                             }
                         );
                     } else {
-                        params["condition"][element] = JSON.parse(
+                        condition[element] = JSON.parse(
                             JSON.stringify(vm.apiParams.customized[element])
                         );
                         Object.entries(vm.apiParams.customized[element]).map(
@@ -519,58 +509,62 @@ export default {
                                         element2[0] == "intervaltime") &&
                                     typeof element2[1] === "string"
                                 ) {
-                                    params["condition"][element][element2[0]] =
-                                        params["condition"][element2[1]][
-                                            element2[0]
-                                        ];
+                                    condition[element][element2[0]] =
+                                        condition[element2[1]][element2[0]];
                                 }
                             }
                         );
                         console.log(vm.apiParams.customized[element]);
                     }
                 });
-                console.log(params["condition"]);
-                // }
+                console.log(condition);
+                axiosparams["postdata"] = condition;
             } else if (vm.apiParams.type == "join") {
                 if (vm.inputData.selected == "ALL") {
-                    params["methods"] = "POST";
-                    params["whichFunction"] = "CommonJoinMultiTable";
-                    params["condition"] = vm.apiParams.customized;
+                    axiosparams["url"] =
+                        "api/YS/2.0/my/CommonUse/SqlSyntax/JoinMultiTable";
+                    axiosparams["postdata"] = vm.apiParams.customized;
                 }
             }
-            console.log(params);
-            vm.axiosAction(params).then(() => {
-                var result = vm.axiosResult;
-                console.log(result);
-                vm.togglealertModal(false);
-                vm.changetableBusy();
-                if (
-                    Object.prototype.toString.call(result) != "[object Object]"
-                ) {
-                    vm.setTimeOutAlertMsg(result);
-                    vm.settimeoutalertModal(2000);
-                    return;
-                }
-                if (result["Response"] == "ok") {
-                    result["QueryTableData"] = result["QueryTableData"].sort(
-                        function (a, b) {
-                            return a.lastUpdateTime < b.lastUpdateTime ? 1 : -1;
-                        }
-                    );
-                    if (result["QueryTableData"].length == 0) {
-                        if (vm.queryResponse == "查無資料") {
-                            vm.setTimeOutAlertMsg("查無資料");
-                            vm.settimeoutalertModal();
-                        }
-                        vm.setqueryResponse("查無資料");
-                    } else {
-                        vm.setqueryResponse(result["QueryTableData"]);
+            console.log(axiosparams);
+            let anyerror = false;
+            vm.axiosPostAction(axiosparams)
+                .then(() => {
+                    var result = vm.axiosResult;
+                    console.log(result);
+                    vm.togglealertModal(false);
+                    if (result.status != 200) {
+                        anyerror = true;
+                        vm.setTimeOutAlertMsg(result.data);
+                        return;
                     }
-                } else {
-                    vm.setTimeOutAlertMsg(result["Response"]);
-                    vm.settimeoutalertModal();
-                }
-            });
+                    if (result.data["Response"] === "ok") {
+                        result.data["QueryTableData"] = result.data[
+                            "QueryTableData"
+                        ].sort(function (a, b) {
+                            return a.lastUpdateTime < b.lastUpdateTime ? 1 : -1;
+                        });
+                        if (result.data["QueryTableData"].length == 0) {
+                            if (vm.queryResponse == "查無資料") {
+                                vm.setTimeOutAlertMsg("查無資料");
+                            }
+                            anyerror = true;
+                            vm.setqueryResponse("查無資料");
+                        } else {
+                            vm.setqueryResponse(result.data["QueryTableData"]);
+                        }
+                    } else {
+                        anyerror = true;
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                    vm.setTimeOutAlertMsg(err);
+                })
+                .finally(() => {
+                    if (anyerror) vm.settimeoutalertModal();
+                });
         },
 
         //時間格式化

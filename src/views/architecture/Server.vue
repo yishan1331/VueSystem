@@ -385,7 +385,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import systemForm from "@/components/systemForm.vue";
 import commonQuery from "@/components/commonQuery.vue";
 import modal from "@/components/modal.vue";
@@ -534,6 +533,7 @@ export default {
                         jointype: {
                             server_virtualMachine: "left",
                         },
+                        subquery: "",
                     },
                 },
             },
@@ -598,9 +598,10 @@ export default {
                             this.$refs.queryTable.$el.scrollLeft = 0;
                         } else {
                             //表格scroll移至最右
-                            this.$refs.editTable.$el.scrollLeft = document.getElementById(
-                                "editTable"
-                            ).scrollWidth;
+                            this.$refs.editTable.$el.scrollLeft =
+                                document.getElementById(
+                                    "editTable"
+                                ).scrollWidth;
                         }
                     }
                 });
@@ -657,7 +658,9 @@ export default {
     },
     methods: {
         ...mapActions({
-            axiosAction: "commonaxios/axiosAction",
+            axiosPostAction: "commonaxios/axiosPostAction",
+            axiosPatchAction: "commonaxios/axiosPatchAction",
+            axiosDeleteAction: "commonaxios/axiosDeleteAction",
             setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
             togglealertModal: "alertmodal/toggle_alertModal",
@@ -753,44 +756,37 @@ export default {
                 }
             });
             console.log(vm.systemFormCompletedData);
-            var params = {
-                methods: "POST",
-                whichFunction: "CommonRegister",
-                table: "server",
-                postdata: {
-                    seq: [""],
-                    status: [vm.systemFormCompletedData.status],
-                    type: [vm.systemFormCompletedData.type],
-                    manufacturer: [vm.systemFormCompletedData.manufacturer],
-                    model: [vm.systemFormCompletedData.model],
-                    cpu: [vm.systemFormCompletedData.cpu],
-                    memory: [vm.systemFormCompletedData.memory],
-                    HDD: [vm.systemFormCompletedData.HDD],
-                    NIC: [vm.systemFormCompletedData.NIC],
-                    OS: [vm.systemFormCompletedData.OS],
-                    PM: [vm.systemFormCompletedData.PM],
-                    note: [vm.systemFormCompletedData.note],
-                    creatorID: [vm.loginData.account],
-                },
+            let params = {};
+            params["url"] = "api/YS/1.0/my/CommonUse/server";
+            params["postdata"] = {
+                seq: [""],
+                status: [vm.systemFormCompletedData.status],
+                type: [vm.systemFormCompletedData.type],
+                manufacturer: [vm.systemFormCompletedData.manufacturer],
+                model: [vm.systemFormCompletedData.model],
+                cpu: [vm.systemFormCompletedData.cpu],
+                memory: [vm.systemFormCompletedData.memory],
+                HDD: [vm.systemFormCompletedData.HDD],
+                NIC: [vm.systemFormCompletedData.NIC],
+                OS: [vm.systemFormCompletedData.OS],
+                PM: [vm.systemFormCompletedData.PM],
+                note: [vm.systemFormCompletedData.note],
+                creatorID: [vm.loginData.account],
             };
+
             console.log(params);
-            vm.axiosAction(params)
+            vm.axiosPostAction(params)
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
-                    if (
-                        Object.prototype.toString.call(result) !=
-                        "[object Object]"
-                    ) {
-                        vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(2000);
+                    if (result.status != 200) {
+                        vm.setTimeOutAlertMsg(result.data);
                         return;
                     }
-
-                    if (result["Response"] == "ok") {
+                    if (result.data["Response"] === "ok") {
                         vm.setTimeOutAlertMsg("新增成功");
                     } else {
-                        vm.setTimeOutAlertMsg(result["Response"]);
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
                     }
                 })
                 .catch(function (err) {
@@ -818,53 +814,44 @@ export default {
                     );
                 }
             });
-            var params = {
-                methods: "POST",
-                whichFunction: "CommonRegister",
-                table: "virtualMachine",
-                postdata: {
-                    seq: [""],
-                    noumenonID: [vm.systemFormCompletedData.noumenonID],
-                    name: [vm.systemFormCompletedData.name],
-                    status: [vm.systemFormCompletedData.status],
-                    provisionedSpace: [
-                        vm.systemFormCompletedData.provisionedSpace,
-                    ],
-                    usedSpace: [vm.systemFormCompletedData.usedSpace],
-                    memory: [vm.systemFormCompletedData.memory],
-                    application: [vm.systemFormCompletedData.application],
-                    property: [vm.systemFormCompletedData.property],
-                    installtionService: [
-                        vm.systemFormCompletedData.installtionService,
-                    ],
-                    computerName: [vm.systemFormCompletedData.computerName],
-                    OS: [vm.systemFormCompletedData.OS],
-                    systemLocation: [vm.systemFormCompletedData.systemLocation],
-                    privateIP: [vm.systemFormCompletedData.privateIP],
-                    publicIP: [vm.systemFormCompletedData.publicIP],
-                    port: [vm.systemFormCompletedData.port],
-                    DM: [vm.systemFormCompletedData.DM],
-                    remark: [vm.systemFormCompletedData.remark],
-                    creatorID: [vm.loginData.account],
-                },
+            let params = {};
+            params["url"] = "api/YS/1.0/my/CommonUse/virtualMachine";
+            params["postdata"] = {
+                seq: [""],
+                noumenonID: [vm.systemFormCompletedData.noumenonID],
+                name: [vm.systemFormCompletedData.name],
+                status: [vm.systemFormCompletedData.status],
+                provisionedSpace: [vm.systemFormCompletedData.provisionedSpace],
+                usedSpace: [vm.systemFormCompletedData.usedSpace],
+                memory: [vm.systemFormCompletedData.memory],
+                application: [vm.systemFormCompletedData.application],
+                property: [vm.systemFormCompletedData.property],
+                installtionService: [
+                    vm.systemFormCompletedData.installtionService,
+                ],
+                computerName: [vm.systemFormCompletedData.computerName],
+                OS: [vm.systemFormCompletedData.OS],
+                systemLocation: [vm.systemFormCompletedData.systemLocation],
+                privateIP: [vm.systemFormCompletedData.privateIP],
+                publicIP: [vm.systemFormCompletedData.publicIP],
+                port: [vm.systemFormCompletedData.port],
+                DM: [vm.systemFormCompletedData.DM],
+                remark: [vm.systemFormCompletedData.remark],
+                creatorID: [vm.loginData.account],
             };
             console.log(params);
-            vm.axiosAction(params)
+            vm.axiosPostAction(params)
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
-                    if (
-                        Object.prototype.toString.call(result) !=
-                        "[object Object]"
-                    ) {
-                        vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(2000);
+                    if (result.status != 200) {
+                        vm.setTimeOutAlertMsg(result.data);
                         return;
                     }
-                    if (result["Response"] == "ok") {
+                    if (result.data["Response"] === "ok") {
                         vm.setTimeOutAlertMsg("新增成功");
                     } else {
-                        vm.setTimeOutAlertMsg(result["Response"]);
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
                     }
                 })
                 .catch(function (err) {
@@ -897,71 +884,58 @@ export default {
 
             let params = {};
             if (vm.breadcrumbWhich == "Server") {
-                params = {
-                    methods: "PATCH",
-                    whichFunction: "CommonUpdate",
-                    table: "server",
-                    postdata: {
-                        old_seq: [items.seq],
-                        status: [items.status],
-                        type: [items.type],
-                        manufacturer: [items.manufacturer],
-                        model: [items.model],
-                        cpu: [items.cpu],
-                        memory: [items.memory],
-                        HDD: [items.HDD],
-                        NIC: [items.NIC],
-                        OS: [items.OS],
-                        PM: [items.PM],
-                        note: [items.note],
-                    },
+                params["url"] = "api/YS/1.0/my/CommonUse/server";
+                params["postdata"] = {
+                    old_seq: [items.seq],
+                    status: [items.status],
+                    type: [items.type],
+                    manufacturer: [items.manufacturer],
+                    model: [items.model],
+                    cpu: [items.cpu],
+                    memory: [items.memory],
+                    HDD: [items.HDD],
+                    NIC: [items.NIC],
+                    OS: [items.OS],
+                    PM: [items.PM],
+                    note: [items.note],
                 };
             } else {
-                params = {
-                    methods: "PATCH",
-                    whichFunction: "CommonUpdate",
-                    table: "virtualMachine",
-                    postdata: {
-                        old_seq: [items.seq],
-                        noumenonID: [items.noumenonID],
-                        name: [items.name],
-                        status: [items.status],
-                        provisionedSpace: [items.provisionedSpace],
-                        usedSpace: [items.usedSpace],
-                        memory: [items.memory],
-                        application: [items.application],
-                        property: [items.property],
-                        installtionService: [items.installtionService],
-                        computerName: [items.computerName],
-                        OS: [items.OS],
-                        systemLocation: [items.systemLocation],
-                        privateIP: [items.privateIP],
-                        publicIP: [items.publicIP],
-                        port: [items.port],
-                        DM: [items.DM],
-                        remark: [items.remark],
-                    },
+                params["url"] = "api/YS/1.0/my/CommonUse/virtualMachine";
+                params["postdata"] = {
+                    old_seq: [items.seq],
+                    noumenonID: [items.noumenonID],
+                    name: [items.name],
+                    status: [items.status],
+                    provisionedSpace: [items.provisionedSpace],
+                    usedSpace: [items.usedSpace],
+                    memory: [items.memory],
+                    application: [items.application],
+                    property: [items.property],
+                    installtionService: [items.installtionService],
+                    computerName: [items.computerName],
+                    OS: [items.OS],
+                    systemLocation: [items.systemLocation],
+                    privateIP: [items.privateIP],
+                    publicIP: [items.publicIP],
+                    port: [items.port],
+                    DM: [items.DM],
+                    remark: [items.remark],
                 };
             }
             vm.activeItemsSeq = null;
             console.log(params);
-            vm.axiosAction(params)
+            vm.axiosPatchAction(params)
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
-                    if (
-                        Object.prototype.toString.call(result) !=
-                        "[object Object]"
-                    ) {
-                        vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(2000);
+                    if (result.status != 200) {
+                        vm.setTimeOutAlertMsg(result.data);
                         return;
                     }
-
-                    if (result["Response"] == "ok") {
+                    if (result.data["Response"] === "ok") {
                         vm.setTimeOutAlertMsg("修改成功");
                     } else {
-                        vm.setTimeOutAlertMsg(result["Response"]);
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
                     }
                 })
                 .catch(function (err) {
@@ -988,13 +962,9 @@ export default {
                 console.log(vm.delItemSeq);
                 if (vm.breadcrumbWhich == "Server") {
                     let thisserverchildvm = vm.VMItems[String(vm.delItemSeq)];
-                    params = {
-                        methods: "DELETE",
-                        whichFunction: "CommonDelete",
-                        table: "server",
-                        postdata: {
-                            seq: [vm.delItemSeq],
-                        },
+                    params["url"] = "api/YS/1.0/my/CommonUse/server";
+                    params["postdata"] = {
+                        seq: [vm.delItemSeq],
                     };
                     if (thisserverchildvm.length != 0) {
                         //刪除隸屬此server的所有VM
@@ -1003,44 +973,33 @@ export default {
                         );
                         console.log(delvmdata);
                         vm.delAction({
-                            methods: "DELETE",
-                            whichFunction: "CommonDelete",
-                            table: "virtualMachine",
+                            url: "api/YS/1.0/my/CommonUse/virtualMachine",
                             postdata: {
                                 seq: delvmdata,
                             },
                         });
                     }
                 } else {
-                    params = {
-                        methods: "DELETE",
-                        whichFunction: "CommonDelete",
-                        table: "virtualMachine",
-                        postdata: {
-                            seq: [vm.delItemSeq],
-                        },
+                    params["url"] = "api/YS/1.0/my/CommonUse/virtualMachine";
+                    params["postdata"] = {
+                        seq: [vm.delItemSeq],
                     };
                 }
             }
 
             console.log(params);
-            vm.axiosAction(params)
+            vm.axiosDeleteAction(params)
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
-                    if (
-                        Object.prototype.toString.call(result) !=
-                        "[object Object]"
-                    ) {
-                        vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(2000);
+                    if (result.status != 200) {
+                        vm.setTimeOutAlertMsg(result.data);
                         return;
                     }
-
-                    if (result["Response"] == "ok") {
+                    if (result.data["Response"] === "ok") {
                         vm.setTimeOutAlertMsg("刪除成功");
                     } else {
-                        vm.setTimeOutAlertMsg(result["Response"]);
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
                     }
                 })
                 .catch(function (err) {

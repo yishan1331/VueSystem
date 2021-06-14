@@ -887,7 +887,9 @@ export default {
     },
     methods: {
         ...mapActions({
-            axiosAction: "commonaxios/axiosAction",
+            axiosPostAction: "commonaxios/axiosPostAction",
+            axiosPatchAction: "commonaxios/axiosPatchAction",
+            axiosDeleteAction: "commonaxios/axiosDeleteAction",
             setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             togglealertModal: "alertmodal/toggle_alertModal",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
@@ -917,16 +919,15 @@ export default {
                     { text: "雲端AI(智慧)平台部", value: "1003" },
                     { text: "系統研發部", value: "1002" },
                     { text: "資訊通訊部", value: "1001" },
-                    { text: "智能製造事業處", value: "ALL" },
+                    { text: "全選", value: "ALL" },
                 ];
             } else {
                 todolistqueryoptions = [
                     {
-                        text:
-                            vm.depConfig[
-                                vm.pageAccess.report.children.todolist.remark
-                                    .commonQueryCondition.main
-                            ],
+                        text: vm.depConfig[
+                            vm.pageAccess.report.children.todolist.remark
+                                .commonQueryCondition.main
+                        ],
                         value: String(
                             vm.pageAccess.report.children.todolist.remark
                                 .commonQueryCondition.main
@@ -983,6 +984,7 @@ export default {
                     symbols: "condition_1",
                     intervaltime: "condition_1",
                     subquery: "",
+                    union:""
                 },
             };
 
@@ -1029,9 +1031,12 @@ export default {
 
         getBelongDepStaff() {
             let vm = this;
-            var params = {};
-            params["methods"] = "POST";
-            params["whichFunction"] = "CommonSqlSyntaxQuery";
+            let params = {};
+            params["url"] = "api/YS/2.0/my/CommonUse/SqlSyntax";
+            params["urlparams"] = {
+                getSqlSyntax: "yes",
+            };
+
             let thiswhere = [];
             let thissymbols = [];
             if (
@@ -1049,7 +1054,7 @@ export default {
                 );
                 thissymbols.push("equal");
             }
-            params["condition"] = {
+            params["postdata"] = {
                 condition_1: {
                     table: "user",
                     fields: [
@@ -1063,26 +1068,26 @@ export default {
                     orderby: ["desc", "lastUpdateTime"],
                     limit: ["ALL"],
                     symbols: { noumenonID: thissymbols },
+                    intervaltime: "",
+                    union: "",
+                    subquery: "",
                 },
             };
             console.log(params);
             let anyerror = false;
-            vm.axiosAction(params)
+            vm.axiosPostAction(params)
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
-                    if (
-                        Object.prototype.toString.call(result) !=
-                        "[object Object]"
-                    ) {
-                        vm.setTimeOutAlertMsg(result);
+                    if (result.status != 200) {
                         anyerror = true;
+                        vm.setTimeOutAlertMsg(result.data);
                         return;
                     }
 
                     // console.log(JSON.stringify(result["QueryTableData"]));
-                    if (result["Response"] == "ok") {
-                        if (result["QueryTableData"].length == 0) {
+                    if (result.data["Response"] == "ok") {
+                        if (result.data["QueryTableData"].length == 0) {
                             vm.setTimeOutAlertMsg("查無資料");
                             anyerror = true;
                         } else {
@@ -1098,7 +1103,7 @@ export default {
                             let staffIDName = {};
                             let depStaffRelation = {};
                             let staffIDEmail = {};
-                            result["QueryTableData"].forEach((element) => {
+                            result.data["QueryTableData"].forEach((element) => {
                                 let getStaffOptions = {
                                     value: element.uID,
                                     text: element.uName,
@@ -1128,7 +1133,7 @@ export default {
                             console.log(vm.staffIDEmail);
                         }
                     } else {
-                        vm.setTimeOutAlertMsg(result["Response"]);
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
                         anyerror = true;
                     }
                 })
@@ -1210,27 +1215,22 @@ export default {
             };
             if (status) {
                 vm.togglealertModal(true);
-                var params = {
-                    methods: "POST",
-                    whichFunction: "CommonRegister",
-                    table: "todoList",
-                    postdata: {
-                        seq: [""],
-                        depID: [
-                            vm.depStaffRelation[
-                                vm.addTaskDetail.assignTo.value
-                            ],
-                        ],
-                        taskInfo: [vm.addTaskDetail.taskInfo.value],
-                        taskDetail: [vm.addTaskDetail.taskDetail],
-                        schedDate: [vm.addTaskDetail.schedDate.time],
-                        priority: [vm.addTaskDetail.priority.value],
-                        assignTo: [vm.addTaskDetail.assignTo.value],
-                        status: [false],
-                        completedDate: [""],
-                        creatorID: [vm.loginData.account],
-                        startDate: [vm.addTaskDetail.startDate.time],
-                    },
+                let params = {};
+                params["url"] = "api/YS/1.0/my/CommonUse/todoList";
+                params["postdata"] = {
+                    seq: [""],
+                    depID: [
+                        vm.depStaffRelation[vm.addTaskDetail.assignTo.value],
+                    ],
+                    taskInfo: [vm.addTaskDetail.taskInfo.value],
+                    taskDetail: [vm.addTaskDetail.taskDetail],
+                    schedDate: [vm.addTaskDetail.schedDate.time],
+                    priority: [vm.addTaskDetail.priority.value],
+                    assignTo: [vm.addTaskDetail.assignTo.value],
+                    status: [false],
+                    completedDate: [""],
+                    creatorID: [vm.loginData.account],
+                    startDate: [vm.addTaskDetail.startDate.time],
                 };
                 console.log(params);
 
@@ -1289,22 +1289,19 @@ export default {
         addTaskFunc(params) {
             let vm = this;
             return new Promise((resolve, reject) => {
-                vm.axiosAction(params)
+                vm.axiosPostAction(params)
                     .then(() => {
                         var result = vm.axiosResult;
                         console.log(result);
-                        if (
-                            Object.prototype.toString.call(result) !=
-                            "[object Object]"
-                        ) {
-                            reject(result);
+                        if (result.status != 200) {
+                            reject(result.data);
                         }
 
-                        if (result["Response"] == "ok") {
+                        if (result.data["Response"] == "ok") {
                             console.log(new Date());
                             resolve("ok");
                         } else {
-                            reject(result["Response"]);
+                            reject(result.data["Response"]);
                         }
                     })
                     .catch(function (err) {
@@ -1366,41 +1363,34 @@ export default {
                     return;
                 }
             }
-            var params = {
-                methods: "PATCH",
-                whichFunction: "CommonUpdate",
-                table: "todoList",
-                postdata: {
-                    old_seq: [items.seq],
-                    status: [items.status],
-                    taskInfo: [items.taskInfo],
-                    taskDetail: [items.taskDetail],
-                    schedDate: [items.schedDate.time],
-                    priority: [items.priority],
-                    assignTo: [items.assignTo],
-                    completedDate: [thiscompletedDate],
-                    startDate: [items.startDate.time],
-                },
+            let params = {};
+            params["url"] = "api/YS/1.0/my/CommonUse/todoList";
+            params["postdata"] = {
+                old_seq: [items.seq],
+                status: [items.status],
+                taskInfo: [items.taskInfo],
+                taskDetail: [items.taskDetail],
+                schedDate: [items.schedDate.time],
+                priority: [items.priority],
+                assignTo: [items.assignTo],
+                completedDate: [thiscompletedDate],
+                startDate: [items.startDate.time],
             };
             console.log(params);
             vm.activeItemsSeq = null;
-            vm.axiosAction(params)
+            vm.axiosPatchAction(params)
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
-                    if (
-                        Object.prototype.toString.call(result) !=
-                        "[object Object]"
-                    ) {
-                        vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(2000);
+                    if (result.status != 200) {
+                        vm.setTimeOutAlertMsg(result.data);
                         return;
                     }
 
-                    if (result["Response"] == "ok") {
+                    if (result.data["Response"] == "ok") {
                         vm.setTimeOutAlertMsg("修改成功");
                     } else {
-                        vm.setTimeOutAlertMsg(result["Response"]);
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
                     }
                 })
                 .catch(function (err) {
@@ -1419,32 +1409,27 @@ export default {
         delTask() {
             let vm = this;
             console.log(vm.delItemSeq);
-            var params = {
-                methods: "DELETE",
-                whichFunction: "CommonDelete",
-                table: "todoList",
-                postdata: {
-                    seq: [vm.delItemSeq],
-                },
+            let params = {};
+            params["url"] = "api/YS/1.0/my/CommonUse/todoList";
+            params["postdata"] = {
+                seq: [vm.delItemSeq],
             };
             console.log(params);
-            vm.axiosAction(params)
+            vm.togglealertModal(true);
+            vm.axiosDeleteAction(params)
                 .then(() => {
                     var result = vm.axiosResult;
+                    vm.togglealertModal(false);
                     console.log(result);
-                    if (
-                        Object.prototype.toString.call(result) !=
-                        "[object Object]"
-                    ) {
-                        vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(2000);
+                    if (result.status != 200) {
+                        vm.setTimeOutAlertMsg(result.data);
                         return;
                     }
 
-                    if (result["Response"] == "ok") {
+                    if (result.data["Response"] == "ok") {
                         vm.setTimeOutAlertMsg("刪除成功");
                     } else {
-                        vm.setTimeOutAlertMsg(result["Response"]);
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
                     }
                 })
                 .catch(function (err) {
@@ -1613,9 +1598,12 @@ export default {
                     selectlebel: "轉移",
                 });
 
-                var params = {};
-                params["methods"] = "POST";
-                params["whichFunction"] = "CommonSqlSyntaxQuery";
+                let params = {};
+                params["url"] = "api/YS/2.0/my/CommonUse/SqlSyntax";
+                params["urlparams"] = {
+                    getSqlSyntax: "yes",
+                };
+
                 let thiswhere = [];
                 let thissymbols = [];
                 if (
@@ -1633,25 +1621,33 @@ export default {
                     );
                     thissymbols = ["equal"];
                 }
-                params["condition"] = {
+                params["postdata"] = {
                     condition_1: {
                         table: "todoList",
+                        fields: "",
                         where: { depID: thiswhere, status: [1] },
                         orderby: ["desc", "lastUpdateTime"],
                         limit: ["ALL"],
                         symbols: { depID: thissymbols, status: ["equal"] },
+                        intervaltime: "",
+                        union: "",
+                        subquery: "",
                     },
                 };
                 console.log(params);
                 let anyerror = false;
-                vm.axiosAction(params)
+                vm.axiosPostAction(params)
                     .then(() => {
                         var result = vm.axiosResult;
                         console.log(result);
-                        console.log(JSON.stringify(result["QueryTableData"]));
+                        if (result.status != 200) {
+                            anyerror = true;
+                            vm.setTimeOutAlertMsg(result.data);
+                            return;
+                        }
 
                         let thisitems = [];
-                        result["QueryTableData"].forEach((element) => {
+                        result.data["QueryTableData"].forEach((element) => {
                             let thisstatus = false;
                             if (element.status) thisstatus = true;
                             let itemsobj = {
@@ -1836,35 +1832,24 @@ export default {
             let vm = this;
             let apiparams = {};
             if (step === "todoListComplt") {
-                apiparams = {
-                    methods: "POST",
-                    whichFunction: "CommonRegister",
-                    table: "todoListComplt",
-                    postdata: todolistcomplt_params,
-                };
+                apiparams["url"] = "api/YS/1.0/my/CommonUse/todoListComplt";
+                apiparams["postdata"] = todolistcomplt_params;
             } else {
-                apiparams = {
-                    methods: "POST",
-                    whichFunction: "CommonRegister",
-                    table: "weeklyReport",
-                    postdata: weeklyreport_params,
-                };
+                apiparams["url"] = "api/YS/1.0/my/CommonUse/weeklyReport";
+                apiparams["postdata"] = weeklyreport_params;
             }
             console.log(apiparams);
             let anyerror = false;
             return new Promise((resolve, reject) => {
-                vm.axiosAction(apiparams)
+                vm.axiosPostAction(apiparams)
                     .then(() => {
                         var result = vm.axiosResult;
                         console.log(result);
-                        if (
-                            Object.prototype.toString.call(result) !=
-                            "[object Object]"
-                        ) {
+                        if (result.status != 200) {
                             reject("新增失敗");
                         }
 
-                        if (result["Response"] == "ok") {
+                        if (result.data["Response"] == "ok") {
                             if (step === "todoListComplt") {
                                 vm.transferDataAddFunc(
                                     "weeklyReport",
@@ -1878,7 +1863,7 @@ export default {
                                 resolve("ok");
                             }
                         } else {
-                            vm.setTimeOutAlertMsg(result["Response"]);
+                            vm.setTimeOutAlertMsg(result.data["Response"]);
                             anyerror = true;
                             reject("新增失敗");
                         }
@@ -1896,32 +1881,28 @@ export default {
 
         transferDataDelFunc(params) {
             let vm = this;
-            let apiparams = {
-                methods: "DELETE",
-                whichFunction: "CommonDelete",
-                table: "todoList",
-                postdata: { seq: params },
+            let apiparams = {};
+            apiparams["url"] = "api/YS/1.0/my/CommonUse/todoList";
+            params["postdata"] = {
+                seq: params,
             };
             console.log(apiparams);
             let anyerror = false;
             return new Promise((resolve, reject) => {
-                vm.axiosAction(apiparams)
+                vm.axiosDeleteAction(apiparams)
                     .then(() => {
                         var result = vm.axiosResult;
                         console.log(result);
-                        if (
-                            Object.prototype.toString.call(result) !=
-                            "[object Object]"
-                        ) {
-                            vm.setTimeOutAlertMsg(result);
+                        if (result.status != 200) {
+                            vm.setTimeOutAlertMsg(result.data);
                             anyerror = true;
                             reject("刪除失敗");
                         }
 
-                        if (result["Response"] == "ok") {
+                        if (result.data["Response"] == "ok") {
                             resolve("ok");
                         } else {
-                            vm.setTimeOutAlertMsg(result["Response"]);
+                            vm.setTimeOutAlertMsg(result.data["Response"]);
                             anyerror = true;
                             reject("刪除失敗");
                         }

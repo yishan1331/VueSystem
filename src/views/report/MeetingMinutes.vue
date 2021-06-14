@@ -4,7 +4,7 @@
             <b-col sm="3">
                 <h4>會議記錄</h4>
             </b-col>
-            <b-col sm="9" class="text-right">
+            <!-- <b-col sm="9" class="text-right">
                 <b-button
                     pill
                     v-if="
@@ -31,9 +31,9 @@
                 >
                     <commonQuery />
                 </b-collapse>
-            </b-col>
+            </b-col> -->
         </b-row>
-        <b-tabs v-model="tabIndex">
+        <!-- <b-tabs v-model="tabIndex">
             <b-tab
                 v-if="
                     pageAccess.report.children.meetingminutes.remark.dataHandleAuthority.includes(
@@ -64,7 +64,7 @@
                 </h5>
                 <commonTable v-else></commonTable>
             </b-tab>
-        </b-tabs>
+        </b-tabs> -->
 
         <!-- 新增modal -->
         <b-modal
@@ -534,56 +534,55 @@ export default {
     },
     created: function () {
         let vm = this;
-        vm.SetCommonQueryData();
-        vm.getBelongDepStaff();
+        // vm.SetCommonQueryData();
+        // vm.getBelongDepStaff();
 
-        //設定commonTable SlotConfig
-        vm.settableSlotConfig({
-            slotConfig: {
-                depID: {
-                    value: "depID",
-                    conversiontable: Object.assign({}, vm.depDetail.config, {
-                        common: "共用",
-                    }),
-                },
-                date: { value: "time" },
-                filename: {
-                    value: "filename",
-                    download: {
-                        location: "onDownload",
-                        path: "./tempfiles/",
-                    },
-                },
-            },
-            selectable: false,
-            actionConfig: {
-                edit: {
-                    authority: vm.pageAccess.report.children.meetingminutes.remark.dataHandleAuthority.includes(
-                        "modify"
-                    ),
-                    type: "modal",
-                    location: "toggleModModal",
-                    goback: true,
-                },
-                del: {
-                    authority: vm.pageAccess.report.children.meetingminutes.remark.dataHandleAuthority.includes(
-                        "delete"
-                    ),
-                    location: "delAction",
-                    delfield: ["seq", "filename", "path"],
-                },
-            },
-        });
+        // //設定commonTable SlotConfig
+        // vm.settableSlotConfig({
+        //     slotConfig: {
+        //         depID: {
+        //             value: "depID",
+        //             conversiontable: Object.assign({}, vm.depDetail.config, {
+        //                 common: "共用",
+        //             }),
+        //         },
+        //         date: { value: "time" },
+        //         filename: {
+        //             value: "filename",
+        //             download: {
+        //                 location: "onDownload",
+        //                 path: "./tempfiles/",
+        //             },
+        //         },
+        //     },
+        //     selectable: false,
+        //     actionConfig: {
+        //         edit: {
+        //             authority: vm.pageAccess.report.children.meetingminutes.remark.dataHandleAuthority.includes(
+        //                 "modify"
+        //             ),
+        //             type: "modal",
+        //             location: "toggleModModal",
+        //             goback: true,
+        //         },
+        //         del: {
+        //             authority: vm.pageAccess.report.children.meetingminutes.remark.dataHandleAuthority.includes(
+        //                 "delete"
+        //             ),
+        //             location: "delAction",
+        //             delfield: ["seq", "filename", "path"],
+        //         },
+        //     },
+        // });
 
-        //設定commonModal Config
-        vm.setcommonModalConfig(
-            JSON.parse(JSON.stringify(vm.DEFAULT_commonModalConfig))
-        );
+        // //設定commonModal Config
+        // vm.setcommonModalConfig(
+        //     JSON.parse(JSON.stringify(vm.DEFAULT_commonModalConfig))
+        // );
     },
     mounted: function () {
-        this.togglealertModal(true);
-        // this.getDataList();
-        this.queryAgain();
+        // this.togglealertModal(true);
+        // this.queryAgain();
     },
     components: {
         datepicker,

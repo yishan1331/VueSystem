@@ -17,6 +17,7 @@
                         reset(['items']);
                         addModalShow = true;
                     "
+                    disabled
                     variant="success"
                     >上傳檔案</b-button
                 >
@@ -219,7 +220,7 @@ export default {
     },
     created: function () {},
     mounted: function () {
-        this.queryFileList();
+        // this.queryFileList();
     },
     components: {
         modal,

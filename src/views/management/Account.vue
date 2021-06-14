@@ -245,7 +245,8 @@ export default {
                 console.log(vm.addModalShow);
                 console.log(vm.modModalShow);
                 var msg = [];
-                const regex = /^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+                const regex =
+                    /^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
                 if (Object.keys(vm.systemFormCompletedData).length != 0) {
                     if (vm.systemFormCompletedData.uID == "") {
                         msg.push("帳號尚未輸入");
@@ -324,6 +325,7 @@ export default {
                         vm.setSystemFormCompletedData({});
                         return;
                     } else {
+                        vm.togglealertModal(true);
                         if (vm.addModalShow) {
                             vm.AccountAdd();
                         } else {
@@ -336,9 +338,13 @@ export default {
     },
     methods: {
         ...mapActions({
-            axiosAction: "commonaxios/axiosAction",
+            axiosGetAction: "commonaxios/axiosGetAction",
+            axiosPostAction: "commonaxios/axiosPostAction",
+            axiosPatchAction: "commonaxios/axiosPatchAction",
+            axiosDeleteAction: "commonaxios/axiosDeleteAction",
             setTimeOutAlertMsg: "alertmodal/set_setTimeOutAlertMsg",
             settimeoutalertModal: "alertmodal/settimeout_alertModal",
+            togglealertModal: "alertmodal/toggle_alertModal",
             setinputData: "commonquery/set_inputData",
             setapiParams: "commonquery/set_apiParams",
             setconditionOptions: "commonquery/set_conditionOptions",
@@ -391,51 +397,66 @@ export default {
 
         SetSystemFormSelectOptionsFunc() {
             var vm = this;
-            var params = {};
-            params["methods"] = "GET";
-            params["whichFunction"] = "CommonSimpleQuery";
-            params["category"] = "systemformselectoptions";
-            params["table"] = "department";
-            vm.axiosAction(params).then(() => {
-                var result = vm.axiosResult;
-                var array = [];
-                if (
-                    Object.prototype.toString.call(result) != "[object Object]"
-                ) {
-                    vm.setTimeOutAlertMsg(result);
-                    vm.settimeoutalertModal(2000);
-                    return;
-                }
-
-                if (result["Response"] == "ok") {
-                    var depDetail = [];
-                    depDetail[0] = {}; //key為depID
-                    // depDetail[1] = {}; //key為depName
-                    for (var i = 0; i < result["QueryTableData"].length; i++) {
-                        var systemformselectoptions = {};
-                        depDetail[0][result["QueryTableData"][i]["depID"]] =
-                            result["QueryTableData"][i]["depName"];
-                        // depDetail[1][result["QueryTableData"][i]["depName"]] =
-                        //     result["QueryTableData"][i]["depID"];
-                        systemformselectoptions["text"] =
-                            result["QueryTableData"][i]["depName"];
-                        systemformselectoptions["value"] =
-                            result["QueryTableData"][i]["depID"];
-                        systemformselectoptions["accessList"] =
-                            JSON.parse(result["QueryTableData"][i]["accessList"]);
-                        array.push(systemformselectoptions);
+            let params = {};
+            params["url"] = "api/YS/1.0/my/CommonUse/TableData";
+            params["urlparams"] = {
+                table: "department",
+            };
+            let anyerror = false;
+            vm.axiosGetAction(params)
+                .then(() => {
+                    var result = vm.axiosResult;
+                    var array = [];
+                    if (result.status != 200) {
+                        anyerror = true;
+                        vm.setTimeOutAlertMsg(result.data);
+                        return;
                     }
-                    console.log(array);
-                    vm.setSystemFormSelectOptions(array);
-                    console.log(depDetail);
-                    vm.depDetail = depDetail;
-                    vm.setconditionOptions(array);
-                    vm.setTableSlotConfig();
-                } else {
-                    vm.setTimeOutAlertMsg(result["Response"]);
-                    vm.settimeoutalertModal();
-                }
-            });
+
+                    if (result.data["Response"] === "ok") {
+                        var depDetail = [];
+                        depDetail[0] = {}; //key為depID
+                        // depDetail[1] = {}; //key為depName
+                        for (
+                            var i = 0;
+                            i < result.data["QueryTableData"].length;
+                            i++
+                        ) {
+                            var systemformselectoptions = {};
+                            depDetail[0][
+                                result.data["QueryTableData"][i]["depID"]
+                            ] = result.data["QueryTableData"][i]["depName"];
+                            // depDetail[1][result.data["QueryTableData"][i]["depName"]] =
+                            //     result.data["QueryTableData"][i]["depID"];
+                            systemformselectoptions["text"] =
+                                result.data["QueryTableData"][i]["depName"];
+                            systemformselectoptions["value"] =
+                                result.data["QueryTableData"][i]["depID"];
+                            systemformselectoptions["accessList"] = JSON.parse(
+                                result.data["QueryTableData"][i]["accessList"]
+                            );
+                            array.push(systemformselectoptions);
+                        }
+                        console.log(array);
+                        vm.setSystemFormSelectOptions(array);
+                        console.log(depDetail);
+                        vm.depDetail = depDetail;
+                        vm.setconditionOptions(array);
+                        vm.setTableSlotConfig();
+                    } else {
+                        anyerror = true;
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                    anyerror = true;
+                    vm.setTimeOutAlertMsg(err);
+                })
+                .finally(() => {
+                    console.log("done");
+                    if (anyerror) vm.settimeoutalertModal();
+                });
         },
 
         SetCommonQueryData() {
@@ -540,6 +561,13 @@ export default {
         toggleAddModal(status) {
             let vm = this;
             if (status) {
+                //設定modal config
+                let commonModalConfig = JSON.parse(
+                    JSON.stringify(this.DEFAULT_commonModalConfig)
+                );
+                commonModalConfig.size = "xl";
+                commonModalConfig.modalClassFull = true;
+                vm.setcommonModalConfig(commonModalConfig);
                 vm.SetSystemFormData();
             }
             vm.togglecommonModal(status);
@@ -549,76 +577,93 @@ export default {
         toggleModModal(params) {
             let vm = this;
             console.log(params);
+            //設定modal config
+            let commonModalConfig = JSON.parse(
+                JSON.stringify(this.DEFAULT_commonModalConfig)
+            );
+            commonModalConfig.size = "xl";
+            commonModalConfig.modalClassFull = true;
+            this.setcommonModalConfig(commonModalConfig);
+
             //two level deep copy
             let thisitemobj = JSON.parse(JSON.stringify(params.data));
             //抓取其密碼
-            var apiparams = {};
-            apiparams["methods"] = "GET";
-            apiparams["whichFunction"] = "Login";
-            apiparams["uID"] = thisitemobj.uID;
-            vm.axiosAction(apiparams).then(() => {
-                var result = vm.axiosResult;
-                if (
-                    Object.prototype.toString.call(result) != "[object Object]"
-                ) {
-                    vm.setTimeOutAlertMsg(result);
-                    vm.settimeoutalertModal(2000);
-                    return;
-                }
-
-                if (result["Response"] == "ok") {
-                    var thispwd = result["QueryTableData"][0].pwd;
-                    thisitemobj["pwd"] = thispwd;
-                }
-                // thisitemobj["noumenonID"] =
-                //     vm.depDetail[1][thisitemobj["noumenonID"]];
-                console.log(thisitemobj);
-                vm.modModalShow = true;
-                vm.SetSystemFormData(thisitemobj);
-                vm.togglecommonModal(true);
-            });
+            let apiparams = {};
+            apiparams["url"] = "api/YS/1.0/my/CommonUse/Interval/user";
+            apiparams["urlparams"] = {
+                attr: "uID",
+                valueStart: thisitemobj.uID,
+                valueEnd: thisitemobj.uID,
+            };
+            let anyerror = false;
+            console.log(apiparams);
+            vm.axiosGetAction(apiparams)
+                .then(() => {
+                    var result = vm.axiosResult;
+                    console.log(result);
+                    if (result.status != 200) {
+                        anyerror = true;
+                        vm.setTimeOutAlertMsg(result.data);
+                        return;
+                    }
+                    if (result.data["Response"] === "ok") {
+                        var thispwd = result.data["QueryTableData"][0].pwd;
+                        thisitemobj["pwd"] = thispwd;
+                    } else {
+                        anyerror = true;
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
+                    }
+                    console.log(thisitemobj);
+                    vm.modModalShow = true;
+                    vm.SetSystemFormData(thisitemobj);
+                    vm.togglecommonModal(true);
+                })
+                .catch(function (err) {
+                    console.log(err);
+                    anyerror = true;
+                    vm.setTimeOutAlertMsg(err);
+                })
+                .finally(() => {
+                    console.log("done");
+                    if (anyerror) vm.settimeoutalertModal();
+                });
         },
 
         AccountMod() {
             var vm = this;
-            var params = {};
-            params["methods"] = "PATCH";
-            params["whichFunction"] = "AccountMod";
-            params["uID"] = String(vm.systemFormCompletedData.uID);
-            params["pwd"] = vm.systemFormCompletedData.pwd;
-            params["uName"] = String(vm.systemFormCompletedData.uName);
-            params["uInfo"] = String(vm.systemFormCompletedData.uInfo);
-            params["email"] = String(vm.systemFormCompletedData.email);
-            params["noumenonID"] = String(
-                vm.systemFormCompletedData.noumenonID
-            );
-            params["accessList"] = JSON.stringify(
-                vm.systemFormCompletedData.accessList
-            );
-            params["creatorID"] = String(vm.loginData.account);
+            let params = {};
+            params["url"] = "api/YS/1.0/my/user/update_User";
+            params["postdata"] = {
+                old_uID: String(vm.systemFormCompletedData.uID),
+                new_uID: String(vm.systemFormCompletedData.uID),
+                pwd: vm.systemFormCompletedData.pwd,
+                uName: String(vm.systemFormCompletedData.uName),
+                uInfo: String(vm.systemFormCompletedData.uInfo),
+                email: String(vm.systemFormCompletedData.email),
+                noumenonType: "dep",
+                noumenonID: String(vm.systemFormCompletedData.noumenonID),
+                accessList: vm.systemFormCompletedData.accessList,
+                creatorID: String(vm.loginData.account),
+            };
             console.log(params);
-            vm.axiosAction(params)
+            let success = false;
+            vm.axiosPatchAction(params)
                 .then(() => {
+                    vm.togglealertModal(false);
                     vm.setSystemFormCompletedData({});
                     var result = vm.axiosResult;
                     console.log(result);
-                    var msg = "";
-                    if (
-                        Object.prototype.toString.call(result) !=
-                        "[object Object]"
-                    ) {
-                        vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(2000);
+                    if (result.status != 200) {
+                        vm.setTimeOutAlertMsg(result.data);
                         return;
                     }
-
-                    if (result["Response"] == "ok") {
+                    if (result.data["Response"] === "ok") {
                         vm.setsystemFormResponse();
-                        msg = "修改成功";
+                        vm.setTimeOutAlertMsg("修改成功");
+                        success = true;
                     } else {
-                        msg = result["Response"];
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
                     }
-                    vm.setTimeOutAlertMsg(msg);
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -628,50 +673,48 @@ export default {
                     vm.settimeoutalertModal();
                     vm.modModalShow = false;
                     vm.togglecommonModal(false);
-                    vm.queryAgain();
+                    if (success) {
+                        setTimeout(function () {
+                            vm.queryAgain();
+                        }, 1200);
+                    }
                 });
         },
 
         AccountAdd() {
             var vm = this;
-            var params = {};
-            params["methods"] = "POST";
-            params["whichFunction"] = "AccountAdd";
-            params["uID"] = String(vm.systemFormCompletedData.uID);
-            params["pwd"] = vm.systemFormCompletedData.pwd;
-            params["uName"] = String(vm.systemFormCompletedData.uName);
-            params["uInfo"] = String(vm.systemFormCompletedData.uInfo);
-            params["email"] = String(vm.systemFormCompletedData.email);
-            params["noumenonID"] = String(
-                vm.systemFormCompletedData.noumenonID
-            );
-            params["accessList"] = JSON.stringify(
-                vm.systemFormCompletedData.accessList
-            );
-            params["creatorID"] = String(vm.loginData.account);
+            let params = {};
+            params["url"] = "api/YS/1.0/my/user/reg_User";
+            params["postdata"] = {
+                uID: String(vm.systemFormCompletedData.uID),
+                pwd: vm.systemFormCompletedData.pwd,
+                uName: String(vm.systemFormCompletedData.uName),
+                uInfo: String(vm.systemFormCompletedData.uInfo),
+                email: String(vm.systemFormCompletedData.email),
+                noumenonType: "dep",
+                noumenonID: String(vm.systemFormCompletedData.noumenonID),
+                accessList: vm.systemFormCompletedData.accessList,
+                creatorID: String(vm.loginData.account),
+            };
             console.log(params);
-            vm.axiosAction(params)
+            let success = false;
+            vm.axiosPostAction(params)
                 .then(() => {
+                    vm.togglealertModal(false);
                     var result = vm.axiosResult;
                     console.log(result);
                     vm.setSystemFormCompletedData({});
-                    var msg = "";
-                    if (
-                        Object.prototype.toString.call(result) !=
-                        "[object Object]"
-                    ) {
-                        vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(2000);
+                    if (result.status != 200) {
+                        vm.setTimeOutAlertMsg(result.data);
                         return;
                     }
-
-                    if (result["Response"] == "ok") {
+                    if (result.data["Response"] === "ok") {
                         vm.setsystemFormResponse();
-                        msg = "新增成功";
+                        vm.setTimeOutAlertMsg("新增成功");
+                        success = true;
                     } else {
-                        msg = result["Response"];
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
                     }
-                    vm.setTimeOutAlertMsg(msg);
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -681,36 +724,39 @@ export default {
                     vm.settimeoutalertModal();
                     vm.toggleAddModal(false);
                     vm.SetSystemFormData(null);
-                    vm.queryAgain();
+                    if (success) {
+                        setTimeout(function () {
+                            vm.queryAgain();
+                        }, 1200);
+                    }
                 });
         },
 
         AccountDel(params) {
             var vm = this;
             var apiparams = {};
-            apiparams["methods"] = "DELETE";
-            apiparams["whichFunction"] = "AccountDel";
-            apiparams["uID"] = String(params.data.uID);
-            vm.axiosAction(apiparams)
+            apiparams["url"] = "api/YS/1.0/my/user/delete_User";
+            apiparams["postdata"] = {
+                uID: String(params.data.uID),
+            };
+            console.log(apiparams);
+            vm.togglealertModal(true);
+            let success = false;
+            vm.axiosDeleteAction(apiparams)
                 .then(() => {
                     var result = vm.axiosResult;
                     console.log(result);
-                    var msg = "";
-                    if (
-                        Object.prototype.toString.call(result) !=
-                        "[object Object]"
-                    ) {
-                        vm.setTimeOutAlertMsg(result);
-                        vm.settimeoutalertModal(2000);
+                    vm.togglealertModal(false);
+                    if (result.status != 200) {
+                        vm.setTimeOutAlertMsg(result.data);
                         return;
                     }
-
-                    if (result["Response"] == "ok") {
-                        msg = "刪除成功";
+                    if (result.data["Response"] === "ok") {
+                        vm.setTimeOutAlertMsg("刪除成功");
+                        success = true;
                     } else {
-                        msg = result["Response"];
+                        vm.setTimeOutAlertMsg(result.data["Response"]);
                     }
-                    vm.setTimeOutAlertMsg(msg);
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -719,7 +765,11 @@ export default {
                 .finally(() => {
                     vm.settimeoutalertModal();
                     vm.SetSystemFormData(null);
-                    vm.queryAgain();
+                    if (success) {
+                        setTimeout(function () {
+                            vm.queryAgain();
+                        }, 1200);
+                    }
                 });
         },
 
