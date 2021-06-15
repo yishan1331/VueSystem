@@ -458,6 +458,7 @@
                             <b-form-checkbox
                                 v-model="addTaskDetail.email"
                                 switch
+                                disabled
                             ></b-form-checkbox>
                         </b-col>
                     </b-row>
@@ -771,7 +772,7 @@ export default {
                     value: null,
                     invalid: false,
                 },
-                email: true,
+                email: false,
             },
             getStaffOptions: [],
             staffIDName: {},
@@ -1538,7 +1539,7 @@ export default {
                     value: null,
                     invalid: false,
                 },
-                email: true,
+                email: false,
             };
             vm.$nextTick(() => {
                 vm.$v.$reset();
