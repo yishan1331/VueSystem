@@ -1041,8 +1041,8 @@ export default {
         //     console.log("./tempfiles/" + file);
         //     window.open(
         //         "./tempfiles/" + file,
-        //         "sapidoSystem",
-        //         "sapidoSystem",
+        //         "vueSystem",
+        //         "vueSystem",
         //         "statusbar=no,scrollbars=yes,status=yes,resizable=yes"
         //     );
         // },

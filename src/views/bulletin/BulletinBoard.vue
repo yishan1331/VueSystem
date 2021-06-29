@@ -481,8 +481,8 @@ export default {
         previewfile(filepath) {
             window.open(
                 filepath,
-                "sapidoSystem",
-                "sapidoSystem",
+                "vueSystem",
+                "vueSystem",
                 "statusbar=no,scrollbars=yes,status=yes,resizable=yes"
             );
         },

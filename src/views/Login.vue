@@ -4,8 +4,8 @@
             <div class="text-center">
                 <img
                     src="../assets/yishan_logo1.png"
-                    alt="sapido"
-                    class="sapidoimg"
+                    alt="yishan"
+                    class="yishanimg"
                 />
             </div>
             <div style="margin-top: 10px">
@@ -61,8 +61,6 @@ export default {
             user: {
                 uID: "",
                 pwd: "",
-                // uID: "admin",
-                // pwd: "sapidotest@2019"
             },
         };
     },
@@ -251,7 +249,7 @@ input:focus {
     width: 100px;
     margin: 0 auto;
 }
-.sapidoimg {
+.yishanimg {
     max-width: 100%;
     margin-bottom: 10px;
 }
