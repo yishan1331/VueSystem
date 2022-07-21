@@ -739,7 +739,7 @@ export default {
             depConfig: {
                 1001: "資訊通訊部",
                 1002: "系統研發部",
-                1003: "雲端AI(智慧)平台部",
+                1003: "平台部",
                 1020: "智能製造事業處", //副總部門
             },
             priorityOptions: [
@@ -917,7 +917,7 @@ export default {
                     .commonQueryCondition.main == "ALL"
             ) {
                 todolistqueryoptions = [
-                    { text: "雲端AI(智慧)平台部", value: "1003" },
+                    { text: "平台部", value: "1003" },
                     { text: "系統研發部", value: "1002" },
                     { text: "資訊通訊部", value: "1001" },
                     { text: "全選", value: "ALL" },
